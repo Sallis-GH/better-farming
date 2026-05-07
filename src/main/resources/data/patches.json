@@ -1,0 +1,10 @@
+[
+  {
+    "id": "catherby_herb",
+    "displayName": "Catherby herb patch",
+    "type": "HERB",
+    "location": "Catherby",
+    "worldPoint": { "x": 2813, "y": 3464, "plane": 0 },
+    "requirements": []
+  }
+]

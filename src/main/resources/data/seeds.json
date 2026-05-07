@@ -1,0 +1,10 @@
+[
+  {
+    "id": "ranarr_seed",
+    "displayName": "Ranarr seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 32 }
+    ]
+  }
+]
