@@ -11,6 +11,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.util.List;
 import java.util.function.Consumer;
@@ -74,7 +75,10 @@ public class PatchCard extends JPanel
 		JPanel header = new JPanel(new BorderLayout());
 		header.setOpaque(false);
 
-		JLabel nameLabel = new JLabel(patch.displayName());
+		// TruncatingLabel handles long patch names deterministically: it
+		// re-truncates with a trailing "…" on every setBounds, and exposes
+		// the full text via tooltip on hover.
+		TruncatingLabel nameLabel = new TruncatingLabel(patch.displayName());
 		nameLabel.setForeground(Color.WHITE);
 		nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 12f));
 		header.add(nameLabel, BorderLayout.CENTER);
@@ -104,17 +108,28 @@ public class PatchCard extends JPanel
 		header.add(rightSlot, BorderLayout.EAST);
 
 		// ── body row: location + seed dropdown ──
+		// Layout note: BorderLayout.WEST sizes WEST to its preferred width,
+		// which for a long location string (e.g. "Tree Gnome Stronghold")
+		// can exceed available width and overlap the EAST slot. Putting
+		// location at CENTER instead lets it shrink to whatever's left
+		// after the dropdown's fixed slot, with TruncatingLabel adding "…".
 		JPanel body = new JPanel(new BorderLayout(8, 0));
 		body.setOpaque(false);
 
-		locationLabel = new JLabel(patch.location());
+		locationLabel = new TruncatingLabel(patch.location());
 		locationLabel.setForeground(new Color(0x99, 0x99, 0x99));
 		locationLabel.setFont(locationLabel.getFont().deriveFont(11f));
-		body.add(locationLabel, BorderLayout.WEST);
+		body.add(locationLabel, BorderLayout.CENTER);
 
 		seedDropdown = new JComboBox<>();
 		seedDropdown.setName("seed:" + patch.id());
 		seedDropdown.setRenderer(new SeedRenderer());
+		// Pin the dropdown's width so its slot doesn't grow with placeholder
+		// text length ("Need higher Farming level" would otherwise stretch
+		// the EAST slot and crowd out the location).
+		Dimension dropPref = new Dimension(110, seedDropdown.getPreferredSize().height);
+		seedDropdown.setPreferredSize(dropPref);
+		seedDropdown.setMinimumSize(dropPref);
 		seedDropdown.addActionListener(e -> {
 			if (!updatingDropdownProgrammatically)
 			{
@@ -305,6 +320,93 @@ public class PatchCard extends JPanel
 				return LEVEL_TOO_LOW;
 			}
 			return CHOOSE_SEED;
+		}
+	}
+
+	/**
+	 * JLabel that retruncates its text with a trailing "…" whenever its
+	 * bounds change. Avoids relying on BasicLabelUI's auto-truncation
+	 * (which is L&F-dependent and didn't show a visible ellipsis under
+	 * RuneLite's theme) and exposes the full text via tooltip.
+	 *
+	 * Stores the original text in {@code fullText} so {@link #setText}
+	 * can be called externally without losing the truncation source. The
+	 * {@code updating} guard prevents the {@code super.setText} call
+	 * inside {@link #retruncate} from re-entering the public override.
+	 */
+	private static final class TruncatingLabel extends JLabel
+	{
+		private static final String ELLIPSIS = "…";
+
+		private String fullText = "";
+		private boolean updating = false;
+
+		TruncatingLabel(String text)
+		{
+			setText(text);
+		}
+
+		@Override
+		public void setText(String text)
+		{
+			if (updating)
+			{
+				super.setText(text);
+				return;
+			}
+			fullText = text == null ? "" : text;
+			setToolTipText(fullText.isEmpty() ? null : fullText);
+			super.setText(fullText);
+			retruncate();
+		}
+
+		@Override
+		public void setBounds(int x, int y, int width, int height)
+		{
+			super.setBounds(x, y, width, height);
+			retruncate();
+		}
+
+		private void retruncate()
+		{
+			if (fullText.isEmpty() || getFont() == null)
+			{
+				return;
+			}
+			FontMetrics fm = getFontMetrics(getFont());
+			Insets insets = getInsets();
+			int avail = getWidth() - insets.left - insets.right;
+			if (avail <= 0)
+			{
+				return;
+			}
+			String target;
+			if (fm.stringWidth(fullText) <= avail)
+			{
+				target = fullText;
+			}
+			else
+			{
+				int budget = avail - fm.stringWidth(ELLIPSIS);
+				int len = fullText.length();
+				while (len > 0 && fm.stringWidth(fullText.substring(0, len)) > budget)
+				{
+					len--;
+				}
+				target = len == 0 ? "" : fullText.substring(0, len) + ELLIPSIS;
+			}
+			if (!target.equals(getText()))
+			{
+				updating = true;
+				try
+				{
+					super.setText(target);
+				}
+				finally
+				{
+					updating = false;
+				}
+			}
 		}
 	}
 }

@@ -39,10 +39,14 @@ public class PatchTypeSection extends JPanel
 		headerLabel.setOpaque(true);
 		headerLabel.setBackground(new Color(0x26, 0x26, 0x26));
 		headerLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		// Use mousePressed (not mouseClicked) so a fast user gets feedback
+		// on press: mouseClicked requires press AND release on the same
+		// pixel, which a quick click between sections often misses,
+		// producing "dead clicks".
 		headerLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				toggleExpanded();
 			}
