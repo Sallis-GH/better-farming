@@ -1,5 +1,7 @@
 package com.betterfarming.loader;
 
+import com.betterfarming.data.Patch;
+import com.betterfarming.data.PatchType;
 import com.betterfarming.data.requirement.QuestRequirement;
 import com.betterfarming.data.requirement.Requirement;
 import com.betterfarming.data.requirement.SkillRequirement;
@@ -62,5 +64,28 @@ public class FarmingDataLoaderTest
 		JsonParseException ex = assertThrows(JsonParseException.class,
 			() -> gson.fromJson(json, Requirement.class));
 		assertTrue("message should mention 'BOGUS'", ex.getMessage().contains("BOGUS"));
+	}
+
+	@Test
+	public void deserializesCompletePatchFromInlineJson()
+	{
+		String json = "{"
+			+ "\"id\":\"trollheim_herb\","
+			+ "\"displayName\":\"Trollheim herb patch\","
+			+ "\"type\":\"HERB\","
+			+ "\"location\":\"Trollheim\","
+			+ "\"worldPoint\":{\"x\":2826,\"y\":3694,\"plane\":0},"
+			+ "\"requirements\":[{\"type\":\"QUEST\",\"quest\":\"MY_ARMS_BIG_ADVENTURE\",\"state\":\"FINISHED\"}]"
+			+ "}";
+
+		Patch patch = gson.fromJson(json, Patch.class);
+
+		assertEquals("trollheim_herb", patch.id());
+		assertEquals("Trollheim herb patch", patch.displayName());
+		assertEquals(PatchType.HERB, patch.type());
+		assertEquals("Trollheim", patch.location());
+		assertEquals(2826, patch.worldPoint().getX());
+		assertEquals(1, patch.requirements().size());
+		assertTrue(patch.requirements().get(0) instanceof QuestRequirement);
 	}
 }
