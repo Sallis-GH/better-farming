@@ -1,0 +1,30 @@
+# Build output
+build/
+.gradle/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+.project
+.classpath
+.settings/
+nbactions.xml
+nb-configuration.xml
+nbproject/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI / local dev scaffolding (per user preference: never push these)
+.claude/
+.docs/
+docs/superpowers/
+*.local.md
+
+# Environment
+.env
+.env.*
