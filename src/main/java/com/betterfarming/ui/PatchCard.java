@@ -228,10 +228,10 @@ public class PatchCard extends JPanel
 	private void renderSelection(PatchSelection selection)
 	{
 		boolean selected = selection != null && selection.selected();
+		// Just the checkmark vs blank — no fill-tint distinction.
+		// The amber ✓ on the dark background is the entire indicator.
 		toggleButton.setText(selected ? "✓" : "");
-		toggleButton.setBackground(selected
-			? new Color(0x2A, 0x3A, 0x2A)
-			: new Color(0x1A, 0x1A, 0x1A));
+		toggleButton.setBackground(new Color(0x1A, 0x1A, 0x1A));
 		toggleButton.setForeground(new Color(0xB8, 0x8A, 0x47));
 
 		// Restore the previously-chosen seed (if any) without firing the action listener
