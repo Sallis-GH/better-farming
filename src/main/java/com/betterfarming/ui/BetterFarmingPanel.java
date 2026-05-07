@@ -72,7 +72,9 @@ public class BetterFarmingPanel extends PluginPanel
 
 		JScrollPane scroll = new JScrollPane(column);
 		scroll.setBorder(null);
-		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		// 85 cards always overflow the sidebar; ALWAYS keeps the viewport
+		// width stable so children don't reflow when the bar appears/hides.
+		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 

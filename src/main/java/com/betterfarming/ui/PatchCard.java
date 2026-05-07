@@ -38,7 +38,8 @@ public class PatchCard extends JPanel
 {
 	private static final String CHOOSE_SEED = "Choose seed…";
 	private static final String LOGGED_OUT = "Log in to choose seeds";
-	private static final Seed PLACEHOLDER_NONE = null; // null Seed → "Choose seed…" rendering
+	private static final String LEVEL_TOO_LOW = "Need higher Farming level";
+	private static final Seed PLACEHOLDER_NONE = null; // null Seed → placeholder rendering
 
 	private final Patch patch;
 	private final PatchSelectionService selectionService;
@@ -64,7 +65,9 @@ public class PatchCard extends JPanel
 
 		setLayout(new BorderLayout(0, 4));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		// Right inset is wider than the others so the toggle and the seed
+		// dropdown clear the JScrollPane's vertical scrollbar (≈12-14 px).
+		setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 14));
 		setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		// ── header row: name + toggle/info ──
@@ -266,9 +269,10 @@ public class PatchCard extends JPanel
 	}
 
 	/**
-	 * JComboBox renderer: null Seed shows the placeholder string. When the
-	 * dropdown is empty (logged out), we leave the placeholder text as
-	 * "Log in to choose seeds" by checking item count.
+	 * JComboBox renderer: null Seed shows a context-appropriate placeholder
+	 * — "Log in to choose seeds" when logged out, "Need higher Farming level"
+	 * when logged in but no seeds of this patch type are plantable yet, or
+	 * "Choose seed…" when seeds are available but none picked.
 	 */
 	private class SeedRenderer extends BasicComboBoxRenderer
 	{
@@ -279,8 +283,7 @@ public class PatchCard extends JPanel
 			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			if (value == null)
 			{
-				boolean loggedOut = availabilityService.plantableSeeds(patch.type()).isEmpty();
-				setText(loggedOut ? LOGGED_OUT : CHOOSE_SEED);
+				setText(placeholderText());
 				setForeground(new Color(0x66, 0x66, 0x66));
 			}
 			else
@@ -289,6 +292,19 @@ public class PatchCard extends JPanel
 				setForeground(Color.WHITE);
 			}
 			return this;
+		}
+
+		private String placeholderText()
+		{
+			if (!availabilityService.isLoggedIn())
+			{
+				return LOGGED_OUT;
+			}
+			if (availabilityService.plantableSeeds(patch.type()).isEmpty())
+			{
+				return LEVEL_TOO_LOW;
+			}
+			return CHOOSE_SEED;
 		}
 	}
 }

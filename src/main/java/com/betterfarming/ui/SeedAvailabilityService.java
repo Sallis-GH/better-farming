@@ -52,6 +52,11 @@ public class SeedAvailabilityService
 		return seeds == null ? Collections.emptyList() : seeds;
 	}
 
+	public boolean isLoggedIn()
+	{
+		return client.getGameState() == GameState.LOGGED_IN;
+	}
+
 	public void addListener(Runnable listener)
 	{
 		listeners.add(listener);
