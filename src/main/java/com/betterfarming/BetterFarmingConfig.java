@@ -4,36 +4,20 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("betterfarming")
+@ConfigGroup(BetterFarmingConfig.GROUP)
 public interface BetterFarmingConfig extends Config
 {
-	@ConfigItem(
-		keyName = "farmingLevel",
-		name = "Farming level",
-		description = "Your current Farming skill level (used to filter available seeds and patches)"
-	)
-	default int farmingLevel()
-	{
-		return 1;
-	}
+	String GROUP = "betterfarming";
+	String PATCH_SELECTIONS_KEY = "patchSelections";
 
 	@ConfigItem(
-		keyName = "herbloreLevel",
-		name = "Herblore level",
-		description = "Your current Herblore skill level (used for herb-related options)"
+		keyName = PATCH_SELECTIONS_KEY,
+		name = "Patch selections (internal)",
+		description = "Serialized patch selection state. Edit at your own risk.",
+		hidden = true
 	)
-	default int herbloreLevel()
+	default String patchSelections()
 	{
-		return 1;
-	}
-
-	@ConfigItem(
-		keyName = "magicLevel",
-		name = "Magic level",
-		description = "Your current Magic skill level (used to determine available teleports)"
-	)
-	default int magicLevel()
-	{
-		return 1;
+		return "";
 	}
 }

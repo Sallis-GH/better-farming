@@ -23,6 +23,7 @@ Thumbs.db
 .claude/
 .docs/
 docs/superpowers/
+.superpowers/
 *.local.md
 
 # Environment
