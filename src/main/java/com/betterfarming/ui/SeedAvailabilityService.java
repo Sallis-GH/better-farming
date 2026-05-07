@@ -26,8 +26,8 @@ import net.runelite.client.eventbus.Subscribe;
 /**
  * Computes "what seeds can the player currently plant in a patch of type X"
  * given live Farming level + login state. Cached per-PatchType and rebuilt
- * on refresh(). Game event subscription (StatChanged, GameStateChanged)
- * is added in a follow-up task.
+ * on refresh(). Auto-refreshes via {@link Subscribe} on Farming-skill
+ * StatChanged events and any GameStateChanged event.
  */
 @Singleton
 @Slf4j
