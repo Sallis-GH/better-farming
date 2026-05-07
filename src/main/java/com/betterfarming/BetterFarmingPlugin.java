@@ -1,6 +1,10 @@
 package com.betterfarming;
 
+import com.betterfarming.data.FarmingData;
+import com.betterfarming.loader.FarmingDataLoader;
+import com.betterfarming.loader.FarmingDataValidator;
 import com.google.inject.Provides;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
@@ -14,10 +18,19 @@ import net.runelite.client.plugins.PluginDescriptor;
 )
 public class BetterFarmingPlugin extends Plugin
 {
+	@Inject
+	private FarmingDataLoader loader;
+
+	@Inject
+	private FarmingDataValidator validator;
+
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.info("Better Farming: started");
+		FarmingData data = loader.load();
+		validator.validate(data);
+		log.info("Better Farming: started; loaded {} patches and {} seeds",
+			data.patches().size(), data.seeds().size());
 	}
 
 	@Override
