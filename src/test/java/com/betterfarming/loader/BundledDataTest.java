@@ -19,9 +19,9 @@ public class BundledDataTest
 
 		validator.validate(data);
 
-		// Sanity floors — kept low while data is being populated.
-		// Tighten in P18 step 10 once full population is complete.
-		assertTrue("expected at least 1 patch", data.patches().size() >= 1);
-		assertTrue("expected at least 1 seed",  data.seeds().size()   >= 1);
+		// Sanity floors — tightened after full data population in P18.
+		// 85 patches and 79 seeds as of population; floors set ~10% below actual.
+		assertTrue("expected at least 80 patches", data.patches().size() >= 80);
+		assertTrue("expected at least 71 seeds",   data.seeds().size()   >= 71);
 	}
 }
