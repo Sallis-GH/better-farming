@@ -174,7 +174,9 @@ public class PatchSelectionServiceTest
 
 		String blob = configManager.peek("betterfarming", "patchSelections");
 		assertNotNull(blob);
-		assertTrue("blob should mention p1", blob.contains("p1"));
+		assertTrue("blob should contain version 1", blob.contains("\"version\":1"));
+		assertTrue("blob should contain p1", blob.contains("\"p1\""));
+		assertTrue("blob should record selected=true", blob.contains("\"selected\":true"));
 	}
 
 	@Test

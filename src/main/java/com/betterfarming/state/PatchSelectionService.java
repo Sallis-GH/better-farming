@@ -52,7 +52,7 @@ public class PatchSelectionService
 	}
 
 	// Visible for testing — production code uses the FarmingData constructor.
-	public PatchSelectionService(ConfigStore configStore,
+	PatchSelectionService(ConfigStore configStore,
 		Set<String> validPatchIds, Set<String> validSeedIds)
 	{
 		this.configStore = configStore;
@@ -137,10 +137,15 @@ public class PatchSelectionService
 				raw.length() > 200 ? raw.substring(0, 200) + "…" : raw, ex);
 			return;
 		}
-		if (blob == null || blob.version != CURRENT_VERSION)
+		if (blob == null)
+		{
+			log.warn("Better Farming: patchSelections blob parsed as null, starting empty");
+			return;
+		}
+		if (blob.version != CURRENT_VERSION)
 		{
 			log.warn("Better Farming: patchSelections blob has unexpected version {}, starting empty",
-				blob == null ? "(null)" : blob.version);
+				blob.version);
 			return;
 		}
 		if (blob.selections == null)
@@ -151,7 +156,12 @@ public class PatchSelectionService
 		{
 			String patchId = entry.getKey();
 			BlobEntry value = entry.getValue();
-			if (value == null || !validPatchIds.contains(patchId))
+			if (value == null)
+			{
+				log.debug("Better Farming: dropping null entry for patch {}", patchId);
+				continue;
+			}
+			if (!validPatchIds.contains(patchId))
 			{
 				log.debug("Better Farming: dropping selection for unknown patch {}", patchId);
 				continue;
