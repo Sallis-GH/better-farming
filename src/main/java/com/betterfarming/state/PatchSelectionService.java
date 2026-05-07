@@ -26,9 +26,9 @@ import lombok.extern.slf4j.Slf4j;
  * that no longer exist in the bundled FarmingData). Persists the whole
  * map back as a single JSON blob on every mutation.
  *
- * Listeners receive PatchSelectionEvents synchronously on whatever thread
- * triggers the mutation. A later task (PatchCard wiring) hops to the EDT
- * before refreshing UI components, so cards don't have to.
+ * Listeners are fired synchronously on whatever thread triggered the
+ * mutation. Swing consumers (e.g. PatchCard) are responsible for hopping
+ * to the EDT via SwingUtilities.invokeLater before updating components.
  */
 @Singleton
 @Slf4j

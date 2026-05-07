@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.SwingUtilities;
 import net.runelite.api.Skill;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -101,10 +102,11 @@ public class BetterFarmingPanelIntegrationTest
 	}
 
 	@Test
-	public void seedDropdownIsEmptyWhenLoggedOut()
+	public void seedDropdownIsEmptyWhenLoggedOut() throws Exception
 	{
 		client.setGameState(net.runelite.api.GameState.LOGIN_SCREEN);
 		availabilityService.refresh();
+		SwingUtilities.invokeAndWait(() -> {}); // flush EDT — PatchCard.onAvailabilityChanged uses invokeLater
 
 		PatchCard card = findFirst(panel, PatchCard.class);
 		JComboBox<?> combo = findFirst(card, JComboBox.class);
