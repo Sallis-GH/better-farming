@@ -1,0 +1,626 @@
+[
+  {
+    "id": "potato_seed",
+    "displayName": "Potato seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 1 }
+    ]
+  },
+  {
+    "id": "onion_seed",
+    "displayName": "Onion seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 5 }
+    ]
+  },
+  {
+    "id": "cabbage_seed",
+    "displayName": "Cabbage seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 7 }
+    ]
+  },
+  {
+    "id": "tomato_seed",
+    "displayName": "Tomato seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 12 }
+    ]
+  },
+  {
+    "id": "sweetcorn_seed",
+    "displayName": "Sweetcorn seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 20 }
+    ]
+  },
+  {
+    "id": "strawberry_seed",
+    "displayName": "Strawberry seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 31 }
+    ]
+  },
+  {
+    "id": "watermelon_seed",
+    "displayName": "Watermelon seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 47 }
+    ]
+  },
+  {
+    "id": "snape_grass_seed",
+    "displayName": "Snape grass seed",
+    "compatiblePatchTypes": ["ALLOTMENT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 61 }
+    ]
+  },
+  {
+    "id": "marigold_seed",
+    "displayName": "Marigold seed",
+    "compatiblePatchTypes": ["FLOWER"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 2 }
+    ]
+  },
+  {
+    "id": "rosemary_seed",
+    "displayName": "Rosemary seed",
+    "compatiblePatchTypes": ["FLOWER"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 11 }
+    ]
+  },
+  {
+    "id": "nasturtium_seed",
+    "displayName": "Nasturtium seed",
+    "compatiblePatchTypes": ["FLOWER"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 24 }
+    ]
+  },
+  {
+    "id": "woad_seed",
+    "displayName": "Woad seed",
+    "compatiblePatchTypes": ["FLOWER"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 25 }
+    ]
+  },
+  {
+    "id": "limpwurt_seed",
+    "displayName": "Limpwurt seed",
+    "compatiblePatchTypes": ["FLOWER"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 26 }
+    ]
+  },
+  {
+    "id": "white_lily_seed",
+    "displayName": "White lily seed",
+    "compatiblePatchTypes": ["FLOWER"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 58 }
+    ]
+  },
+  {
+    "id": "guam_seed",
+    "displayName": "Guam seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 9 }
+    ]
+  },
+  {
+    "id": "marrentill_seed",
+    "displayName": "Marrentill seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 14 }
+    ]
+  },
+  {
+    "id": "tarromin_seed",
+    "displayName": "Tarromin seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 19 }
+    ]
+  },
+  {
+    "id": "harralander_seed",
+    "displayName": "Harralander seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 26 }
+    ]
+  },
+  {
+    "id": "gout_tuber",
+    "displayName": "Gout tuber",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 29 }
+    ]
+  },
+  {
+    "id": "ranarr_seed",
+    "displayName": "Ranarr seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 32 }
+    ]
+  },
+  {
+    "id": "toadflax_seed",
+    "displayName": "Toadflax seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 38 }
+    ]
+  },
+  {
+    "id": "irit_seed",
+    "displayName": "Irit seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 44 }
+    ]
+  },
+  {
+    "id": "avantoe_seed",
+    "displayName": "Avantoe seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 50 }
+    ]
+  },
+  {
+    "id": "kwuarm_seed",
+    "displayName": "Kwuarm seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 56 }
+    ]
+  },
+  {
+    "id": "snapdragon_seed",
+    "displayName": "Snapdragon seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 62 }
+    ]
+  },
+  {
+    "id": "huasca_seed",
+    "displayName": "Huasca seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 65 }
+    ]
+  },
+  {
+    "id": "cadantine_seed",
+    "displayName": "Cadantine seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 67 }
+    ]
+  },
+  {
+    "id": "lantadyme_seed",
+    "displayName": "Lantadyme seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 73 }
+    ]
+  },
+  {
+    "id": "dwarf_weed_seed",
+    "displayName": "Dwarf weed seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 79 }
+    ]
+  },
+  {
+    "id": "torstol_seed",
+    "displayName": "Torstol seed",
+    "compatiblePatchTypes": ["HERB"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 85 }
+    ]
+  },
+  {
+    "id": "barley_seed",
+    "displayName": "Barley seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 3 }
+    ]
+  },
+  {
+    "id": "hammerstone_seed",
+    "displayName": "Hammerstone seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 4 }
+    ]
+  },
+  {
+    "id": "asgarnian_seed",
+    "displayName": "Asgarnian seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 8 }
+    ]
+  },
+  {
+    "id": "jute_seed",
+    "displayName": "Jute seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 13 }
+    ]
+  },
+  {
+    "id": "yanillian_seed",
+    "displayName": "Yanillian seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 16 }
+    ]
+  },
+  {
+    "id": "flax_seed",
+    "displayName": "Flax seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 18 }
+    ]
+  },
+  {
+    "id": "krandorian_seed",
+    "displayName": "Krandorian seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 21 }
+    ]
+  },
+  {
+    "id": "wildblood_seed",
+    "displayName": "Wildblood seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 28 }
+    ]
+  },
+  {
+    "id": "hemp_seed",
+    "displayName": "Hemp seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 37 }
+    ]
+  },
+  {
+    "id": "cotton_seed",
+    "displayName": "Cotton seed",
+    "compatiblePatchTypes": ["HOPS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 71 }
+    ]
+  },
+  {
+    "id": "redberry_seed",
+    "displayName": "Redberry seed",
+    "compatiblePatchTypes": ["BUSH"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 10 }
+    ]
+  },
+  {
+    "id": "cadavaberry_seed",
+    "displayName": "Cadavaberry seed",
+    "compatiblePatchTypes": ["BUSH"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 22 }
+    ]
+  },
+  {
+    "id": "dwellberry_seed",
+    "displayName": "Dwellberry seed",
+    "compatiblePatchTypes": ["BUSH"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 36 }
+    ]
+  },
+  {
+    "id": "jangerberry_seed",
+    "displayName": "Jangerberry seed",
+    "compatiblePatchTypes": ["BUSH"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 48 }
+    ]
+  },
+  {
+    "id": "whiteberry_seed",
+    "displayName": "Whiteberry seed",
+    "compatiblePatchTypes": ["BUSH"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 59 }
+    ]
+  },
+  {
+    "id": "poison_ivy_seed",
+    "displayName": "Poison ivy seed",
+    "compatiblePatchTypes": ["BUSH"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 70 }
+    ]
+  },
+  {
+    "id": "acorn",
+    "displayName": "Acorn",
+    "compatiblePatchTypes": ["TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 15 }
+    ]
+  },
+  {
+    "id": "willow_seed",
+    "displayName": "Willow seed",
+    "compatiblePatchTypes": ["TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 30 }
+    ]
+  },
+  {
+    "id": "maple_seed",
+    "displayName": "Maple seed",
+    "compatiblePatchTypes": ["TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 45 }
+    ]
+  },
+  {
+    "id": "yew_seed",
+    "displayName": "Yew seed",
+    "compatiblePatchTypes": ["TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 60 }
+    ]
+  },
+  {
+    "id": "magic_seed",
+    "displayName": "Magic seed",
+    "compatiblePatchTypes": ["TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 75 }
+    ]
+  },
+  {
+    "id": "apple_tree_seed",
+    "displayName": "Apple tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 27 }
+    ]
+  },
+  {
+    "id": "banana_tree_seed",
+    "displayName": "Banana tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 33 }
+    ]
+  },
+  {
+    "id": "orange_tree_seed",
+    "displayName": "Orange tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 39 }
+    ]
+  },
+  {
+    "id": "curry_tree_seed",
+    "displayName": "Curry tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 42 }
+    ]
+  },
+  {
+    "id": "pineapple_seed",
+    "displayName": "Pineapple seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 51 }
+    ]
+  },
+  {
+    "id": "papaya_tree_seed",
+    "displayName": "Papaya tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 57 }
+    ]
+  },
+  {
+    "id": "palm_tree_seed",
+    "displayName": "Palm tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 68 }
+    ]
+  },
+  {
+    "id": "dragonfruit_tree_seed",
+    "displayName": "Dragonfruit tree seed",
+    "compatiblePatchTypes": ["FRUIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 81 }
+    ]
+  },
+  {
+    "id": "teak_seed",
+    "displayName": "Teak seed",
+    "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 35 }
+    ]
+  },
+  {
+    "id": "mahogany_seed",
+    "displayName": "Mahogany seed",
+    "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 55 }
+    ]
+  },
+  {
+    "id": "camphor_seed",
+    "displayName": "Camphor seed",
+    "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 66 }
+    ]
+  },
+  {
+    "id": "ironwood_seed",
+    "displayName": "Ironwood seed",
+    "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 80 }
+    ]
+  },
+  {
+    "id": "rosewood_seed",
+    "displayName": "Rosewood seed",
+    "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 92 }
+    ]
+  },
+  {
+    "id": "spirit_seed",
+    "displayName": "Spirit seed",
+    "compatiblePatchTypes": ["SPIRIT_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 83 }
+    ]
+  },
+  {
+    "id": "calquat_tree_seed",
+    "displayName": "Calquat tree seed",
+    "compatiblePatchTypes": ["CALQUAT"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 72 }
+    ]
+  },
+  {
+    "id": "celastrus_seed",
+    "displayName": "Celastrus seed",
+    "compatiblePatchTypes": ["CELASTRUS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 85 }
+    ]
+  },
+  {
+    "id": "redwood_tree_seed",
+    "displayName": "Redwood tree seed",
+    "compatiblePatchTypes": ["REDWOOD"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 90 }
+    ]
+  },
+  {
+    "id": "crystal_acorn",
+    "displayName": "Crystal acorn",
+    "compatiblePatchTypes": ["CRYSTAL_TREE"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 74 }
+    ]
+  },
+  {
+    "id": "attas_seed",
+    "displayName": "Attas seed",
+    "compatiblePatchTypes": ["ANIMA"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 76 }
+    ]
+  },
+  {
+    "id": "iasor_seed",
+    "displayName": "Iasor seed",
+    "compatiblePatchTypes": ["ANIMA"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 76 }
+    ]
+  },
+  {
+    "id": "kronos_seed",
+    "displayName": "Kronos seed",
+    "compatiblePatchTypes": ["ANIMA"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 76 }
+    ]
+  },
+  {
+    "id": "hespori_seed",
+    "displayName": "Hespori seed",
+    "compatiblePatchTypes": ["HESPORI"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 65 }
+    ]
+  },
+  {
+    "id": "cactus_seed",
+    "displayName": "Cactus seed",
+    "compatiblePatchTypes": ["CACTUS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 55 }
+    ]
+  },
+  {
+    "id": "potato_cactus_seed",
+    "displayName": "Potato cactus seed",
+    "compatiblePatchTypes": ["CACTUS"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 64 }
+    ]
+  },
+  {
+    "id": "mushroom_spore",
+    "displayName": "Mushroom spore",
+    "compatiblePatchTypes": ["MUSHROOM"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 53 }
+    ]
+  },
+  {
+    "id": "belladonna_seed",
+    "displayName": "Belladonna seed",
+    "compatiblePatchTypes": ["BELLADONNA"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 63 }
+    ]
+  },
+  {
+    "id": "seaweed_spore",
+    "displayName": "Seaweed spore",
+    "compatiblePatchTypes": ["SEAWEED"],
+    "requirements": [
+      { "type": "SKILL", "skill": "FARMING", "level": 23 }
+    ]
+  }
+]
