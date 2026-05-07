@@ -1,0 +1,24 @@
+package com.betterfarming.data;
+
+public enum PatchType
+{
+	ALLOTMENT,
+	FLOWER,
+	HERB,
+	HOPS,
+	BUSH,
+	TREE,
+	FRUIT_TREE,
+	HARDWOOD_TREE,
+	SPIRIT_TREE,
+	CALQUAT,
+	CELASTRUS,
+	REDWOOD,
+	CRYSTAL_TREE,
+	ANIMA,
+	HESPORI,
+	CACTUS,
+	MUSHROOM,
+	BELLADONNA,
+	SEAWEED
+}
