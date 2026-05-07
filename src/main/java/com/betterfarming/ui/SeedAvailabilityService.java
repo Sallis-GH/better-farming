@@ -19,6 +19,9 @@ import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.StatChanged;
+import net.runelite.client.eventbus.Subscribe;
 
 /**
  * Computes "what seeds can the player currently plant in a patch of type X"
@@ -123,6 +126,23 @@ public class SeedAvailabilityService
 					listener.getClass().getName(), ex);
 			}
 		}
+	}
+
+	@Subscribe
+	public void onStatChanged(StatChanged event)
+	{
+		if (event.getSkill() != Skill.FARMING)
+		{
+			return;
+		}
+		refresh();
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		// Refresh on every state change — login/logout/hopping all matter.
+		refresh();
 	}
 
 	private static int farmingRequirementOf(Seed seed)

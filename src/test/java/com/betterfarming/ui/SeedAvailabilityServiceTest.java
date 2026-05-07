@@ -5,10 +5,13 @@ import com.betterfarming.data.PatchType;
 import com.betterfarming.data.Seed;
 import com.betterfarming.data.requirement.SkillRequirement;
 import com.betterfarming.testsupport.FakeClient;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.StatChanged;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -96,5 +99,49 @@ public class SeedAvailabilityServiceTest
 		List<Seed> allotment = availability.plantableSeeds(PatchType.ALLOTMENT);
 		assertEquals(potatoLvl1, allotment.get(0));      // level 1 first
 		assertEquals(watermelonLvl47, allotment.get(1)); // level 47 second
+	}
+
+	@Test
+	public void statChangedFiresListenerWhenLevelChanges()
+	{
+		// Start below watermelon's requirement (47) so the cache will actually change.
+		client.setLevel(Skill.FARMING, 1);
+		availability.refresh();
+		List<Integer> callbacks = new ArrayList<>();
+		availability.addListener(() -> callbacks.add(1));
+
+		client.setLevel(Skill.FARMING, 99);
+		StatChanged event = new StatChanged(Skill.FARMING, 99 * 1000, 99, 99);
+		availability.onStatChanged(event);
+
+		assertEquals(1, callbacks.size());
+	}
+
+	@Test
+	public void statChangedOnNonFarmingSkillIsNoOp()
+	{
+		List<Integer> callbacks = new ArrayList<>();
+		availability.addListener(() -> callbacks.add(1));
+
+		StatChanged event = new StatChanged(Skill.MAGIC, 0, 99, 99);
+		availability.onStatChanged(event);
+
+		assertTrue("non-FARMING StatChanged should not fire listeners", callbacks.isEmpty());
+	}
+
+	@Test
+	public void gameStateChangedFiresListenerOnLoginTransition()
+	{
+		client.setGameState(GameState.LOGIN_SCREEN);
+		availability.refresh();
+		List<Integer> callbacks = new ArrayList<>();
+		availability.addListener(() -> callbacks.add(1));
+
+		client.setGameState(GameState.LOGGED_IN);
+		GameStateChanged event = new GameStateChanged();
+		event.setGameState(GameState.LOGGED_IN);
+		availability.onGameStateChanged(event);
+
+		assertEquals(1, callbacks.size());
 	}
 }
