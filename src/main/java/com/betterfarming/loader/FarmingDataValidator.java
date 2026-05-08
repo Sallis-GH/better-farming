@@ -156,6 +156,7 @@ public class FarmingDataValidator
 	private void validateSubPatchLabels(String groupKey, List<Patch> members)
 	{
 		boolean isMulti = members.size() > 1;
+		Set<String> seenLabels = new HashSet<>();
 		for (Patch p : members)
 		{
 			boolean hasLabel = p.subPatchLabel() != null && !p.subPatchLabel().isEmpty();
@@ -171,6 +172,13 @@ public class FarmingDataValidator
 					"sub-patch-label-presence violated for group [" + groupKey + "]: "
 						+ "patch " + p.id() + " is a singleton but has subPatchLabel="
 						+ p.subPatchLabel());
+			}
+			if (isMulti && !seenLabels.add(p.subPatchLabel()))
+			{
+				throw new FarmingDataValidationException(
+					"sub-patch-label-unique-within-group violated for group [" + groupKey + "]: "
+						+ "label '" + p.subPatchLabel() + "' appears on multiple patches "
+						+ "(including " + p.id() + ")");
 			}
 		}
 	}

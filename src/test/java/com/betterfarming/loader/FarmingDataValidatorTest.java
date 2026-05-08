@@ -169,4 +169,25 @@ public class FarmingDataValidatorTest
 		assertTrue("message should name the offending patch",
 			ex.getMessage().contains("h1"));
 	}
+
+	@Test
+	public void subPatchLabelUniqueWithinGroup_throws()
+	{
+		Patch a = new Patch("a1", "A1", PatchType.ALLOTMENT, "Catherby", "N",
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+		// Same group, same label
+		Patch b = new Patch("a2", "A2", PatchType.ALLOTMENT, "Catherby", "N",
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+
+		FarmingData data = new FarmingData(Arrays.asList(a, b), Collections.<Seed>emptyList());
+
+		FarmingDataValidationException ex = assertThrows(FarmingDataValidationException.class,
+			() -> validator.validate(data));
+		assertTrue("message should name the rule",
+			ex.getMessage().contains("sub-patch-label-unique-within-group"));
+		assertTrue("message should name the offending group",
+			ex.getMessage().contains("ALLOTMENT|Catherby"));
+		assertTrue("message should name the duplicated label",
+			ex.getMessage().contains("N"));
+	}
 }
