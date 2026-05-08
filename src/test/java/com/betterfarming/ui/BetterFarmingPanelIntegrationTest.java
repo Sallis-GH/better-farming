@@ -2,7 +2,10 @@ package com.betterfarming.ui;
 
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.PatchType;
+import com.betterfarming.data.requirement.QuestRequirement;
+import com.betterfarming.data.requirement.Requirement;
 import com.betterfarming.data.requirement.RequirementEvaluator;
+import com.betterfarming.data.requirement.SkillRequirement;
 import com.betterfarming.loader.FarmingDataLoader;
 import com.betterfarming.state.PatchSelection;
 import com.betterfarming.state.PatchSelectionService;
@@ -15,8 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import net.runelite.api.GameState;
+import net.runelite.api.Quest;
+import net.runelite.api.QuestState;
 import net.runelite.api.Skill;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.StatChanged;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -231,6 +240,176 @@ public class BetterFarmingPanelIntegrationTest
 		assertFalse("South of Falador has no requirements", falador.isLocked());
 	}
 
+	@Test
+	public void farmingGuildAllotmentUnlocksAfterLevelUp() throws Exception
+	{
+		client.setLevel(Skill.FARMING, 1);
+		accessibilityService.refresh();
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
+
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
+		assertTrue("locked at Farming 1", card.isLocked());
+
+		client.setLevel(Skill.FARMING, 99);
+		accessibilityService.onStatChanged(
+			new StatChanged(Skill.FARMING, 99 * 1000, 99, 99));
+		SwingUtilities.invokeAndWait(() -> {});
+
+		assertFalse("unlocked at Farming 99", card.isLocked());
+		JButton toggle = findGroupToggleButton(card);
+		assertTrue("toggle button reappears", toggle.isVisible());
+	}
+
+	@Test
+	public void prifddinasUnlocksAfterQuestFinishedAndRegionCross() throws Exception
+	{
+		client.setQuestState(Quest.SONG_OF_THE_ELVES, QuestState.NOT_STARTED);
+		accessibilityService.refresh();
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
+
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Prifddinas");
+		assertTrue("locked when Song of the Elves not finished", card.isLocked());
+
+		client.setQuestState(Quest.SONG_OF_THE_ELVES, QuestState.FINISHED);
+		GameStateChanged gsc = new GameStateChanged();
+		gsc.setGameState(GameState.LOADING);  // region cross
+		accessibilityService.onGameStateChanged(gsc);
+		SwingUtilities.invokeAndWait(() -> {});
+
+		assertFalse("unlocked after quest finished + region cross", card.isLocked());
+	}
+
+	@Test
+	public void singleRequirementReasonIsPlainProse()
+	{
+		client.setLevel(Skill.FARMING, 1);
+		accessibilityService.refresh();
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
+
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
+		JLabel info = findInfoIcon(card);
+		assertNotNull(info);
+		assertEquals("Requires Farming 45", info.getToolTipText());
+	}
+
+	@Test
+	public void multipleRequirementsReasonIsHtmlBulletList() throws Exception
+	{
+		// Synthetic group with two requirements — bundled data has no such group today.
+		com.betterfarming.data.Patch combo = new com.betterfarming.data.Patch(
+			"combo", "Combo display", PatchType.ALLOTMENT, "Combo Spot", null,
+			new net.runelite.api.coords.WorldPoint(0, 0, 0),
+			List.<Requirement>of(
+				new SkillRequirement(Skill.FARMING, 45),
+				new QuestRequirement(Quest.SONG_OF_THE_ELVES, QuestState.FINISHED)));
+		FarmingData synthetic = new FarmingData(List.of(combo),
+			java.util.List.<com.betterfarming.data.Seed>of());
+
+		FakeClient localClient = new FakeClient();
+		localClient.setLevel(Skill.FARMING, 1);
+		localClient.setQuestState(Quest.SONG_OF_THE_ELVES, QuestState.NOT_STARTED);
+
+		PatchAccessibilityService localAccess = new PatchAccessibilityService(
+			localClient, synthetic, new RequirementEvaluator());
+		localAccess.refresh();
+
+		BetterFarmingPanel localPanel = new BetterFarmingPanel(synthetic,
+			new PatchSelectionService(new FakeConfigStore(), synthetic),
+			new SeedAvailabilityService(localClient, synthetic),
+			localAccess);
+
+		PatchGroupCard card = null;
+		for (PatchGroupCard c : findAll(localPanel, PatchGroupCard.class))
+		{
+			JButton t = findGroupToggleButton(c);
+			if (t != null && "groupToggle:ALLOTMENT|Combo Spot".equals(t.getName()))
+			{
+				card = c;
+				break;
+			}
+		}
+		assertNotNull(card);
+
+		JLabel info = findInfoIcon(card);
+		String tip = info.getToolTipText();
+		assertNotNull(tip);
+		assertTrue("multi-req tooltip uses HTML", tip.startsWith("<html>"));
+		assertTrue("includes Farming 45", tip.contains("Farming 45"));
+		assertTrue("includes quest name", tip.contains("Song of the Elves"));
+	}
+
+	@Test
+	public void activeFlagPreservedAcrossLockCycle() throws Exception
+	{
+		client.setLevel(Skill.FARMING, 99);
+		accessibilityService.refresh();
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
+
+		// User toggles a low-requirement group active (Farming Guild needs 45 — they have 99).
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
+		JButton toggle = findGroupToggleButton(card);
+		toggle.doClick();
+		assertTrue(selectionService.isGroupActive("ALLOTMENT|Farming Guild"));
+		assertFalse(card.isLocked());
+		assertTrue("active + unlocked → effectively active",
+			accessibilityService.effectiveActive("ALLOTMENT|Farming Guild", selectionService));
+
+		// Skill drops below requirement (e.g. user reloads with a different account).
+		client.setLevel(Skill.FARMING, 1);
+		accessibilityService.onStatChanged(
+			new StatChanged(Skill.FARMING, 0, 1, 1));
+		SwingUtilities.invokeAndWait(() -> {});
+
+		assertTrue("now locked", card.isLocked());
+		assertTrue("active flag PRESERVED — not auto-cleared by the lock",
+			selectionService.isGroupActive("ALLOTMENT|Farming Guild"));
+		assertFalse("but effectiveActive shadows it to false",
+			accessibilityService.effectiveActive("ALLOTMENT|Farming Guild", selectionService));
+
+		// Skill recovers — lock clears, active flag flips back to effective without re-toggling.
+		client.setLevel(Skill.FARMING, 99);
+		accessibilityService.onStatChanged(
+			new StatChanged(Skill.FARMING, 99 * 1000, 99, 99));
+		SwingUtilities.invokeAndWait(() -> {});
+
+		assertFalse("unlocked again", card.isLocked());
+		assertTrue("effectiveActive recovers without user re-toggle",
+			accessibilityService.effectiveActive("ALLOTMENT|Farming Guild", selectionService));
+	}
+
+	@Test
+	public void subRowDropdownsDisabledWhileLocked() throws Exception
+	{
+		client.setLevel(Skill.FARMING, 1);
+		accessibilityService.refresh();
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
+
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
+		assertTrue(card.isLocked());
+
+		for (PatchSubRow row : findAll(card, PatchSubRow.class))
+		{
+			JComboBox<?> combo = findFirst(row, JComboBox.class);
+			assertFalse("sub-row dropdown disabled while locked", combo.isEnabled());
+		}
+
+		client.setLevel(Skill.FARMING, 99);
+		accessibilityService.onStatChanged(
+			new StatChanged(Skill.FARMING, 99 * 1000, 99, 99));
+		SwingUtilities.invokeAndWait(() -> {});
+
+		for (PatchSubRow row : findAll(card, PatchSubRow.class))
+		{
+			JComboBox<?> combo = findFirst(row, JComboBox.class);
+			assertTrue("sub-row dropdown re-enabled after unlock", combo.isEnabled());
+		}
+	}
+
 	// ── helpers ──
 
 	@SuppressWarnings("unchecked")
@@ -314,6 +493,18 @@ public class BetterFarmingPanelIntegrationTest
 			if (b.getName() != null && b.getName().startsWith("groupToggle:"))
 			{
 				return b;
+			}
+		}
+		return null;
+	}
+
+	private JLabel findInfoIcon(PatchGroupCard card)
+	{
+		for (JLabel l : findAll(card, JLabel.class))
+		{
+			if (l.getName() != null && l.getName().startsWith("info:"))
+			{
+				return l;
 			}
 		}
 		return null;
