@@ -2,6 +2,9 @@ package com.betterfarming.ui;
 
 import com.betterfarming.data.Patch;
 import com.betterfarming.data.PatchGroup;
+import com.betterfarming.data.requirement.QuestRequirement;
+import com.betterfarming.data.requirement.Requirement;
+import com.betterfarming.data.requirement.SkillRequirement;
 import com.betterfarming.state.GroupActiveEvent;
 import com.betterfarming.state.PatchSelectionService;
 import java.awt.BorderLayout;
@@ -27,18 +30,20 @@ import net.runelite.client.ui.ColorScheme;
  * One card per (type, location) group. Header: location title + active toggle.
  * Body: one PatchSubRow per patch in the group, in JSON file order.
  *
- * The card subscribes to GroupActiveEvent for its own groupKey and to
- * SeedAvailabilityService at the card level (delegates to sub-rows). Sub-rows
- * subscribe individually to PatchSelectionEvent for their own patchId.
+ * The card subscribes to three event sources: GroupActiveEvent (own groupKey),
+ * SeedAvailabilityService (delegates to sub-rows), and PatchAccessibilityEvent
+ * (own groupKey; drives setLocked/clearLocked). Sub-rows subscribe individually
+ * to PatchSelectionEvent for their own patchId.
  *
- * Phase 1.5 hooks setLocked(reason)/clearLocked() are implemented but have
- * no callers in Phase 1.1.
+ * setLocked(reason)/clearLocked() are wired by PatchAccessibilityService; visual
+ * treatment (orange !, dimmed title, disabled sub-rows) is preserved from Phase 1.1.
  */
 public class PatchGroupCard extends JPanel
 {
 	private final PatchGroup group;
 	private final PatchSelectionService selectionService;
 	private final SeedAvailabilityService availabilityService;
+	private final PatchAccessibilityService accessibilityService;
 
 	private final TruncatingLabel titleLabel;
 	private final JButton toggleButton;
@@ -47,16 +52,19 @@ public class PatchGroupCard extends JPanel
 	private final List<PatchSubRow> subRows = new ArrayList<>();
 	private final Consumer<GroupActiveEvent> groupListener;
 	private final Runnable availabilityListener;
+	private final Consumer<PatchAccessibilityEvent> accessibilityListener;
 
 	private boolean lockedState = false;
 
 	public PatchGroupCard(PatchGroup group,
 		PatchSelectionService selectionService,
-		SeedAvailabilityService availabilityService)
+		SeedAvailabilityService availabilityService,
+		PatchAccessibilityService accessibilityService)
 	{
 		this.group = group;
 		this.selectionService = selectionService;
 		this.availabilityService = availabilityService;
+		this.accessibilityService = accessibilityService;
 
 		setLayout(new BorderLayout(0, 4));
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -117,11 +125,20 @@ public class PatchGroupCard extends JPanel
 		// ── initial render of the toggle ──
 		renderActive(selectionService.isGroupActive(group.key()));
 
+		// ── initial lock state — apply BEFORE subscribing so we don't double-render ──
+		List<Requirement> initialUnmet = accessibilityService.unmetFor(group.key());
+		if (!initialUnmet.isEmpty())
+		{
+			setLocked(formatReason(initialUnmet));
+		}
+
 		// ── subscribe ──
 		groupListener = this::onGroupActiveEvent;
 		availabilityListener = this::onAvailabilityChanged;
+		accessibilityListener = this::onAccessibilityEvent;
 		selectionService.addGroupListener(groupListener);
 		availabilityService.addListener(availabilityListener);
+		accessibilityService.addListener(accessibilityListener);
 	}
 
 	@Override
@@ -129,6 +146,7 @@ public class PatchGroupCard extends JPanel
 	{
 		selectionService.removeGroupListener(groupListener);
 		availabilityService.removeListener(availabilityListener);
+		accessibilityService.removeListener(accessibilityListener);
 		super.removeNotify();
 	}
 
@@ -197,6 +215,23 @@ public class PatchGroupCard extends JPanel
 		});
 	}
 
+	private void onAccessibilityEvent(PatchAccessibilityEvent event)
+	{
+		if (!event.groupKey().equals(group.key()))
+		{
+			return;
+		}
+		// Service already hopped to the EDT before dispatching.
+		if (event.nowLocked())
+		{
+			setLocked(formatReason(event.unmet()));
+		}
+		else
+		{
+			clearLocked();
+		}
+	}
+
 	// ── rendering ──
 
 	private void renderActive(boolean active)
@@ -204,6 +239,41 @@ public class PatchGroupCard extends JPanel
 		toggleButton.setText(active ? "✓" : "");
 		toggleButton.setBackground(new Color(0x1A, 0x1A, 0x1A));
 		toggleButton.setForeground(new Color(0xB8, 0x8A, 0x47));
+	}
+
+	private static String formatReason(List<Requirement> unmet)
+	{
+		if (unmet.isEmpty())
+		{
+			// Shouldn't happen: only called when nowLocked == true.
+			return "";
+		}
+		if (unmet.size() == 1)
+		{
+			return "Requires " + describe(unmet.get(0));
+		}
+		StringBuilder sb = new StringBuilder("<html>Requires:");
+		for (Requirement r : unmet)
+		{
+			sb.append("<br>&bull; ").append(describe(r));
+		}
+		sb.append("</html>");
+		return sb.toString();
+	}
+
+	private static String describe(Requirement r)
+	{
+		if (r instanceof SkillRequirement)
+		{
+			SkillRequirement sr = (SkillRequirement) r;
+			return sr.skill().getName() + " " + sr.level();
+		}
+		if (r instanceof QuestRequirement)
+		{
+			QuestRequirement qr = (QuestRequirement) r;
+			return qr.quest().getName();
+		}
+		return r.toString();
 	}
 
 	/**

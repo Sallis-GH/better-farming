@@ -6,9 +6,11 @@ import com.betterfarming.loader.FarmingDataValidator;
 import com.betterfarming.state.ConfigManagerStore;
 import com.betterfarming.state.ConfigStore;
 import com.betterfarming.state.PatchSelectionService;
+import com.betterfarming.data.requirement.RequirementEvaluator;
 import com.betterfarming.ui.BetterFarmingPanel;
 import com.betterfarming.ui.ClientLevelSource;
 import com.betterfarming.ui.ClientLevelSourceAdapter;
+import com.betterfarming.ui.PatchAccessibilityService;
 import com.betterfarming.ui.SeedAvailabilityService;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
@@ -39,10 +41,12 @@ public class BetterFarmingPlugin extends Plugin
 	@Inject private ClientLevelSource clientLevelSource;
 	@Inject private ClientToolbar clientToolbar;
 	@Inject private EventBus eventBus;
+	@Inject private RequirementEvaluator evaluator;
 
 	private NavigationButton navButton;
 	private SeedAvailabilityService availabilityService;
 	private PatchSelectionService selectionService;
+	private PatchAccessibilityService accessibilityService;
 
 	@Override
 	public void configure(Binder binder)
@@ -61,14 +65,23 @@ public class BetterFarmingPlugin extends Plugin
 
 		selectionService = new PatchSelectionService(configStore, data);
 		availabilityService = new SeedAvailabilityService(clientLevelSource, data);
+		accessibilityService = new PatchAccessibilityService(clientLevelSource, data, evaluator);
 
-		// SeedAvailabilityService has @Subscribe methods — register on the bus
+		// SeedAvailabilityService and PatchAccessibilityService have @Subscribe
+		// methods — register both on the bus.
 		eventBus.register(availabilityService);
+		eventBus.register(accessibilityService);
+
+		// Initial pass so cards built mid-session-already-logged-in see real
+		// lock state at construction. Without this, the first lock evaluation
+		// would wait for a GameStateChanged or StatChanged that may never come
+		// for an idle-logged-in player.
+		accessibilityService.refresh();
 
 		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icons/sidebar.png");
 		SwingUtilities.invokeLater(() -> {
 			BetterFarmingPanel panel = new BetterFarmingPanel(
-				data, selectionService, availabilityService);
+				data, selectionService, availabilityService, accessibilityService);
 			navButton = NavigationButton.builder()
 				.tooltip("Better Farming")
 				.icon(icon)
@@ -91,6 +104,11 @@ public class BetterFarmingPlugin extends Plugin
 		{
 			eventBus.unregister(availabilityService);
 			availabilityService = null;
+		}
+		if (accessibilityService != null)
+		{
+			eventBus.unregister(accessibilityService);
+			accessibilityService = null;
 		}
 		selectionService = null;
 		log.info("Better Farming: stopped");
