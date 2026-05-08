@@ -155,7 +155,24 @@ public class FarmingDataValidator
 
 	private void validateSubPatchLabels(String groupKey, List<Patch> members)
 	{
-		// Reserved for the next two tasks. Filled in below.
+		boolean isMulti = members.size() > 1;
+		for (Patch p : members)
+		{
+			boolean hasLabel = p.subPatchLabel() != null && !p.subPatchLabel().isEmpty();
+			if (isMulti && !hasLabel)
+			{
+				throw new FarmingDataValidationException(
+					"sub-patch-label-presence violated for group [" + groupKey + "]: "
+						+ "patch " + p.id() + " is in a multi-patch group but has no subPatchLabel");
+			}
+			if (!isMulti && hasLabel)
+			{
+				throw new FarmingDataValidationException(
+					"sub-patch-label-presence violated for group [" + groupKey + "]: "
+						+ "patch " + p.id() + " is a singleton but has subPatchLabel="
+						+ p.subPatchLabel());
+			}
+		}
 	}
 
 	private static void requireNonEmpty(String value, String label)
