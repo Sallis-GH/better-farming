@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -68,23 +67,10 @@ public class PatchSelectionService
 		return Optional.ofNullable(selections.get(patchId));
 	}
 
-	public Stream<PatchSelection> selected()
-	{
-		return selections.values().stream().filter(PatchSelection::selected);
-	}
-
-	public void setSelected(String patchId, boolean selected)
-	{
-		PatchSelection prev = selections.get(patchId);
-		String seedId = prev == null ? null : prev.seedId();
-		applyMutation(patchId, prev, new PatchSelection(patchId, selected, seedId));
-	}
-
 	public void setSeed(String patchId, String seedId)
 	{
 		PatchSelection prev = selections.get(patchId);
-		boolean selected = prev != null && prev.selected();
-		applyMutation(patchId, prev, new PatchSelection(patchId, selected, seedId));
+		applyMutation(patchId, prev, new PatchSelection(patchId, seedId));
 	}
 
 	public void addListener(Consumer<PatchSelectionEvent> listener)
@@ -225,7 +211,7 @@ public class PatchSelectionService
 				log.debug("Better Farming: dropping unknown seed {} from patch {}", seedId, patchId);
 				seedId = null;
 			}
-			selections.put(patchId, new PatchSelection(patchId, value.selected, seedId));
+			selections.put(patchId, new PatchSelection(patchId, seedId));
 		}
 	}
 
@@ -237,7 +223,6 @@ public class PatchSelectionService
 		for (PatchSelection sel : selections.values())
 		{
 			BlobEntry e = new BlobEntry();
-			e.selected = sel.selected();
 			e.seedId = sel.seedId();
 			blob.selections.put(sel.patchId(), e);
 		}

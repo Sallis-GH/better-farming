@@ -4,16 +4,16 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 
 /**
- * Immutable snapshot of a single patch's selection state.
- * Identity is by patchId (matching the Patch.id values from FarmingData).
- * seedId may be null — meaning "no seed picked yet" — which is independent
- * of the selected flag.
+ * Immutable snapshot of a single patch's seed choice. Identity is by
+ * patchId. seedId may be null — meaning "no seed picked yet".
+ *
+ * Activation lives separately on PatchSelectionService at the group level,
+ * not per-patch. See PatchSelectionService.isGroupActive(String).
  */
 @Value
 @Accessors(fluent = true)
 public class PatchSelection
 {
 	String patchId;
-	boolean selected;
 	String seedId;
 }
