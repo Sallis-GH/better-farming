@@ -59,7 +59,7 @@ public class PatchSelectionServiceTest
 		service.setSeed("p1", "watermelon_seed");
 		service.setSeed("p1", null);
 
-		assertNull(service.get("p1").get().seedId());
+		assertFalse(service.get("p1").isPresent());
 	}
 
 	@Test
@@ -221,7 +221,7 @@ public class PatchSelectionServiceTest
 		assertEquals(1, received.size());
 	}
 
-	// ── persistence (still v1 in this task; Task 10 bumps to v2) ──
+	// ── persistence ──
 
 	@Test
 	public void persistsToConfigManagerOnSeedChange()
@@ -260,6 +260,114 @@ public class PatchSelectionServiceTest
 
 		PatchSelectionService loaded = new PatchSelectionService(configManager,
 			Set.of("p1"), Set.of());
+
+		assertFalse(loaded.get("p1").isPresent());
+	}
+
+	@Test
+	public void persistsBlobAtVersion2()
+	{
+		service.setSeed("p1", "watermelon_seed");
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		String blob = configManager.peek("betterfarming", "patchSelections");
+		assertNotNull(blob);
+		assertTrue("blob should declare version 2", blob.contains("\"version\":2"));
+		assertTrue("blob should contain seeds map", blob.contains("\"seeds\""));
+		assertTrue("blob should contain activeGroups list", blob.contains("\"activeGroups\""));
+		assertTrue(blob.contains("\"p1\""));
+		assertTrue(blob.contains("\"ALLOTMENT|Catherby\""));
+	}
+
+	@Test
+	public void loadsV2Blob()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[\"ALLOTMENT|Catherby\"],"
+				+ "\"seeds\":{\"p1\":\"watermelon_seed\"}"
+				+ "}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed"));
+
+		assertTrue(loaded.get("p1").isPresent());
+		assertEquals("watermelon_seed", loaded.get("p1").get().seedId());
+		assertTrue(loaded.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void loadFiltersUnknownPatchIdsFromSeeds()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[],"
+				+ "\"seeds\":{\"p1\":\"watermelon_seed\","
+				+ "\"renamed_or_removed\":\"toadflax_seed\"}"
+				+ "}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed", "toadflax_seed"));
+
+		assertTrue(loaded.get("p1").isPresent());
+		assertFalse(loaded.get("renamed_or_removed").isPresent());
+	}
+
+	@Test
+	public void loadFiltersUnknownSeedIds()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[],"
+				+ "\"seeds\":{\"p1\":\"removed_seed\"}"
+				+ "}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed"));
+
+		// Seed is dropped; no entry persists for the patch (since there's nothing else to record).
+		assertFalse(loaded.get("p1").isPresent());
+	}
+
+	@Test
+	public void loadKeepsUnknownGroupKeysFiltered()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[\"ALLOTMENT|Catherby\",\"HERB|Renamed Place\"],"
+				+ "\"seeds\":{}"
+				+ "}");
+
+		// validGroupKeys is provided to the service via constructor.
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of(), Set.of(), Set.of("ALLOTMENT|Catherby"));
+
+		assertTrue(loaded.isGroupActive("ALLOTMENT|Catherby"));
+		assertFalse(loaded.isGroupActive("HERB|Renamed Place"));
+	}
+
+	@Test
+	public void loadHandlesLegacyV1BlobAsEmpty()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":1,\"selections\":{"
+				+ "\"p1\":{\"selected\":true,\"seedId\":\"watermelon_seed\"}"
+				+ "}}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed"));
+
+		assertFalse("legacy v1 blobs are ignored", loaded.get("p1").isPresent());
+	}
+
+	@Test
+	public void loadHandlesUnknownVersionAsEmpty()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":99,\"seeds\":{\"p1\":\"watermelon_seed\"}}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed"));
 
 		assertFalse(loaded.get("p1").isPresent());
 	}
