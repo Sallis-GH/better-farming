@@ -25,7 +25,7 @@ public class FarmingDataValidatorTest
 	private static Patch validPatch(String id)
 	{
 		return new Patch(id, "Display " + id, PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+			null, new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
 	}
 
 	private static Seed validSeed(String id)
@@ -73,7 +73,7 @@ public class FarmingDataValidatorTest
 	public void emptyPatchDisplayNameFails()
 	{
 		Patch p = new Patch("p1", "", PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+			null, new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
 		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
@@ -94,7 +94,7 @@ public class FarmingDataValidatorTest
 	{
 		Requirement bogus = new SkillRequirement(Skill.FARMING, 320);
 		Patch p = new Patch("p1", "P1", PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Arrays.asList(bogus));
+			null, new WorldPoint(0, 0, 0), Arrays.asList(bogus));
 		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
@@ -105,7 +105,7 @@ public class FarmingDataValidatorTest
 	{
 		Requirement bogus = new SkillRequirement(Skill.FARMING, 0);
 		Patch p = new Patch("p1", "P1", PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Arrays.asList(bogus));
+			null, new WorldPoint(0, 0, 0), Arrays.asList(bogus));
 		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
