@@ -5,10 +5,10 @@ import com.betterfarming.data.Seed;
 import com.betterfarming.state.PatchSelection;
 import com.betterfarming.state.PatchSelectionEvent;
 import com.betterfarming.state.PatchSelectionService;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +23,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 /**
- * One row inside a PatchGroupCard. Layout: [subLabel] (filler) [seedDropdown].
- * For singletons, subLabel is null and the WEST slot is omitted.
+ * One row inside a PatchGroupCard. Layout: [seedDropdown] [subLabel], both
+ * flush to the left edge via FlowLayout. For singletons, subLabel is null
+ * and the dropdown sits alone at the left — keeping the dropdown's left edge
+ * stable across singleton and multi-row cards.
  *
  * The row subscribes only to PatchSelectionEvent for its own patchId. The
  * parent PatchGroupCard owns the SeedAvailabilityService listener and pushes
@@ -67,10 +69,31 @@ class PatchSubRow extends JPanel
 		this.selectionService = selectionService;
 		this.availabilityService = availabilityService;
 
-		setLayout(new BorderLayout(8, 0));
+		// FlowLayout.LEFT keeps the label and dropdown aligned to the left edge
+		// of the card body rather than pushing them to opposite ends. hgap=8
+		// matches the previous BorderLayout horizontal gap; vgap=0 keeps rows
+		// tight against the body's BoxLayout spacing.
+		setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
 		setOpaque(false);
 		setAlignmentX(Component.LEFT_ALIGNMENT);
 		setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+
+		seedDropdown = new JComboBox<>();
+		seedDropdown.setName("seed:" + patch.id());
+		seedDropdown.setRenderer(new SeedRenderer());
+		// 140px is wide enough for the "Choose seed…" placeholder plus the
+		// chevron button without truncation, while still leaving room for
+		// the sub-label slot to its right inside a 225px sidebar.
+		Dimension dropPref = new Dimension(140, seedDropdown.getPreferredSize().height);
+		seedDropdown.setPreferredSize(dropPref);
+		seedDropdown.setMinimumSize(dropPref);
+		seedDropdown.addActionListener(e -> {
+			if (!updatingDropdownProgrammatically)
+			{
+				onSeedSelected();
+			}
+		});
+		add(seedDropdown);
 
 		if (subLabel != null && !subLabel.isEmpty())
 		{
@@ -84,22 +107,8 @@ class PatchSubRow extends JPanel
 			{
 				label.setToolTipText(longForm);
 			}
-			add(label, BorderLayout.WEST);
+			add(label);
 		}
-
-		seedDropdown = new JComboBox<>();
-		seedDropdown.setName("seed:" + patch.id());
-		seedDropdown.setRenderer(new SeedRenderer());
-		Dimension dropPref = new Dimension(110, seedDropdown.getPreferredSize().height);
-		seedDropdown.setPreferredSize(dropPref);
-		seedDropdown.setMinimumSize(dropPref);
-		seedDropdown.addActionListener(e -> {
-			if (!updatingDropdownProgrammatically)
-			{
-				onSeedSelected();
-			}
-		});
-		add(seedDropdown, BorderLayout.EAST);
 
 		// Initial render: populate dropdown and seat any saved selection.
 		repopulateDropdown(availabilityService.plantableSeeds(patch.type()));
