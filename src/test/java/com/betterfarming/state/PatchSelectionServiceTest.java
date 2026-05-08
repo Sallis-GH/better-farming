@@ -275,4 +275,103 @@ public class PatchSelectionServiceTest
 
 		assertEquals(writesAfterFirst, configManager.getWriteCount());
 	}
+
+	@Test
+	public void isGroupActiveDefaultsToFalse()
+	{
+		assertFalse(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void setGroupActiveTrueRecordsActiveState()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertTrue(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void setGroupActiveFalseClearsActiveState()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+		service.setGroupActive("ALLOTMENT|Catherby", false);
+
+		assertFalse(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void activeGroupsReturnsActiveSet()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+		service.setGroupActive("HERB|Falador", true);
+		service.setGroupActive("FLOWER|Catherby", true);
+		service.setGroupActive("FLOWER|Catherby", false);
+
+		java.util.Set<String> active = service.activeGroups();
+		assertTrue(active.contains("ALLOTMENT|Catherby"));
+		assertTrue(active.contains("HERB|Falador"));
+		assertFalse(active.contains("FLOWER|Catherby"));
+	}
+
+	@Test
+	public void activeGroupsReturnsDefensiveCopy()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		java.util.Set<String> active = service.activeGroups();
+		active.clear();
+
+		// Service state is unaffected.
+		assertTrue(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void groupListenerReceivesEventOnActivate()
+	{
+		java.util.List<GroupActiveEvent> received = new ArrayList<>();
+		service.addGroupListener(received::add);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertEquals(1, received.size());
+		assertEquals("ALLOTMENT|Catherby", received.get(0).groupKey());
+		assertFalse(received.get(0).oldActive());
+		assertTrue(received.get(0).newActive());
+	}
+
+	@Test
+	public void noOpGroupActivateFiresNoEvent()
+	{
+		java.util.List<GroupActiveEvent> received = new ArrayList<>();
+		service.addGroupListener(received::add);
+
+		service.setGroupActive("ALLOTMENT|Catherby", false);  // already false
+
+		assertTrue(received.isEmpty());
+	}
+
+	@Test
+	public void removeGroupListenerStopsReceivingEvents()
+	{
+		java.util.List<GroupActiveEvent> received = new ArrayList<>();
+		Consumer<GroupActiveEvent> listener = received::add;
+		service.addGroupListener(listener);
+		service.removeGroupListener(listener);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertTrue(received.isEmpty());
+	}
+
+	@Test
+	public void groupListenerExceptionDoesNotBreakOtherListeners()
+	{
+		java.util.List<GroupActiveEvent> received = new ArrayList<>();
+		service.addGroupListener(e -> { throw new RuntimeException("boom"); });
+		service.addGroupListener(received::add);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertEquals(1, received.size());
+	}
 }

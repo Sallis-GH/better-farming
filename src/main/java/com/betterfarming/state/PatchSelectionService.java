@@ -42,6 +42,8 @@ public class PatchSelectionService
 	private final Set<String> validSeedIds;
 	private final Map<String, PatchSelection> selections = new HashMap<>();
 	private final Set<Consumer<PatchSelectionEvent>> listeners = new LinkedHashSet<>();
+	private final Set<String> activeGroupKeys = new LinkedHashSet<>();
+	private final Set<Consumer<GroupActiveEvent>> groupListeners = new LinkedHashSet<>();
 
 	@Inject
 	public PatchSelectionService(ConfigStore configStore, FarmingData data)
@@ -93,6 +95,57 @@ public class PatchSelectionService
 	public void removeListener(Consumer<PatchSelectionEvent> listener)
 	{
 		listeners.remove(listener);
+	}
+
+	public boolean isGroupActive(String groupKey)
+	{
+		return activeGroupKeys.contains(groupKey);
+	}
+
+	public Set<String> activeGroups()
+	{
+		return new LinkedHashSet<>(activeGroupKeys);
+	}
+
+	public void setGroupActive(String groupKey, boolean active)
+	{
+		boolean prev = activeGroupKeys.contains(groupKey);
+		if (prev == active)
+		{
+			return;
+		}
+		if (active)
+		{
+			activeGroupKeys.add(groupKey);
+		}
+		else
+		{
+			activeGroupKeys.remove(groupKey);
+		}
+		save();
+		GroupActiveEvent event = new GroupActiveEvent(groupKey, prev, active);
+		for (Consumer<GroupActiveEvent> listener : groupListeners)
+		{
+			try
+			{
+				listener.accept(event);
+			}
+			catch (RuntimeException ex)
+			{
+				log.warn("Better Farming: group listener {} threw on group {}",
+					listener.getClass().getName(), groupKey, ex);
+			}
+		}
+	}
+
+	public void addGroupListener(Consumer<GroupActiveEvent> listener)
+	{
+		groupListeners.add(listener);
+	}
+
+	public void removeGroupListener(Consumer<GroupActiveEvent> listener)
+	{
+		groupListeners.remove(listener);
 	}
 
 	private void applyMutation(String patchId, PatchSelection prev, PatchSelection next)
