@@ -110,4 +110,23 @@ public class FarmingDataValidatorTest
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
 	}
+
+	@Test
+	public void groupRequirementsMustBeIdentical_throws()
+	{
+		Requirement req45 = new SkillRequirement(Skill.FARMING, 45);
+		Patch a = new Patch("a1", "A1", PatchType.ALLOTMENT, "Catherby", null,
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+		Patch b = new Patch("a2", "A2", PatchType.ALLOTMENT, "Catherby", null,
+			new WorldPoint(0, 0, 0), Arrays.asList(req45));
+
+		FarmingData data = new FarmingData(Arrays.asList(a, b), Collections.<Seed>emptyList());
+
+		FarmingDataValidationException ex = assertThrows(FarmingDataValidationException.class,
+			() -> validator.validate(data));
+		assertTrue("message should name the rule",
+			ex.getMessage().contains("group-requirements-identical"));
+		assertTrue("message should name the offending group",
+			ex.getMessage().contains("ALLOTMENT|Catherby"));
+	}
 }
