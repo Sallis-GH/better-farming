@@ -25,7 +25,7 @@ public class PatchTypeSection extends JPanel
 	private final JPanel cardsContainer;
 	private boolean expanded = true;
 
-	public PatchTypeSection(PatchType type, List<? extends javax.swing.JComponent> cards)
+	public PatchTypeSection(PatchType type, List<PatchGroupCard> cards)
 	{
 		setLayout(new BorderLayout());
 		setOpaque(false);
@@ -51,7 +51,7 @@ public class PatchTypeSection extends JPanel
 		cardsContainer = new JPanel();
 		cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
 		cardsContainer.setOpaque(false);
-		for (javax.swing.JComponent card : cards)
+		for (PatchGroupCard card : cards)
 		{
 			card.setAlignmentX(Component.LEFT_ALIGNMENT);
 			cardsContainer.add(card);
