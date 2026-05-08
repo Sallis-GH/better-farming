@@ -2,6 +2,7 @@ package com.betterfarming.ui;
 
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.PatchType;
+import com.betterfarming.data.requirement.RequirementEvaluator;
 import com.betterfarming.loader.FarmingDataLoader;
 import com.betterfarming.state.PatchSelection;
 import com.betterfarming.state.PatchSelectionService;
@@ -39,6 +40,7 @@ public class BetterFarmingPanelIntegrationTest
 	private FakeConfigStore configManager;
 	private PatchSelectionService selectionService;
 	private SeedAvailabilityService availabilityService;
+	private PatchAccessibilityService accessibilityService;
 	private BetterFarmingPanel panel;
 
 	@Before
@@ -51,7 +53,11 @@ public class BetterFarmingPanelIntegrationTest
 
 		selectionService = new PatchSelectionService(configManager, data);
 		availabilityService = new SeedAvailabilityService(client, data);
-		panel = new BetterFarmingPanel(data, selectionService, availabilityService);
+		accessibilityService = new PatchAccessibilityService(
+			client, data, new com.betterfarming.data.requirement.RequirementEvaluator());
+		accessibilityService.refresh();
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
 	}
 
 	@Test
@@ -202,6 +208,27 @@ public class BetterFarmingPanelIntegrationTest
 
 		// Just the placeholder.
 		assertEquals(1, combo.getItemCount());
+	}
+
+	@Test
+	public void farmingGuildAllotmentLocksWhenFarmingBelow45()
+	{
+		// Constructed in setUp() with FARMING=99, so all locks should be cleared.
+		// Rebuild with FARMING=1 to trigger the lock at construction time.
+		client.setLevel(Skill.FARMING, 1);
+		accessibilityService.refresh();
+
+		// Rebuild the panel so cards see the locked state on construction.
+		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
+			accessibilityService);
+
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
+		assertNotNull(card);
+		assertTrue("Farming Guild allotment requires Farming 45", card.isLocked());
+
+		PatchGroupCard falador = findCardForGroupKey("ALLOTMENT|South of Falador");
+		assertNotNull(falador);
+		assertFalse("South of Falador has no requirements", falador.isLocked());
 	}
 
 	// ── helpers ──

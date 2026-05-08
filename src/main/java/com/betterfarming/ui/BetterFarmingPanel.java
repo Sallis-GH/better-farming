@@ -40,7 +40,8 @@ public class BetterFarmingPanel extends PluginPanel
 
 	public BetterFarmingPanel(FarmingData data,
 		PatchSelectionService selectionService,
-		SeedAvailabilityService availabilityService)
+		SeedAvailabilityService availabilityService,
+		PatchAccessibilityService accessibilityService)
 	{
 		super(false);
 		setLayout(new BorderLayout());
@@ -67,7 +68,8 @@ public class BetterFarmingPanel extends PluginPanel
 			List<PatchGroupCard> cards = new ArrayList<>(typeGroups.size());
 			for (PatchGroup g : typeGroups)
 			{
-				cards.add(new PatchGroupCard(g, selectionService, availabilityService));
+				cards.add(new PatchGroupCard(g, selectionService, availabilityService,
+					accessibilityService));
 			}
 			PatchTypeSection section = new PatchTypeSection(type, cards);
 			section.setAlignmentX(Component.LEFT_ALIGNMENT);
