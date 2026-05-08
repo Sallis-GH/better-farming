@@ -15,9 +15,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 /**
- * A collapsible group of PatchCards for a single PatchType. Header shows
- * "Allotment (17) ▼"; clicking toggles cards visibility. Default state:
- * expanded. Collapse state lives in-memory only (not persisted).
+ * A collapsible group of PatchGroupCards for a single PatchType. Header shows
+ * "Allotment (9) ▼" — the count is the number of (type, location) group cards,
+ * not raw patches. Clicking toggles card visibility. Default state: expanded.
+ * Collapse state lives in-memory only (not persisted).
  */
 public class PatchTypeSection extends JPanel
 {

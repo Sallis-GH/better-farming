@@ -21,7 +21,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 
 /**
@@ -35,7 +34,6 @@ import net.runelite.client.ui.ColorScheme;
  * Phase 1.5 hooks setLocked(reason)/clearLocked() are implemented but have
  * no callers in Phase 1.1.
  */
-@Slf4j
 public class PatchGroupCard extends JPanel
 {
 	private final PatchGroup group;
