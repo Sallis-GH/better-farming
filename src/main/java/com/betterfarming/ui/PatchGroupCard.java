@@ -30,12 +30,13 @@ import net.runelite.client.ui.ColorScheme;
  * One card per (type, location) group. Header: location title + active toggle.
  * Body: one PatchSubRow per patch in the group, in JSON file order.
  *
- * The card subscribes to GroupActiveEvent for its own groupKey and to
- * SeedAvailabilityService at the card level (delegates to sub-rows). Sub-rows
- * subscribe individually to PatchSelectionEvent for their own patchId.
+ * The card subscribes to three event sources: GroupActiveEvent (own groupKey),
+ * SeedAvailabilityService (delegates to sub-rows), and PatchAccessibilityEvent
+ * (own groupKey; drives setLocked/clearLocked). Sub-rows subscribe individually
+ * to PatchSelectionEvent for their own patchId.
  *
- * Phase 1.5 hooks setLocked(reason)/clearLocked() are implemented but have
- * no callers in Phase 1.1.
+ * setLocked(reason)/clearLocked() are wired by PatchAccessibilityService; visual
+ * treatment (orange !, dimmed title, disabled sub-rows) is preserved from Phase 1.1.
  */
 public class PatchGroupCard extends JPanel
 {
