@@ -14,6 +14,7 @@ public class Patch
 	String displayName;
 	PatchType type;
 	String location;
+	String subPatchLabel;
 	WorldPoint worldPoint;
 	List<Requirement> requirements;
 }

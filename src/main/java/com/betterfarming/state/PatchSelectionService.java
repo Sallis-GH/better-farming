@@ -3,10 +3,12 @@ package com.betterfarming.state;
 import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.Patch;
+import com.betterfarming.data.PatchGroup;
 import com.betterfarming.data.Seed;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -14,7 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -22,67 +23,87 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * In-memory store + persistence + change broadcaster for patch selections.
  *
- * Loads from ConfigManager on construction (filtering out patch/seed ids
- * that no longer exist in the bundled FarmingData). Persists the whole
- * map back as a single JSON blob on every mutation.
+ * State is two pieces:
+ *  - per-patch seedId (Map<String, PatchSelection>)
+ *  - per-group active flag (Set<String> keyed by PatchGroup.key())
  *
- * Listeners are fired synchronously on whatever thread triggered the
- * mutation. Swing consumers (e.g. PatchCard) are responsible for hopping
- * to the EDT via SwingUtilities.invokeLater before updating components.
+ * Persisted as one JSON blob (version 2) under the betterfarming.patchSelections
+ * config key. Legacy version-1 Phase 1 blobs are detected, logged at WARN, and
+ * treated as empty (no migrator).
+ *
+ * Listeners run synchronously on whatever thread mutated the service. Swing
+ * consumers are responsible for hopping to the EDT before touching components.
  */
 @Singleton
 @Slf4j
 public class PatchSelectionService
 {
-	private static final int CURRENT_VERSION = 1;
+	private static final int CURRENT_VERSION = 2;
 	private static final Gson GSON = new Gson();
 
 	private final ConfigStore configStore;
 	private final Set<String> validPatchIds;
 	private final Set<String> validSeedIds;
+	private final Set<String> validGroupKeys;
+
 	private final Map<String, PatchSelection> selections = new HashMap<>();
+	private final Set<String> activeGroupKeys = new LinkedHashSet<>();
 	private final Set<Consumer<PatchSelectionEvent>> listeners = new LinkedHashSet<>();
+	private final Set<Consumer<GroupActiveEvent>> groupListeners = new LinkedHashSet<>();
 
 	@Inject
 	public PatchSelectionService(ConfigStore configStore, FarmingData data)
 	{
 		this(configStore,
 			data.patches().stream().map(Patch::id).collect(Collectors.toUnmodifiableSet()),
-			data.seeds().stream().map(Seed::id).collect(Collectors.toUnmodifiableSet()));
+			data.seeds().stream().map(Seed::id).collect(Collectors.toUnmodifiableSet()),
+			PatchGroup.groupAll(data.patches()).stream().map(PatchGroup::key)
+				.collect(Collectors.toUnmodifiableSet()));
 	}
 
 	// Visible for testing — production code uses the FarmingData constructor.
 	PatchSelectionService(ConfigStore configStore,
 		Set<String> validPatchIds, Set<String> validSeedIds)
 	{
+		this(configStore, validPatchIds, validSeedIds, Set.<String>of());
+	}
+
+	PatchSelectionService(ConfigStore configStore,
+		Set<String> validPatchIds, Set<String> validSeedIds, Set<String> validGroupKeys)
+	{
 		this.configStore = configStore;
 		this.validPatchIds = validPatchIds;
 		this.validSeedIds = validSeedIds;
+		this.validGroupKeys = validGroupKeys;
 		load();
 	}
+
+	// ── seed methods ──
 
 	public Optional<PatchSelection> get(String patchId)
 	{
 		return Optional.ofNullable(selections.get(patchId));
 	}
 
-	public Stream<PatchSelection> selected()
-	{
-		return selections.values().stream().filter(PatchSelection::selected);
-	}
-
-	public void setSelected(String patchId, boolean selected)
-	{
-		PatchSelection prev = selections.get(patchId);
-		String seedId = prev == null ? null : prev.seedId();
-		applyMutation(patchId, prev, new PatchSelection(patchId, selected, seedId));
-	}
-
 	public void setSeed(String patchId, String seedId)
 	{
 		PatchSelection prev = selections.get(patchId);
-		boolean selected = prev != null && prev.selected();
-		applyMutation(patchId, prev, new PatchSelection(patchId, selected, seedId));
+		PatchSelection next = seedId == null ? null : new PatchSelection(patchId, seedId);
+		if (Objects.equals(prev, next))
+		{
+			return;
+		}
+		if (next == null)
+		{
+			selections.remove(patchId);
+		}
+		else
+		{
+			selections.put(patchId, next);
+		}
+		save();
+		PatchSelectionEvent event = new PatchSelectionEvent(patchId, prev, next);
+		dispatchSeed(event);
 	}
 
 	public void addListener(Consumer<PatchSelectionEvent> listener)
@@ -95,15 +116,52 @@ public class PatchSelectionService
 		listeners.remove(listener);
 	}
 
-	private void applyMutation(String patchId, PatchSelection prev, PatchSelection next)
+	// ── group-active methods ──
+
+	public boolean isGroupActive(String groupKey)
 	{
-		if (Objects.equals(prev, next))
+		return activeGroupKeys.contains(groupKey);
+	}
+
+	public Set<String> activeGroups()
+	{
+		return new LinkedHashSet<>(activeGroupKeys);
+	}
+
+	public void setGroupActive(String groupKey, boolean active)
+	{
+		boolean prev = activeGroupKeys.contains(groupKey);
+		if (prev == active)
 		{
 			return;
 		}
-		selections.put(patchId, next);
+		if (active)
+		{
+			activeGroupKeys.add(groupKey);
+		}
+		else
+		{
+			activeGroupKeys.remove(groupKey);
+		}
 		save();
-		PatchSelectionEvent event = new PatchSelectionEvent(patchId, prev, next);
+		GroupActiveEvent event = new GroupActiveEvent(groupKey, prev, active);
+		dispatchGroup(event);
+	}
+
+	public void addGroupListener(Consumer<GroupActiveEvent> listener)
+	{
+		groupListeners.add(listener);
+	}
+
+	public void removeGroupListener(Consumer<GroupActiveEvent> listener)
+	{
+		groupListeners.remove(listener);
+	}
+
+	// ── dispatch ──
+
+	private void dispatchSeed(PatchSelectionEvent event)
+	{
 		for (Consumer<PatchSelectionEvent> listener : listeners)
 		{
 			try
@@ -112,11 +170,29 @@ public class PatchSelectionService
 			}
 			catch (RuntimeException ex)
 			{
-				log.warn("Better Farming: listener {} threw on patch selection event for {}",
-					listener.getClass().getName(), patchId, ex);
+				log.warn("Better Farming: seed listener {} threw on patch {}",
+					listener.getClass().getName(), event.patchId(), ex);
 			}
 		}
 	}
+
+	private void dispatchGroup(GroupActiveEvent event)
+	{
+		for (Consumer<GroupActiveEvent> listener : groupListeners)
+		{
+			try
+			{
+				listener.accept(event);
+			}
+			catch (RuntimeException ex)
+			{
+				log.warn("Better Farming: group listener {} threw on group {}",
+					listener.getClass().getName(), event.groupKey(), ex);
+			}
+		}
+	}
+
+	// ── persistence ──
 
 	private void load()
 	{
@@ -142,37 +218,55 @@ public class PatchSelectionService
 			log.warn("Better Farming: patchSelections blob parsed as null, starting empty");
 			return;
 		}
+		if (blob.version == 1)
+		{
+			log.warn("Better Farming: ignoring legacy v1 patchSelections blob; reconfigure your patches");
+			return;
+		}
 		if (blob.version != CURRENT_VERSION)
 		{
 			log.warn("Better Farming: patchSelections blob has unexpected version {}, starting empty",
 				blob.version);
 			return;
 		}
-		if (blob.selections == null)
+		if (blob.seeds != null)
 		{
-			return;
+			for (Map.Entry<String, String> entry : blob.seeds.entrySet())
+			{
+				String patchId = entry.getKey();
+				String seedId = entry.getValue();
+				if (!validPatchIds.contains(patchId))
+				{
+					log.debug("Better Farming: dropping seed for unknown patch {}", patchId);
+					continue;
+				}
+				if (seedId != null && !validSeedIds.contains(seedId))
+				{
+					log.debug("Better Farming: dropping unknown seed {} from patch {}", seedId, patchId);
+					continue;
+				}
+				if (seedId == null)
+				{
+					continue;
+				}
+				selections.put(patchId, new PatchSelection(patchId, seedId));
+			}
 		}
-		for (Map.Entry<String, BlobEntry> entry : blob.selections.entrySet())
+		if (blob.activeGroups != null)
 		{
-			String patchId = entry.getKey();
-			BlobEntry value = entry.getValue();
-			if (value == null)
+			for (String key : blob.activeGroups)
 			{
-				log.debug("Better Farming: dropping null entry for patch {}", patchId);
-				continue;
+				if (key == null || key.isEmpty())
+				{
+					continue;
+				}
+				if (!validGroupKeys.isEmpty() && !validGroupKeys.contains(key))
+				{
+					log.debug("Better Farming: dropping unknown group {}", key);
+					continue;
+				}
+				activeGroupKeys.add(key);
 			}
-			if (!validPatchIds.contains(patchId))
-			{
-				log.debug("Better Farming: dropping selection for unknown patch {}", patchId);
-				continue;
-			}
-			String seedId = value.seedId;
-			if (seedId != null && !validSeedIds.contains(seedId))
-			{
-				log.debug("Better Farming: dropping unknown seed {} from patch {}", seedId, patchId);
-				seedId = null;
-			}
-			selections.put(patchId, new PatchSelection(patchId, value.selected, seedId));
 		}
 	}
 
@@ -180,13 +274,14 @@ public class PatchSelectionService
 	{
 		Blob blob = new Blob();
 		blob.version = CURRENT_VERSION;
-		blob.selections = new HashMap<>();
+		blob.activeGroups = new LinkedHashSet<>(activeGroupKeys);
+		blob.seeds = new LinkedHashMap<>();
 		for (PatchSelection sel : selections.values())
 		{
-			BlobEntry e = new BlobEntry();
-			e.selected = sel.selected();
-			e.seedId = sel.seedId();
-			blob.selections.put(sel.patchId(), e);
+			if (sel.seedId() != null)
+			{
+				blob.seeds.put(sel.patchId(), sel.seedId());
+			}
 		}
 		configStore.set(
 			BetterFarmingConfig.GROUP,
@@ -194,17 +289,11 @@ public class PatchSelectionService
 			GSON.toJson(blob));
 	}
 
-	// Internal serialization shapes — match the JSON format documented in the spec.
-	// Package-private fields so Gson can read/write them by reflection.
+	// Internal serialization shape — package-private fields for Gson.
 	static class Blob
 	{
 		int version;
-		Map<String, BlobEntry> selections;
-	}
-
-	static class BlobEntry
-	{
-		boolean selected;
-		String seedId;
+		Set<String> activeGroups;
+		Map<String, String> seeds;
 	}
 }

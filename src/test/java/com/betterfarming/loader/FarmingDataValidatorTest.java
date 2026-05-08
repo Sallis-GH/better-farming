@@ -25,7 +25,7 @@ public class FarmingDataValidatorTest
 	private static Patch validPatch(String id)
 	{
 		return new Patch(id, "Display " + id, PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+			null, new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
 	}
 
 	private static Seed validSeed(String id)
@@ -38,8 +38,12 @@ public class FarmingDataValidatorTest
 	@Test
 	public void validDataPasses()
 	{
+		Patch p1 = new Patch("p1", "Display p1", PatchType.HERB, "Location1",
+			null, new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+		Patch p2 = new Patch("p2", "Display p2", PatchType.ALLOTMENT, "Location2",
+			null, new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
 		FarmingData data = new FarmingData(
-			Arrays.asList(validPatch("p1"), validPatch("p2")),
+			Arrays.asList(p1, p2),
 			Arrays.asList(validSeed("s1"))
 		);
 		validator.validate(data); // should not throw
@@ -73,7 +77,7 @@ public class FarmingDataValidatorTest
 	public void emptyPatchDisplayNameFails()
 	{
 		Patch p = new Patch("p1", "", PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+			null, new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
 		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
@@ -94,7 +98,7 @@ public class FarmingDataValidatorTest
 	{
 		Requirement bogus = new SkillRequirement(Skill.FARMING, 320);
 		Patch p = new Patch("p1", "P1", PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Arrays.asList(bogus));
+			null, new WorldPoint(0, 0, 0), Arrays.asList(bogus));
 		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
@@ -105,9 +109,85 @@ public class FarmingDataValidatorTest
 	{
 		Requirement bogus = new SkillRequirement(Skill.FARMING, 0);
 		Patch p = new Patch("p1", "P1", PatchType.HERB, "Somewhere",
-			new WorldPoint(0, 0, 0), Arrays.asList(bogus));
+			null, new WorldPoint(0, 0, 0), Arrays.asList(bogus));
 		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));
+	}
+
+	@Test
+	public void groupRequirementsMustBeIdentical_throws()
+	{
+		Requirement req45 = new SkillRequirement(Skill.FARMING, 45);
+		Patch a = new Patch("a1", "A1", PatchType.ALLOTMENT, "Catherby", null,
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+		Patch b = new Patch("a2", "A2", PatchType.ALLOTMENT, "Catherby", null,
+			new WorldPoint(0, 0, 0), Arrays.asList(req45));
+
+		FarmingData data = new FarmingData(Arrays.asList(a, b), Collections.<Seed>emptyList());
+
+		FarmingDataValidationException ex = assertThrows(FarmingDataValidationException.class,
+			() -> validator.validate(data));
+		assertTrue("message should name the rule",
+			ex.getMessage().contains("group-requirements-identical"));
+		assertTrue("message should name the offending group",
+			ex.getMessage().contains("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void subPatchLabelRequiredInMultiGroup_throws()
+	{
+		Patch a = new Patch("a1", "A1", PatchType.ALLOTMENT, "Catherby", "N",
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+		// Same (type, location), but no subPatchLabel
+		Patch b = new Patch("a2", "A2", PatchType.ALLOTMENT, "Catherby", null,
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+
+		FarmingData data = new FarmingData(Arrays.asList(a, b), Collections.<Seed>emptyList());
+
+		FarmingDataValidationException ex = assertThrows(FarmingDataValidationException.class,
+			() -> validator.validate(data));
+		assertTrue("message should name the rule",
+			ex.getMessage().contains("sub-patch-label-presence"));
+		assertTrue("message should name the offending patch",
+			ex.getMessage().contains("a2"));
+	}
+
+	@Test
+	public void subPatchLabelMustBeNullForSingleton_throws()
+	{
+		// Singleton with a non-null subPatchLabel
+		Patch p = new Patch("h1", "H1", PatchType.HERB, "Catherby", "N",
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+
+		FarmingData data = new FarmingData(Arrays.asList(p), Collections.<Seed>emptyList());
+
+		FarmingDataValidationException ex = assertThrows(FarmingDataValidationException.class,
+			() -> validator.validate(data));
+		assertTrue("message should name the rule",
+			ex.getMessage().contains("sub-patch-label-presence"));
+		assertTrue("message should name the offending patch",
+			ex.getMessage().contains("h1"));
+	}
+
+	@Test
+	public void subPatchLabelUniqueWithinGroup_throws()
+	{
+		Patch a = new Patch("a1", "A1", PatchType.ALLOTMENT, "Catherby", "N",
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+		// Same group, same label
+		Patch b = new Patch("a2", "A2", PatchType.ALLOTMENT, "Catherby", "N",
+			new WorldPoint(0, 0, 0), Collections.<Requirement>emptyList());
+
+		FarmingData data = new FarmingData(Arrays.asList(a, b), Collections.<Seed>emptyList());
+
+		FarmingDataValidationException ex = assertThrows(FarmingDataValidationException.class,
+			() -> validator.validate(data));
+		assertTrue("message should name the rule",
+			ex.getMessage().contains("sub-patch-label-unique-within-group"));
+		assertTrue("message should name the offending group",
+			ex.getMessage().contains("ALLOTMENT|Catherby"));
+		assertTrue("message should name the duplicated label",
+			ex.getMessage().contains("N"));
 	}
 }

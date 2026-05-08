@@ -35,6 +35,8 @@ public class PatchSelectionServiceTest
 		service.addListener(eventsListener);
 	}
 
+	// ── seed methods ──
+
 	@Test
 	public void getReturnsEmptyForUnknownPatch()
 	{
@@ -42,45 +44,13 @@ public class PatchSelectionServiceTest
 	}
 
 	@Test
-	public void setSelectedCreatesEntryWithNullSeed()
-	{
-		service.setSelected("falador_allotment_north_west", true);
-
-		Optional<PatchSelection> sel = service.get("falador_allotment_north_west");
-		assertTrue(sel.isPresent());
-		assertTrue(sel.get().selected());
-		assertNull(sel.get().seedId());
-	}
-
-	@Test
-	public void setSeedCreatesEntryWithSelectedFalse()
+	public void setSeedRecordsSeed()
 	{
 		service.setSeed("falador_allotment_north_west", "watermelon_seed");
 
 		Optional<PatchSelection> sel = service.get("falador_allotment_north_west");
 		assertTrue(sel.isPresent());
-		assertFalse(sel.get().selected());
 		assertEquals("watermelon_seed", sel.get().seedId());
-	}
-
-	@Test
-	public void setSelectedPreservesSeed()
-	{
-		service.setSeed("p1", "watermelon_seed");
-		service.setSelected("p1", true);
-
-		assertEquals("watermelon_seed", service.get("p1").get().seedId());
-		assertTrue(service.get("p1").get().selected());
-	}
-
-	@Test
-	public void setSeedPreservesSelected()
-	{
-		service.setSelected("p1", true);
-		service.setSeed("p1", "watermelon_seed");
-
-		assertTrue(service.get("p1").get().selected());
-		assertEquals("watermelon_seed", service.get("p1").get().seedId());
 	}
 
 	@Test
@@ -89,57 +59,41 @@ public class PatchSelectionServiceTest
 		service.setSeed("p1", "watermelon_seed");
 		service.setSeed("p1", null);
 
-		assertNull(service.get("p1").get().seedId());
+		assertFalse(service.get("p1").isPresent());
 	}
 
 	@Test
-	public void selectedStreamYieldsOnlySelectedEntries()
+	public void listenerReceivesEventOnSeedChange()
 	{
-		service.setSelected("p1", true);
-		service.setSelected("p2", false);
-		service.setSeed("p3", "watermelon_seed");  // seed only, not selected
-		service.setSelected("p4", true);
-
-		List<String> ids = new ArrayList<>();
-		service.selected().forEach(s -> ids.add(s.patchId()));
-		ids.sort(String::compareTo);
-
-		assertEquals(List.of("p1", "p4"), ids);
-	}
-
-	@Test
-	public void listenerReceivesEventOnMutation()
-	{
-		service.setSelected("p1", true);
+		service.setSeed("p1", "watermelon_seed");
 
 		assertEquals(1, events.size());
 		PatchSelectionEvent e = events.get(0);
 		assertEquals("p1", e.patchId());
 		assertNull(e.oldSelection());
-		assertTrue(e.newSelection().selected());
+		assertEquals("watermelon_seed", e.newSelection().seedId());
 	}
 
 	@Test
-	public void listenerReceivesOldAndNewOnSecondMutation()
+	public void listenerReceivesOldAndNewOnSecondSeedChange()
 	{
-		service.setSelected("p1", true);
 		service.setSeed("p1", "watermelon_seed");
+		service.setSeed("p1", "toadflax_seed");
 
 		assertEquals(2, events.size());
 		PatchSelectionEvent second = events.get(1);
-		assertTrue(second.oldSelection().selected());
-		assertNull(second.oldSelection().seedId());
-		assertEquals("watermelon_seed", second.newSelection().seedId());
+		assertEquals("watermelon_seed", second.oldSelection().seedId());
+		assertEquals("toadflax_seed", second.newSelection().seedId());
 	}
 
 	@Test
-	public void noOpMutationFiresNoEvent()
+	public void noOpSeedChangeFiresNoEvent()
 	{
-		service.setSelected("p1", true);
+		service.setSeed("p1", "watermelon_seed");
 		events.clear();
-		service.setSelected("p1", true);  // same value
+		service.setSeed("p1", "watermelon_seed");
 
-		assertTrue("no-op should not fire event", events.isEmpty());
+		assertTrue(events.isEmpty());
 	}
 
 	@Test
@@ -149,83 +103,154 @@ public class PatchSelectionServiceTest
 		service.addListener(e -> { throw new RuntimeException("boom"); });
 		service.addListener(received::add);
 
-		service.setSelected("p1", true);
+		service.setSeed("p1", "watermelon_seed");
 
-		assertEquals("upstream listener still fires", 1, events.size());
-		assertEquals("downstream listener still fires", 1, received.size());
+		assertEquals(1, events.size());
+		assertEquals(1, received.size());
 	}
 
 	@Test
 	public void removeListenerStopsReceivingEvents()
 	{
-		service.removeListener(eventsListener);  // initial listener from setUp; now removing
+		service.removeListener(eventsListener);
 		events.clear();
 
-		service.setSelected("p1", true);
+		service.setSeed("p1", "watermelon_seed");
 
-		assertTrue("mutation should still be applied", service.get("p1").isPresent());
-		assertTrue("removed listener should not receive event", events.isEmpty());
+		assertTrue(service.get("p1").isPresent());
+		assertTrue(events.isEmpty());
+	}
+
+	// ── group-active methods ──
+
+	@Test
+	public void isGroupActiveDefaultsToFalse()
+	{
+		assertFalse(service.isGroupActive("ALLOTMENT|Catherby"));
 	}
 
 	@Test
-	public void persistsToConfigManagerOnMutation()
+	public void setGroupActiveTrueRecordsActiveState()
 	{
-		service.setSelected("p1", true);
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertTrue(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void setGroupActiveFalseClearsActiveState()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+		service.setGroupActive("ALLOTMENT|Catherby", false);
+
+		assertFalse(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void activeGroupsReturnsActiveSet()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+		service.setGroupActive("HERB|Falador", true);
+		service.setGroupActive("FLOWER|Catherby", true);
+		service.setGroupActive("FLOWER|Catherby", false);
+
+		Set<String> active = service.activeGroups();
+		assertTrue(active.contains("ALLOTMENT|Catherby"));
+		assertTrue(active.contains("HERB|Falador"));
+		assertFalse(active.contains("FLOWER|Catherby"));
+	}
+
+	@Test
+	public void activeGroupsReturnsDefensiveCopy()
+	{
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		Set<String> active = service.activeGroups();
+		active.clear();
+
+		assertTrue(service.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void groupListenerReceivesEventOnActivate()
+	{
+		List<GroupActiveEvent> received = new ArrayList<>();
+		service.addGroupListener(received::add);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertEquals(1, received.size());
+		assertEquals("ALLOTMENT|Catherby", received.get(0).groupKey());
+		assertFalse(received.get(0).oldActive());
+		assertTrue(received.get(0).newActive());
+	}
+
+	@Test
+	public void noOpGroupActivateFiresNoEvent()
+	{
+		List<GroupActiveEvent> received = new ArrayList<>();
+		service.addGroupListener(received::add);
+
+		service.setGroupActive("ALLOTMENT|Catherby", false);
+
+		assertTrue(received.isEmpty());
+	}
+
+	@Test
+	public void removeGroupListenerStopsReceivingEvents()
+	{
+		List<GroupActiveEvent> received = new ArrayList<>();
+		Consumer<GroupActiveEvent> listener = received::add;
+		service.addGroupListener(listener);
+		service.removeGroupListener(listener);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertTrue(received.isEmpty());
+	}
+
+	@Test
+	public void groupListenerExceptionDoesNotBreakOtherListeners()
+	{
+		List<GroupActiveEvent> received = new ArrayList<>();
+		service.addGroupListener(e -> { throw new RuntimeException("boom"); });
+		service.addGroupListener(received::add);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertEquals(1, received.size());
+	}
+
+	// ── persistence ──
+
+	@Test
+	public void persistsToConfigManagerOnSeedChange()
+	{
+		service.setSeed("p1", "watermelon_seed");
 
 		String blob = configManager.peek("betterfarming", "patchSelections");
 		assertNotNull(blob);
-		assertTrue("blob should contain version 1", blob.contains("\"version\":1"));
-		assertTrue("blob should contain p1", blob.contains("\"p1\""));
-		assertTrue("blob should record selected=true", blob.contains("\"selected\":true"));
+		assertTrue(blob.contains("\"p1\""));
 	}
 
 	@Test
-	public void loadsFromConfigManagerOnConstruction()
+	public void noOpSeedChangeDoesNotWriteToConfig()
 	{
-		configManager.putRaw("betterfarming", "patchSelections",
-			"{\"version\":1,\"selections\":{"
-				+ "\"p1\":{\"selected\":true,\"seedId\":\"watermelon_seed\"}"
-				+ "}}");
+		service.setSeed("p1", "watermelon_seed");
+		int writesAfterFirst = configManager.getWriteCount();
 
-		PatchSelectionService loaded = new PatchSelectionService(configManager,
-			Set.of("p1"), Set.of("watermelon_seed"));
+		service.setSeed("p1", "watermelon_seed");
 
-		assertTrue(loaded.get("p1").isPresent());
-		assertTrue(loaded.get("p1").get().selected());
-		assertEquals("watermelon_seed", loaded.get("p1").get().seedId());
+		assertEquals(writesAfterFirst, configManager.getWriteCount());
 	}
 
 	@Test
-	public void loadFiltersUnknownPatchIds()
+	public void loadHandlesEmptyBlob()
 	{
-		configManager.putRaw("betterfarming", "patchSelections",
-			"{\"version\":1,\"selections\":{"
-				+ "\"p1\":{\"selected\":true,\"seedId\":null},"
-				+ "\"renamed_or_removed\":{\"selected\":true,\"seedId\":null}"
-				+ "}}");
-
 		PatchSelectionService loaded = new PatchSelectionService(configManager,
 			Set.of("p1"), Set.of());
 
-		assertTrue(loaded.get("p1").isPresent());
-		assertFalse(loaded.get("renamed_or_removed").isPresent());
-	}
-
-	@Test
-	public void loadFiltersUnknownSeedIds()
-	{
-		configManager.putRaw("betterfarming", "patchSelections",
-			"{\"version\":1,\"selections\":{"
-				+ "\"p1\":{\"selected\":true,\"seedId\":\"removed_seed\"}"
-				+ "}}");
-
-		PatchSelectionService loaded = new PatchSelectionService(configManager,
-			Set.of("p1"), Set.of("watermelon_seed"));
-
-		// The patch is loaded but the seed is dropped
-		assertTrue(loaded.get("p1").isPresent());
-		assertNull(loaded.get("p1").get().seedId());
-		assertTrue(loaded.get("p1").get().selected());
+		assertFalse(loaded.get("p1").isPresent());
 	}
 
 	@Test
@@ -240,39 +265,110 @@ public class PatchSelectionServiceTest
 	}
 
 	@Test
-	public void loadHandlesEmptyBlob()
+	public void persistsBlobAtVersion2()
 	{
-		// No call to putRaw — getConfiguration returns null
+		service.setSeed("p1", "watermelon_seed");
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		String blob = configManager.peek("betterfarming", "patchSelections");
+		assertNotNull(blob);
+		assertTrue("blob should declare version 2", blob.contains("\"version\":2"));
+		assertTrue("blob should contain seeds map", blob.contains("\"seeds\""));
+		assertTrue("blob should contain activeGroups list", blob.contains("\"activeGroups\""));
+		assertTrue(blob.contains("\"p1\""));
+		assertTrue(blob.contains("\"ALLOTMENT|Catherby\""));
+	}
+
+	@Test
+	public void loadsV2Blob()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[\"ALLOTMENT|Catherby\"],"
+				+ "\"seeds\":{\"p1\":\"watermelon_seed\"}"
+				+ "}");
 
 		PatchSelectionService loaded = new PatchSelectionService(configManager,
-			Set.of("p1"), Set.of());
+			Set.of("p1"), Set.of("watermelon_seed"));
 
+		assertTrue(loaded.get("p1").isPresent());
+		assertEquals("watermelon_seed", loaded.get("p1").get().seedId());
+		assertTrue(loaded.isGroupActive("ALLOTMENT|Catherby"));
+	}
+
+	@Test
+	public void loadFiltersUnknownPatchIdsFromSeeds()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[],"
+				+ "\"seeds\":{\"p1\":\"watermelon_seed\","
+				+ "\"renamed_or_removed\":\"toadflax_seed\"}"
+				+ "}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed", "toadflax_seed"));
+
+		assertTrue(loaded.get("p1").isPresent());
+		assertFalse(loaded.get("renamed_or_removed").isPresent());
+	}
+
+	@Test
+	public void loadFiltersUnknownSeedIds()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":2,"
+				+ "\"activeGroups\":[],"
+				+ "\"seeds\":{\"p1\":\"removed_seed\"}"
+				+ "}");
+
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed"));
+
+		// Seed is dropped; no entry persists for the patch (since there's nothing else to record).
 		assertFalse(loaded.get("p1").isPresent());
 	}
 
 	@Test
-	public void loadHandlesUnknownVersion()
+	public void loadKeepsUnknownGroupKeysFiltered()
 	{
 		configManager.putRaw("betterfarming", "patchSelections",
-			"{\"version\":99,\"selections\":{"
-				+ "\"p1\":{\"selected\":true,\"seedId\":null}"
+			"{\"version\":2,"
+				+ "\"activeGroups\":[\"ALLOTMENT|Catherby\",\"HERB|Renamed Place\"],"
+				+ "\"seeds\":{}"
+				+ "}");
+
+		// validGroupKeys is provided to the service via constructor.
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of(), Set.of(), Set.of("ALLOTMENT|Catherby"));
+
+		assertTrue(loaded.isGroupActive("ALLOTMENT|Catherby"));
+		assertFalse(loaded.isGroupActive("HERB|Renamed Place"));
+	}
+
+	@Test
+	public void loadHandlesLegacyV1BlobAsEmpty()
+	{
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":1,\"selections\":{"
+				+ "\"p1\":{\"selected\":true,\"seedId\":\"watermelon_seed\"}"
 				+ "}}");
 
 		PatchSelectionService loaded = new PatchSelectionService(configManager,
-			Set.of("p1"), Set.of());
+			Set.of("p1"), Set.of("watermelon_seed"));
 
-		// Unknown version: start empty, do not attempt to migrate
-		assertFalse(loaded.get("p1").isPresent());
+		assertFalse("legacy v1 blobs are ignored", loaded.get("p1").isPresent());
 	}
 
 	@Test
-	public void noOpMutationDoesNotWriteToConfig()
+	public void loadHandlesUnknownVersionAsEmpty()
 	{
-		service.setSelected("p1", true);
-		int writesAfterFirst = configManager.getWriteCount();
+		configManager.putRaw("betterfarming", "patchSelections",
+			"{\"version\":99,\"seeds\":{\"p1\":\"watermelon_seed\"}}");
 
-		service.setSelected("p1", true);  // no-op
+		PatchSelectionService loaded = new PatchSelectionService(configManager,
+			Set.of("p1"), Set.of("watermelon_seed"));
 
-		assertEquals(writesAfterFirst, configManager.getWriteCount());
+		assertFalse(loaded.get("p1").isPresent());
 	}
 }

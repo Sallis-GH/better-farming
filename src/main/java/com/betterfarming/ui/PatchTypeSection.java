@@ -15,9 +15,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 /**
- * A collapsible group of PatchCards for a single PatchType. Header shows
- * "Allotment (17) ▼"; clicking toggles cards visibility. Default state:
- * expanded. Collapse state lives in-memory only (not persisted).
+ * A collapsible group of PatchGroupCards for a single PatchType. Header shows
+ * "Allotment (9) ▼" — the count is the number of (type, location) group cards,
+ * not raw patches. Clicking toggles card visibility. Default state: expanded.
+ * Collapse state lives in-memory only (not persisted).
  */
 public class PatchTypeSection extends JPanel
 {
@@ -25,7 +26,7 @@ public class PatchTypeSection extends JPanel
 	private final JPanel cardsContainer;
 	private boolean expanded = true;
 
-	public PatchTypeSection(PatchType type, List<PatchCard> cards)
+	public PatchTypeSection(PatchType type, List<PatchGroupCard> cards)
 	{
 		setLayout(new BorderLayout());
 		setOpaque(false);
@@ -39,10 +40,6 @@ public class PatchTypeSection extends JPanel
 		headerLabel.setOpaque(true);
 		headerLabel.setBackground(new Color(0x26, 0x26, 0x26));
 		headerLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		// Use mousePressed (not mouseClicked) so a fast user gets feedback
-		// on press: mouseClicked requires press AND release on the same
-		// pixel, which a quick click between sections often misses,
-		// producing "dead clicks".
 		headerLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -55,7 +52,7 @@ public class PatchTypeSection extends JPanel
 		cardsContainer = new JPanel();
 		cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
 		cardsContainer.setOpaque(false);
-		for (PatchCard card : cards)
+		for (PatchGroupCard card : cards)
 		{
 			card.setAlignmentX(Component.LEFT_ALIGNMENT);
 			cardsContainer.add(card);

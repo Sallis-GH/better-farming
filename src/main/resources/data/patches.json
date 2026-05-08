@@ -4,6 +4,7 @@
     "displayName": "Falador allotment patch (north west)",
     "type": "ALLOTMENT",
     "location": "South of Falador",
+    "subPatchLabel": "NW",
     "worldPoint": { "x": 3054, "y": 3310, "plane": 0 },
     "requirements": []
   },
@@ -12,6 +13,7 @@
     "displayName": "Falador allotment patch (south east)",
     "type": "ALLOTMENT",
     "location": "South of Falador",
+    "subPatchLabel": "SE",
     "worldPoint": { "x": 3058, "y": 3305, "plane": 0 },
     "requirements": []
   },
@@ -20,6 +22,7 @@
     "displayName": "Morytania allotment patch (north west)",
     "type": "ALLOTMENT",
     "location": "West of Port Phasmatys",
+    "subPatchLabel": "NW",
     "worldPoint": { "x": 3599, "y": 3528, "plane": 0 },
     "requirements": []
   },
@@ -28,6 +31,7 @@
     "displayName": "Morytania allotment patch (south east)",
     "type": "ALLOTMENT",
     "location": "West of Port Phasmatys",
+    "subPatchLabel": "SE",
     "worldPoint": { "x": 3604, "y": 3523, "plane": 0 },
     "requirements": []
   },
@@ -36,6 +40,7 @@
     "displayName": "Catherby allotment patch (north)",
     "type": "ALLOTMENT",
     "location": "Catherby",
+    "subPatchLabel": "N",
     "worldPoint": { "x": 2808, "y": 3467, "plane": 0 },
     "requirements": []
   },
@@ -44,6 +49,7 @@
     "displayName": "Catherby allotment patch (south)",
     "type": "ALLOTMENT",
     "location": "Catherby",
+    "subPatchLabel": "S",
     "worldPoint": { "x": 2812, "y": 3461, "plane": 0 },
     "requirements": []
   },
@@ -52,6 +58,7 @@
     "displayName": "Ardougne allotment patch (north)",
     "type": "ALLOTMENT",
     "location": "North of Ardougne",
+    "subPatchLabel": "N",
     "worldPoint": { "x": 2664, "y": 3378, "plane": 0 },
     "requirements": []
   },
@@ -60,6 +67,7 @@
     "displayName": "Ardougne allotment patch (south)",
     "type": "ALLOTMENT",
     "location": "North of Ardougne",
+    "subPatchLabel": "S",
     "worldPoint": { "x": 2669, "y": 3372, "plane": 0 },
     "requirements": []
   },
@@ -68,6 +76,7 @@
     "displayName": "Hosidius allotment patch (north east)",
     "type": "ALLOTMENT",
     "location": "South-west Hosidius",
+    "subPatchLabel": "NE",
     "worldPoint": { "x": 1737, "y": 3558, "plane": 0 },
     "requirements": []
   },
@@ -76,6 +85,7 @@
     "displayName": "Hosidius allotment patch (south west)",
     "type": "ALLOTMENT",
     "location": "South-west Hosidius",
+    "subPatchLabel": "SW",
     "worldPoint": { "x": 1732, "y": 3553, "plane": 0 },
     "requirements": []
   },
@@ -92,6 +102,7 @@
     "displayName": "Farming Guild allotment patch (north)",
     "type": "ALLOTMENT",
     "location": "Farming Guild",
+    "subPatchLabel": "N",
     "worldPoint": { "x": 1268, "y": 3731, "plane": 0 },
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 45 }
@@ -102,6 +113,7 @@
     "displayName": "Farming Guild allotment patch (south)",
     "type": "ALLOTMENT",
     "location": "Farming Guild",
+    "subPatchLabel": "S",
     "worldPoint": { "x": 1262, "y": 3726, "plane": 0 },
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 45 }
@@ -112,6 +124,7 @@
     "displayName": "Prifddinas allotment patch (north)",
     "type": "ALLOTMENT",
     "location": "Prifddinas",
+    "subPatchLabel": "N",
     "worldPoint": { "x": 3291, "y": 6103, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "SONG_OF_THE_ELVES", "state": "FINISHED" }
@@ -122,6 +135,7 @@
     "displayName": "Prifddinas allotment patch (south)",
     "type": "ALLOTMENT",
     "location": "Prifddinas",
+    "subPatchLabel": "S",
     "worldPoint": { "x": 3291, "y": 6097, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "SONG_OF_THE_ELVES", "state": "FINISHED" }
@@ -132,6 +146,7 @@
     "displayName": "Civitas illa Fortis allotment patch (north)",
     "type": "ALLOTMENT",
     "location": "West of Civitas illa Fortis",
+    "subPatchLabel": "N",
     "worldPoint": { "x": 1586, "y": 3102, "plane": 0 },
     "requirements": []
   },
@@ -140,6 +155,7 @@
     "displayName": "Civitas illa Fortis allotment patch (south)",
     "type": "ALLOTMENT",
     "location": "West of Civitas illa Fortis",
+    "subPatchLabel": "S",
     "worldPoint": { "x": 1586, "y": 3096, "plane": 0 },
     "requirements": []
   },
@@ -514,6 +530,7 @@
     "displayName": "Fossil Island hardwood tree patch (east)",
     "type": "HARDWOOD_TREE",
     "location": "Fossil Island mushroom forest",
+    "subPatchLabel": "E",
     "worldPoint": { "x": 3714, "y": 3837, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
@@ -524,6 +541,7 @@
     "displayName": "Fossil Island hardwood tree patch (middle)",
     "type": "HARDWOOD_TREE",
     "location": "Fossil Island mushroom forest",
+    "subPatchLabel": "MID",
     "worldPoint": { "x": 3707, "y": 3837, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
@@ -534,6 +552,7 @@
     "displayName": "Fossil Island hardwood tree patch (west)",
     "type": "HARDWOOD_TREE",
     "location": "Fossil Island mushroom forest",
+    "subPatchLabel": "W",
     "worldPoint": { "x": 3700, "y": 3837, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
@@ -733,6 +752,7 @@
     "displayName": "Fossil Island seaweed patch (north)",
     "type": "SEAWEED",
     "location": "Fossil Island (underwater)",
+    "subPatchLabel": "N",
     "worldPoint": { "x": 3731, "y": 10272, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
@@ -743,6 +763,7 @@
     "displayName": "Fossil Island seaweed patch (south)",
     "type": "SEAWEED",
     "location": "Fossil Island (underwater)",
+    "subPatchLabel": "S",
     "worldPoint": { "x": 3734, "y": 10267, "plane": 0 },
     "requirements": [
       { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
