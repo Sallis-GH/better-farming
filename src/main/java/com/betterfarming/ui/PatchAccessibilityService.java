@@ -169,6 +169,10 @@ public class PatchAccessibilityService
 			{
 				quests.put(q, state);
 			}
+			else
+			{
+				log.debug("Better Farming: getQuestState({}) returned null; treated as unmet", q);
+			}
 		}
 		return new PlayerState(true, levels, quests);
 	}

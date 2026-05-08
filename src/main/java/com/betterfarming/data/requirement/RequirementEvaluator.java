@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.QuestState;
 
 @Singleton
+@Slf4j
 public class RequirementEvaluator
 {
 	/**
@@ -48,7 +50,10 @@ public class RequirementEvaluator
 			else
 			{
 				// Unknown subtype — fail safe by treating as unmet so a forgotten
-				// evaluator branch surfaces visibly instead of silently unlocking.
+				// evaluator branch surfaces visibly (logged at WARN below) instead of
+				// silently unlocking.
+				log.warn("Better Farming: RequirementEvaluator has no branch for {}; treating as unmet",
+					r.getClass().getName());
 				out.add(r);
 			}
 		}
