@@ -1,5 +1,7 @@
 package com.betterfarming;
 
+import com.betterfarming.bank.FarmingBankTab;
+import com.betterfarming.bank.FarmingBankTagService;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.item.RunItemsService;
@@ -21,6 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.plugins.Plugin;
@@ -45,8 +48,11 @@ public class BetterFarmingPlugin extends Plugin
 	@Inject private EventBus eventBus;
 	@Inject private RequirementEvaluator evaluator;
 	@Inject private ItemTracker itemTracker;
+	@Inject private ClientThread clientThread;
+	@Inject private FarmingBankTab bankTab;
 
 	private NavigationButton navButton;
+	private Runnable bankTabRefreshListener;
 	private SeedAvailabilityService availabilityService;
 	private PatchSelectionService selectionService;
 	private PatchAccessibilityService accessibilityService;
@@ -78,6 +84,15 @@ public class BetterFarmingPlugin extends Plugin
 		eventBus.register(availabilityService);
 		eventBus.register(accessibilityService);
 		eventBus.register(itemTracker);
+
+		// Bank tab: hand-wire the section service (RunItemsService is not
+		// Guice-managed) and refresh the open tab whenever run items change.
+		// RunItemsService notifies on the EDT; hop to the client thread.
+		bankTab.setBankTagService(new FarmingBankTagService(runItemsService, itemTracker));
+		bankTabRefreshListener = () -> clientThread.invokeLater(bankTab::refreshBankTab);
+		runItemsService.addListener(bankTabRefreshListener);
+		eventBus.register(bankTab);
+		bankTab.startUp();
 
 		// Initial pass so cards built mid-session-already-logged-in see real
 		// lock state at construction. Without this, the first lock evaluation
@@ -118,8 +133,15 @@ public class BetterFarmingPlugin extends Plugin
 			accessibilityService = null;
 		}
 		eventBus.unregister(itemTracker);
+		eventBus.unregister(bankTab);
+		bankTab.shutDown();
 		if (runItemsService != null)
 		{
+			if (bankTabRefreshListener != null)
+			{
+				runItemsService.removeListener(bankTabRefreshListener);
+				bankTabRefreshListener = null;
+			}
 			runItemsService.unwire();
 			runItemsService = null;
 		}
