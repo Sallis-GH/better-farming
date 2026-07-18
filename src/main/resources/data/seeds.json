@@ -3,6 +3,11 @@
     "id": "potato_seed",
     "displayName": "Potato seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5318,
+    "plantableName": "Potato seed",
+    "payments": [
+      { "itemId": 6032, "name": "Compost", "quantity": 2 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 1 }
     ]
@@ -11,6 +16,11 @@
     "id": "onion_seed",
     "displayName": "Onion seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5319,
+    "plantableName": "Onion seed",
+    "payments": [
+      { "itemId": 5438, "name": "Potatoes(10)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 5 }
     ]
@@ -19,6 +29,11 @@
     "id": "cabbage_seed",
     "displayName": "Cabbage seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5324,
+    "plantableName": "Cabbage seed",
+    "payments": [
+      { "itemId": 5458, "name": "Onions(10)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 7 }
     ]
@@ -27,6 +42,11 @@
     "id": "tomato_seed",
     "displayName": "Tomato seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5322,
+    "plantableName": "Tomato seed",
+    "payments": [
+      { "itemId": 5478, "name": "Cabbages(10)", "quantity": 2 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 12 }
     ]
@@ -35,6 +55,11 @@
     "id": "sweetcorn_seed",
     "displayName": "Sweetcorn seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5320,
+    "plantableName": "Sweetcorn seed",
+    "payments": [
+      { "itemId": 5931, "name": "Jute fibre", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 20 }
     ]
@@ -43,6 +68,11 @@
     "id": "strawberry_seed",
     "displayName": "Strawberry seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5323,
+    "plantableName": "Strawberry seed",
+    "payments": [
+      { "itemId": 5386, "name": "Apples(5)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 31 }
     ]
@@ -51,6 +81,11 @@
     "id": "watermelon_seed",
     "displayName": "Watermelon seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 5321,
+    "plantableName": "Watermelon seed",
+    "payments": [
+      { "itemId": 5970, "name": "Curry leaf", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 47 }
     ]
@@ -59,6 +94,11 @@
     "id": "snape_grass_seed",
     "displayName": "Snape grass seed",
     "compatiblePatchTypes": ["ALLOTMENT"],
+    "plantableItemId": 22879,
+    "plantableName": "Snape grass seed",
+    "payments": [
+      { "itemId": 247, "name": "Jangerberries", "quantity": 5 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 61 }
     ]
@@ -67,6 +107,8 @@
     "id": "marigold_seed",
     "displayName": "Marigold seed",
     "compatiblePatchTypes": ["FLOWER"],
+    "plantableItemId": 5096,
+    "plantableName": "Marigold seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 2 }
     ]
@@ -75,6 +117,8 @@
     "id": "rosemary_seed",
     "displayName": "Rosemary seed",
     "compatiblePatchTypes": ["FLOWER"],
+    "plantableItemId": 5097,
+    "plantableName": "Rosemary seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 11 }
     ]
@@ -83,6 +127,8 @@
     "id": "nasturtium_seed",
     "displayName": "Nasturtium seed",
     "compatiblePatchTypes": ["FLOWER"],
+    "plantableItemId": 5098,
+    "plantableName": "Nasturtium seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 24 }
     ]
@@ -91,6 +137,8 @@
     "id": "woad_seed",
     "displayName": "Woad seed",
     "compatiblePatchTypes": ["FLOWER"],
+    "plantableItemId": 5099,
+    "plantableName": "Woad seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 25 }
     ]
@@ -99,6 +147,8 @@
     "id": "limpwurt_seed",
     "displayName": "Limpwurt seed",
     "compatiblePatchTypes": ["FLOWER"],
+    "plantableItemId": 5100,
+    "plantableName": "Limpwurt seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 26 }
     ]
@@ -107,6 +157,8 @@
     "id": "white_lily_seed",
     "displayName": "White lily seed",
     "compatiblePatchTypes": ["FLOWER"],
+    "plantableItemId": 22887,
+    "plantableName": "White lily seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 58 }
     ]
@@ -115,6 +167,8 @@
     "id": "guam_seed",
     "displayName": "Guam seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5291,
+    "plantableName": "Guam seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 9 }
     ]
@@ -123,6 +177,8 @@
     "id": "marrentill_seed",
     "displayName": "Marrentill seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5292,
+    "plantableName": "Marrentill seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 14 }
     ]
@@ -131,6 +187,8 @@
     "id": "tarromin_seed",
     "displayName": "Tarromin seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5293,
+    "plantableName": "Tarromin seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 19 }
     ]
@@ -139,6 +197,8 @@
     "id": "harralander_seed",
     "displayName": "Harralander seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5294,
+    "plantableName": "Harralander seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 26 }
     ]
@@ -147,6 +207,8 @@
     "id": "gout_tuber",
     "displayName": "Gout tuber",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 6311,
+    "plantableName": "Gout tuber",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 29 }
     ]
@@ -155,6 +217,8 @@
     "id": "ranarr_seed",
     "displayName": "Ranarr seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5295,
+    "plantableName": "Ranarr seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 32 }
     ]
@@ -163,6 +227,8 @@
     "id": "toadflax_seed",
     "displayName": "Toadflax seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5296,
+    "plantableName": "Toadflax seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 38 }
     ]
@@ -171,6 +237,8 @@
     "id": "irit_seed",
     "displayName": "Irit seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5297,
+    "plantableName": "Irit seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 44 }
     ]
@@ -179,6 +247,8 @@
     "id": "avantoe_seed",
     "displayName": "Avantoe seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5298,
+    "plantableName": "Avantoe seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 50 }
     ]
@@ -187,6 +257,8 @@
     "id": "kwuarm_seed",
     "displayName": "Kwuarm seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5299,
+    "plantableName": "Kwuarm seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 56 }
     ]
@@ -195,6 +267,8 @@
     "id": "snapdragon_seed",
     "displayName": "Snapdragon seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5300,
+    "plantableName": "Snapdragon seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 62 }
     ]
@@ -203,6 +277,8 @@
     "id": "huasca_seed",
     "displayName": "Huasca seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 30088,
+    "plantableName": "Huasca seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 65 }
     ]
@@ -211,6 +287,8 @@
     "id": "cadantine_seed",
     "displayName": "Cadantine seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5301,
+    "plantableName": "Cadantine seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 67 }
     ]
@@ -219,6 +297,8 @@
     "id": "lantadyme_seed",
     "displayName": "Lantadyme seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5302,
+    "plantableName": "Lantadyme seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 73 }
     ]
@@ -227,6 +307,8 @@
     "id": "dwarf_weed_seed",
     "displayName": "Dwarf weed seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5303,
+    "plantableName": "Dwarf weed seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 79 }
     ]
@@ -235,6 +317,8 @@
     "id": "torstol_seed",
     "displayName": "Torstol seed",
     "compatiblePatchTypes": ["HERB"],
+    "plantableItemId": 5304,
+    "plantableName": "Torstol seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 85 }
     ]
@@ -243,6 +327,11 @@
     "id": "barley_seed",
     "displayName": "Barley seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5305,
+    "plantableName": "Barley seed",
+    "payments": [
+      { "itemId": 6032, "name": "Compost", "quantity": 3 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 3 }
     ]
@@ -251,6 +340,11 @@
     "id": "hammerstone_seed",
     "displayName": "Hammerstone seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5307,
+    "plantableName": "Hammerstone seed",
+    "payments": [
+      { "itemId": 6010, "name": "Marigolds", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 4 }
     ]
@@ -259,6 +353,11 @@
     "id": "asgarnian_seed",
     "displayName": "Asgarnian seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5308,
+    "plantableName": "Asgarnian seed",
+    "payments": [
+      { "itemId": 5458, "name": "Onions(10)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 8 }
     ]
@@ -267,6 +366,11 @@
     "id": "jute_seed",
     "displayName": "Jute seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5306,
+    "plantableName": "Jute seed",
+    "payments": [
+      { "itemId": 6008, "name": "Barley malt", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 13 }
     ]
@@ -275,6 +379,11 @@
     "id": "yanillian_seed",
     "displayName": "Yanillian seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5309,
+    "plantableName": "Yanillian seed",
+    "payments": [
+      { "itemId": 5968, "name": "Tomatoes(5)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 16 }
     ]
@@ -283,6 +392,11 @@
     "id": "flax_seed",
     "displayName": "Flax seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 31541,
+    "plantableName": "Flax seed",
+    "payments": [
+      { "itemId": 1947, "name": "Grain", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 18 }
     ]
@@ -291,6 +405,11 @@
     "id": "krandorian_seed",
     "displayName": "Krandorian seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5310,
+    "plantableName": "Krandorian seed",
+    "payments": [
+      { "itemId": 5478, "name": "Cabbages(10)", "quantity": 3 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 21 }
     ]
@@ -299,6 +418,11 @@
     "id": "wildblood_seed",
     "displayName": "Wildblood seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 5311,
+    "plantableName": "Wildblood seed",
+    "payments": [
+      { "itemId": 6012, "name": "Nasturtiums", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 28 }
     ]
@@ -307,6 +431,11 @@
     "id": "hemp_seed",
     "displayName": "Hemp seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 31543,
+    "plantableName": "Hemp seed",
+    "payments": [
+      { "itemId": 1779, "name": "Flax", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 37 }
     ]
@@ -315,6 +444,11 @@
     "id": "cotton_seed",
     "displayName": "Cotton seed",
     "compatiblePatchTypes": ["HOPS"],
+    "plantableItemId": 31545,
+    "plantableName": "Cotton seed",
+    "payments": [
+      { "itemId": 31457, "name": "Hemp", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 71 }
     ]
@@ -323,6 +457,11 @@
     "id": "redberry_seed",
     "displayName": "Redberry seed",
     "compatiblePatchTypes": ["BUSH"],
+    "plantableItemId": 5101,
+    "plantableName": "Redberry seed",
+    "payments": [
+      { "itemId": 5478, "name": "Cabbages(10)", "quantity": 4 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 10 }
     ]
@@ -331,6 +470,11 @@
     "id": "cadavaberry_seed",
     "displayName": "Cadavaberry seed",
     "compatiblePatchTypes": ["BUSH"],
+    "plantableItemId": 5102,
+    "plantableName": "Cadavaberry seed",
+    "payments": [
+      { "itemId": 5968, "name": "Tomatoes(5)", "quantity": 3 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 22 }
     ]
@@ -339,6 +483,11 @@
     "id": "dwellberry_seed",
     "displayName": "Dwellberry seed",
     "compatiblePatchTypes": ["BUSH"],
+    "plantableItemId": 5103,
+    "plantableName": "Dwellberry seed",
+    "payments": [
+      { "itemId": 5406, "name": "Strawberries(5)", "quantity": 3 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 36 }
     ]
@@ -347,6 +496,11 @@
     "id": "jangerberry_seed",
     "displayName": "Jangerberry seed",
     "compatiblePatchTypes": ["BUSH"],
+    "plantableItemId": 5104,
+    "plantableName": "Jangerberry seed",
+    "payments": [
+      { "itemId": 5982, "name": "Watermelon", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 48 }
     ]
@@ -355,6 +509,11 @@
     "id": "whiteberry_seed",
     "displayName": "Whiteberry seed",
     "compatiblePatchTypes": ["BUSH"],
+    "plantableItemId": 5105,
+    "plantableName": "Whiteberry seed",
+    "payments": [
+      { "itemId": 6004, "name": "Mushroom", "quantity": 8 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 59 }
     ]
@@ -363,6 +522,8 @@
     "id": "poison_ivy_seed",
     "displayName": "Poison ivy seed",
     "compatiblePatchTypes": ["BUSH"],
+    "plantableItemId": 5106,
+    "plantableName": "Poison ivy seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 70 }
     ]
@@ -371,6 +532,11 @@
     "id": "acorn",
     "displayName": "Acorn",
     "compatiblePatchTypes": ["TREE"],
+    "plantableItemId": 5370,
+    "plantableName": "Oak sapling",
+    "payments": [
+      { "itemId": 5968, "name": "Tomatoes(5)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 15 }
     ]
@@ -379,6 +545,11 @@
     "id": "willow_seed",
     "displayName": "Willow seed",
     "compatiblePatchTypes": ["TREE"],
+    "plantableItemId": 5371,
+    "plantableName": "Willow sapling",
+    "payments": [
+      { "itemId": 5386, "name": "Apples(5)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 30 }
     ]
@@ -387,6 +558,11 @@
     "id": "maple_seed",
     "displayName": "Maple seed",
     "compatiblePatchTypes": ["TREE"],
+    "plantableItemId": 5372,
+    "plantableName": "Maple sapling",
+    "payments": [
+      { "itemId": 5396, "name": "Oranges(5)", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 45 }
     ]
@@ -395,6 +571,11 @@
     "id": "yew_seed",
     "displayName": "Yew seed",
     "compatiblePatchTypes": ["TREE"],
+    "plantableItemId": 5373,
+    "plantableName": "Yew sapling",
+    "payments": [
+      { "itemId": 6016, "name": "Cactus spine", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 60 }
     ]
@@ -403,6 +584,11 @@
     "id": "magic_seed",
     "displayName": "Magic seed",
     "compatiblePatchTypes": ["TREE"],
+    "plantableItemId": 5374,
+    "plantableName": "Magic sapling",
+    "payments": [
+      { "itemId": 5974, "name": "Coconut", "quantity": 25 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 75 }
     ]
@@ -411,6 +597,11 @@
     "id": "apple_tree_seed",
     "displayName": "Apple tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5496,
+    "plantableName": "Apple sapling",
+    "payments": [
+      { "itemId": 5986, "name": "Sweetcorn", "quantity": 9 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 27 }
     ]
@@ -419,6 +610,11 @@
     "id": "banana_tree_seed",
     "displayName": "Banana tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5497,
+    "plantableName": "Banana sapling",
+    "payments": [
+      { "itemId": 5386, "name": "Apples(5)", "quantity": 4 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 33 }
     ]
@@ -427,6 +623,11 @@
     "id": "orange_tree_seed",
     "displayName": "Orange tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5498,
+    "plantableName": "Orange sapling",
+    "payments": [
+      { "itemId": 5406, "name": "Strawberries(5)", "quantity": 3 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 39 }
     ]
@@ -435,6 +636,11 @@
     "id": "curry_tree_seed",
     "displayName": "Curry tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5499,
+    "plantableName": "Curry sapling",
+    "payments": [
+      { "itemId": 5416, "name": "Bananas(5)", "quantity": 5 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 42 }
     ]
@@ -443,6 +649,11 @@
     "id": "pineapple_seed",
     "displayName": "Pineapple seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5500,
+    "plantableName": "Pineapple sapling",
+    "payments": [
+      { "itemId": 5982, "name": "Watermelon", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 51 }
     ]
@@ -451,6 +662,11 @@
     "id": "papaya_tree_seed",
     "displayName": "Papaya tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5501,
+    "plantableName": "Papaya sapling",
+    "payments": [
+      { "itemId": 2114, "name": "Pineapple", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 57 }
     ]
@@ -459,6 +675,11 @@
     "id": "palm_tree_seed",
     "displayName": "Palm tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 5502,
+    "plantableName": "Palm sapling",
+    "payments": [
+      { "itemId": 5972, "name": "Papaya fruit", "quantity": 15 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 68 }
     ]
@@ -467,6 +688,11 @@
     "id": "dragonfruit_tree_seed",
     "displayName": "Dragonfruit tree seed",
     "compatiblePatchTypes": ["FRUIT_TREE"],
+    "plantableItemId": 22866,
+    "plantableName": "Dragonfruit sapling",
+    "payments": [
+      { "itemId": 5974, "name": "Coconut", "quantity": 15 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 81 }
     ]
@@ -475,6 +701,11 @@
     "id": "teak_seed",
     "displayName": "Teak seed",
     "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "plantableItemId": 21477,
+    "plantableName": "Teak sapling",
+    "payments": [
+      { "itemId": 225, "name": "Limpwurt root", "quantity": 15 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 35 }
     ]
@@ -483,6 +714,11 @@
     "id": "mahogany_seed",
     "displayName": "Mahogany seed",
     "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "plantableItemId": 21480,
+    "plantableName": "Mahogany sapling",
+    "payments": [
+      { "itemId": 5998, "name": "Yanillian hops", "quantity": 25 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 55 }
     ]
@@ -491,6 +727,11 @@
     "id": "camphor_seed",
     "displayName": "Camphor seed",
     "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "plantableItemId": 31502,
+    "plantableName": "Camphor sapling",
+    "payments": [
+      { "itemId": 239, "name": "White berries", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 66 }
     ]
@@ -499,6 +740,11 @@
     "id": "ironwood_seed",
     "displayName": "Ironwood seed",
     "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "plantableItemId": 31505,
+    "plantableName": "Ironwood sapling",
+    "payments": [
+      { "itemId": 5970, "name": "Curry leaf", "quantity": 10 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 80 }
     ]
@@ -507,6 +753,11 @@
     "id": "rosewood_seed",
     "displayName": "Rosewood seed",
     "compatiblePatchTypes": ["HARDWOOD_TREE"],
+    "plantableItemId": 31508,
+    "plantableName": "Rosewood sapling",
+    "payments": [
+      { "itemId": 22929, "name": "Dragonfruit", "quantity": 8 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 92 }
     ]
@@ -515,6 +766,13 @@
     "id": "spirit_seed",
     "displayName": "Spirit seed",
     "compatiblePatchTypes": ["SPIRIT_TREE"],
+    "plantableItemId": 5375,
+    "plantableName": "Spirit sapling",
+    "payments": [
+      { "itemId": 4012, "name": "Monkey nuts", "quantity": 5 },
+      { "itemId": 4014, "name": "Monkey bar", "quantity": 1 },
+      { "itemId": 9082, "name": "Ground tooth", "quantity": 1 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 83 }
     ]
@@ -523,6 +781,11 @@
     "id": "calquat_tree_seed",
     "displayName": "Calquat tree seed",
     "compatiblePatchTypes": ["CALQUAT"],
+    "plantableItemId": 5503,
+    "plantableName": "Calquat sapling",
+    "payments": [
+      { "itemId": 6018, "name": "Poison ivy berries", "quantity": 8 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 72 }
     ]
@@ -531,6 +794,11 @@
     "id": "celastrus_seed",
     "displayName": "Celastrus seed",
     "compatiblePatchTypes": ["CELASTRUS"],
+    "plantableItemId": 22856,
+    "plantableName": "Celastrus sapling",
+    "payments": [
+      { "itemId": 3138, "name": "Potato cactus", "quantity": 8 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 85 }
     ]
@@ -539,6 +807,11 @@
     "id": "redwood_tree_seed",
     "displayName": "Redwood tree seed",
     "compatiblePatchTypes": ["REDWOOD"],
+    "plantableItemId": 22859,
+    "plantableName": "Redwood sapling",
+    "payments": [
+      { "itemId": 22929, "name": "Dragonfruit", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 90 }
     ]
@@ -547,6 +820,8 @@
     "id": "crystal_acorn",
     "displayName": "Crystal acorn",
     "compatiblePatchTypes": ["CRYSTAL_TREE"],
+    "plantableItemId": 23659,
+    "plantableName": "Crystal sapling",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 74 }
     ]
@@ -555,6 +830,8 @@
     "id": "attas_seed",
     "displayName": "Attas seed",
     "compatiblePatchTypes": ["ANIMA"],
+    "plantableItemId": 22881,
+    "plantableName": "Attas seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 76 }
     ]
@@ -563,6 +840,8 @@
     "id": "iasor_seed",
     "displayName": "Iasor seed",
     "compatiblePatchTypes": ["ANIMA"],
+    "plantableItemId": 22883,
+    "plantableName": "Iasor seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 76 }
     ]
@@ -571,6 +850,8 @@
     "id": "kronos_seed",
     "displayName": "Kronos seed",
     "compatiblePatchTypes": ["ANIMA"],
+    "plantableItemId": 22885,
+    "plantableName": "Kronos seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 76 }
     ]
@@ -579,6 +860,8 @@
     "id": "hespori_seed",
     "displayName": "Hespori seed",
     "compatiblePatchTypes": ["HESPORI"],
+    "plantableItemId": 22875,
+    "plantableName": "Hespori seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 65 }
     ]
@@ -587,6 +870,11 @@
     "id": "cactus_seed",
     "displayName": "Cactus seed",
     "compatiblePatchTypes": ["CACTUS"],
+    "plantableItemId": 5280,
+    "plantableName": "Cactus seed",
+    "payments": [
+      { "itemId": 753, "name": "Cadava berries", "quantity": 6 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 55 }
     ]
@@ -595,6 +883,11 @@
     "id": "potato_cactus_seed",
     "displayName": "Potato cactus seed",
     "compatiblePatchTypes": ["CACTUS"],
+    "plantableItemId": 22873,
+    "plantableName": "Potato cactus seed",
+    "payments": [
+      { "itemId": 231, "name": "Snape grass", "quantity": 8 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 64 }
     ]
@@ -603,6 +896,8 @@
     "id": "mushroom_spore",
     "displayName": "Mushroom spore",
     "compatiblePatchTypes": ["MUSHROOM"],
+    "plantableItemId": 5282,
+    "plantableName": "Mushroom spore",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 53 }
     ]
@@ -611,6 +906,8 @@
     "id": "belladonna_seed",
     "displayName": "Belladonna seed",
     "compatiblePatchTypes": ["BELLADONNA"],
+    "plantableItemId": 5281,
+    "plantableName": "Belladonna seed",
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 63 }
     ]
@@ -619,6 +916,11 @@
     "id": "seaweed_spore",
     "displayName": "Seaweed spore",
     "compatiblePatchTypes": ["SEAWEED"],
+    "plantableItemId": 21490,
+    "plantableName": "Seaweed spore",
+    "payments": [
+      { "itemId": 21555, "name": "Numulite", "quantity": 200 }
+    ],
     "requirements": [
       { "type": "SKILL", "skill": "FARMING", "level": 23 }
     ]

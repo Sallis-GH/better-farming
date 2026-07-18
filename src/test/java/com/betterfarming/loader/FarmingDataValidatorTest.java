@@ -32,7 +32,8 @@ public class FarmingDataValidatorTest
 	{
 		Set<PatchType> types = new HashSet<>();
 		types.add(PatchType.HERB);
-		return new Seed(id, "Display " + id, types, Collections.<Requirement>emptyList());
+		return new Seed(id, "Display " + id, types, Collections.<Requirement>emptyList(),
+			null, null, null);
 	}
 
 	@Test
@@ -87,7 +88,7 @@ public class FarmingDataValidatorTest
 	public void seedWithEmptyCompatiblePatchTypesFails()
 	{
 		Seed s = new Seed("s1", "Bogus seed", Collections.<PatchType>emptySet(),
-			Collections.<Requirement>emptyList());
+			Collections.<Requirement>emptyList(), null, null, null);
 		FarmingData data = new FarmingData(Arrays.asList(validPatch("p1")), Arrays.asList(s));
 		assertThrows(FarmingDataValidationException.class,
 			() -> validator.validate(data));

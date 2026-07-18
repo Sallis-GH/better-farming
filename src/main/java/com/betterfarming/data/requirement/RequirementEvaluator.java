@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.QuestState;
 
 @Singleton
-@Slf4j
 public class RequirementEvaluator
 {
 	/**
@@ -29,31 +26,8 @@ public class RequirementEvaluator
 		List<Requirement> out = new ArrayList<>();
 		for (Requirement r : requirements)
 		{
-			if (r instanceof SkillRequirement)
+			if (!r.isMet(state))
 			{
-				SkillRequirement sr = (SkillRequirement) r;
-				Integer level = state.skillLevels().get(sr.skill());
-				if (level == null || level < sr.level())
-				{
-					out.add(r);
-				}
-			}
-			else if (r instanceof QuestRequirement)
-			{
-				QuestRequirement qr = (QuestRequirement) r;
-				QuestState actual = state.questStates().get(qr.quest());
-				if (actual != qr.state())
-				{
-					out.add(r);
-				}
-			}
-			else
-			{
-				// Unknown subtype — fail safe by treating as unmet so a forgotten
-				// evaluator branch surfaces visibly (logged at WARN below) instead of
-				// silently unlocking.
-				log.warn("Better Farming: RequirementEvaluator has no branch for {}; treating as unmet",
-					r.getClass().getName());
 				out.add(r);
 			}
 		}

@@ -2,19 +2,20 @@
 
 A [RuneLite](https://runelite.net/) plugin that helps Old School RuneScape players run farming routes: pick which patches you've unlocked, get an optimized run order, and (in later phases) walking-path overlays and per-patch step guidance.
 
-This is a work-in-progress hobby project. Phase 0 ships only the data foundation — no UI yet.
+This is a work-in-progress hobby project.
 
 ## Status
 
 | Phase | Description | Status |
 | --- | --- | --- |
-| 0 | Plugin scaffold + farming dataset (patches + seeds) | in progress |
-| 1 | Sidebar with patch listing & user customization | planned |
-| 2 | Per-patch seed selection | planned |
-| 3 | Run profiles (ordered patch subsets) | planned |
-| 4 | Path guidance between patches | planned |
-| 5 | Per-patch step guidance | planned |
-| 6+ | Polish: auto-detect player state, agility shortcuts, diary boosts | planned |
+| 0 | Plugin scaffold + farming dataset (patches + seeds) | done |
+| 1 | Sidebar with patch listing, grouping & requirement locks | done |
+| 1.5 | Per-patch seed selection | done |
+| 2 | Equipment manager: run-items list (tools, seeds/saplings, payments) with on-player / in-bank / missing states | done |
+| 3 | Optimal run routing from unlocked teleports (transport data + availability checks) | planned |
+| 4 | Guiding arrows & click highlights between and at patches | planned |
+| 5 | Per-patch step guidance (rake → plant → harvest state machine) | planned |
+| 6+ | Polish: compost/protection tracking, agility shortcuts, diary boosts | planned |
 
 ## Sideload (development)
 
