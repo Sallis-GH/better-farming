@@ -162,30 +162,33 @@ public class RunItemsService
 
 		// 3. Build rows: tools, then plantables, then payments.
 		List<RunItem> out = new ArrayList<>();
-		out.add(row("Rake", Set.of(FarmingTools.RAKE), 1, false));
-		out.add(row("Spade", Set.of(FarmingTools.SPADE), 1, false));
+		out.add(row("Rake", Set.of(FarmingTools.RAKE), 1, false, RunItemCategory.TOOL));
+		out.add(row("Spade", Set.of(FarmingTools.SPADE), 1, false, RunItemCategory.TOOL));
 		boolean anyGroundCrop = activeTypes.stream().anyMatch(t -> !t.isSapling());
 		if (anyGroundCrop)
 		{
-			out.add(row("Seed dibber", Set.of(FarmingTools.SEED_DIBBER), 1, false));
+			out.add(row("Seed dibber", Set.of(FarmingTools.SEED_DIBBER), 1, false, RunItemCategory.TOOL));
 		}
-		out.add(row("Magic secateurs", Set.of(FarmingTools.MAGIC_SECATEURS), 1, true));
-		out.add(row("Bottomless compost bucket", FarmingTools.ANY_BOTTOMLESS_BUCKET, 1, true));
+		out.add(row("Magic secateurs", Set.of(FarmingTools.MAGIC_SECATEURS), 1, true, RunItemCategory.TOOL));
+		out.add(row("Bottomless compost bucket", FarmingTools.ANY_BOTTOMLESS_BUCKET, 1, true, RunItemCategory.TOOL));
 
 		for (Map.Entry<Seed, Integer> e : plantableCounts.entrySet())
 		{
 			Seed seed = e.getKey();
-			out.add(row(seed.plantableName(), Set.of(seed.plantableItemId()), e.getValue(), false));
+			out.add(row(seed.plantableName(), Set.of(seed.plantableItemId()), e.getValue(), false,
+				RunItemCategory.PLANTABLE));
 		}
 		for (Map.Entry<Payment, Integer> e : paymentCounts.entrySet())
 		{
 			Payment payment = e.getKey();
-			out.add(row(payment.name(), Set.of(payment.itemId()), e.getValue(), false));
+			out.add(row(payment.name(), Set.of(payment.itemId()), e.getValue(), false,
+				RunItemCategory.PAYMENT));
 		}
 		return out;
 	}
 
-	private RunItem row(String name, Set<Integer> ids, int quantity, boolean recommended)
+	private RunItem row(String name, Set<Integer> ids, int quantity, boolean recommended,
+		RunItemCategory category)
 	{
 		int onPlayer = itemTracker.countOnPlayer(ids);
 		RunItemStatus status;
@@ -201,6 +204,6 @@ public class RunItemsService
 		{
 			status = RunItemStatus.MISSING;
 		}
-		return new RunItem(name, ids, quantity, recommended, status);
+		return new RunItem(name, ids, quantity, recommended, category, status);
 	}
 }

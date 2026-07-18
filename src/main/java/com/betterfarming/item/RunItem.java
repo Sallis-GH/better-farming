@@ -17,5 +17,6 @@ public class RunItem
 	Set<Integer> itemIds;
 	int quantity;
 	boolean recommended;
+	RunItemCategory category;
 	RunItemStatus status;
 }
