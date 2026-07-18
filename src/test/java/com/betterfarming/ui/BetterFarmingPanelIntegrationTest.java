@@ -30,8 +30,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.item.RunItemsService;
+import com.betterfarming.travel.RunOrderService;
+import com.betterfarming.travel.TeleportAvailabilityService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,6 +58,7 @@ public class BetterFarmingPanelIntegrationTest
 	private PatchAccessibilityService accessibilityService;
 	private ItemTracker itemTracker;
 	private RunItemsService runItemsService;
+	private RunOrderService runOrderService;
 	private BetterFarmingPanel panel;
 
 	@Before
@@ -72,8 +76,12 @@ public class BetterFarmingPanelIntegrationTest
 		accessibilityService.refresh();
 		itemTracker = new ItemTracker();
 		runItemsService = new RunItemsService(data, selectionService, accessibilityService, itemTracker);
+		runOrderService = new RunOrderService(data, selectionService, accessibilityService,
+			new TeleportAvailabilityService(List.of(), client, itemTracker,
+				new BetterFarmingConfig() {}),
+			client);
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 	}
 
 	@Test
@@ -236,7 +244,7 @@ public class BetterFarmingPanelIntegrationTest
 
 		// Rebuild the panel so cards see the locked state on construction.
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertNotNull(card);
@@ -253,7 +261,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertTrue("locked at Farming 1", card.isLocked());
@@ -274,7 +282,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setQuestState(Quest.SONG_OF_THE_ELVES, QuestState.NOT_STARTED);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Prifddinas");
 		assertTrue("locked when Song of the Elves not finished", card.isLocked());
@@ -294,7 +302,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		JLabel info = findInfoIcon(card);
@@ -325,11 +333,16 @@ public class BetterFarmingPanelIntegrationTest
 
 		PatchSelectionService localSelection =
 			new PatchSelectionService(new FakeConfigStore(), synthetic);
+		ItemTracker localTracker = new ItemTracker();
 		BetterFarmingPanel localPanel = new BetterFarmingPanel(synthetic,
 			localSelection,
 			new SeedAvailabilityService(localClient, synthetic),
 			localAccess,
-			new RunItemsService(synthetic, localSelection, localAccess, new ItemTracker()));
+			new RunItemsService(synthetic, localSelection, localAccess, localTracker),
+			new RunOrderService(synthetic, localSelection, localAccess,
+				new TeleportAvailabilityService(List.of(), localClient, localTracker,
+					new BetterFarmingConfig() {}),
+				localClient));
 
 		PatchGroupCard card = null;
 		for (PatchGroupCard c : findAll(localPanel, PatchGroupCard.class))
@@ -357,7 +370,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 99);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 
 		// User toggles a low-requirement group active (Farming Guild needs 45 — they have 99).
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
@@ -397,7 +410,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService);
+			accessibilityService, runItemsService, runOrderService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertTrue(card.isLocked());

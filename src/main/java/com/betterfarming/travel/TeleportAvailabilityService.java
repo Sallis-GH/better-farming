@@ -1,0 +1,296 @@
+package com.betterfarming.travel;
+
+// Availability rules adapted from Skretzo/shortest-path (BSD-2-Clause)
+// pathfinder.PathfinderConfig, see resources/transports/LICENSE-shortest-path
+
+import com.betterfarming.BetterFarmingConfig;
+import com.betterfarming.item.ItemTracker;
+import com.betterfarming.ui.ClientLevelSource;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.GameState;
+import net.runelite.api.Quest;
+import net.runelite.api.QuestState;
+import net.runelite.api.Skill;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.eventbus.Subscribe;
+
+/**
+ * Filters the loaded teleport edges down to the ones this account can use
+ * right now: quest state, boosted skill levels, varbit/varplayer values, and
+ * item possession (inventory + equipment, optionally bank).
+ *
+ * Type-level gates mirror shortest-path's PathfinderConfig: fairy rings need
+ * Fairytale II progress (varbit FAIRY2_QUEENCURE_QUEST > 39) plus a dramen or
+ * lunar staff unless the Lumbridge Elite diary is done; spirit trees need
+ * Tree Gnome Village; gliders The Grand Tree; mushtrees Bone Voyage. POH
+ * variants and player-grown spirit trees sit behind config toggles because
+ * house layout and planted trees aren't readable from static state.
+ *
+ * VarbitChanged fires very frequently, so recomputation is deferred to the
+ * next GameTick via a dirty flag rather than running per event.
+ */
+@Slf4j
+public class TeleportAvailabilityService
+{
+	// The DRAMEN_STAFF variation includes the lunar staff.
+	private static final TeleportItemRequirement DRAMEN_OR_LUNAR_STAFF =
+		new TeleportItemRequirement(
+			ItemVariations.DRAMEN_STAFF.getIds(), new int[0], new int[0], 1);
+
+	private final List<Teleport> allTeleports;
+	private final ClientLevelSource client;
+	private final ItemTracker itemTracker;
+	private final BetterFarmingConfig config;
+
+	private final Set<Runnable> listeners = new LinkedHashSet<>();
+	private List<Teleport> available = Collections.emptyList();
+	private boolean dirty = true;
+
+	public TeleportAvailabilityService(List<Teleport> allTeleports,
+		ClientLevelSource client, ItemTracker itemTracker, BetterFarmingConfig config)
+	{
+		this.allTeleports = allTeleports;
+		this.client = client;
+		this.itemTracker = itemTracker;
+		this.config = config;
+		itemTracker.addListener(this::markDirty);
+	}
+
+	// ── public API ──
+
+	/** Teleports usable now (items may come from the bank when configured). */
+	public List<Teleport> available()
+	{
+		return available;
+	}
+
+	public void addListener(Runnable l)    { listeners.add(l); }
+	public void removeListener(Runnable l) { listeners.remove(l); }
+
+	// ── event subscriptions ──
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOGGED_IN
+			|| event.getGameState() == GameState.LOGIN_SCREEN)
+		{
+			markDirty();
+		}
+	}
+
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged event)
+	{
+		dirty = true;
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		if (dirty)
+		{
+			dirty = false;
+			refresh();
+		}
+	}
+
+	private void markDirty()
+	{
+		dirty = true;
+	}
+
+	/** Recompute now (client thread). Fires listeners when the set changed. */
+	public void refresh()
+	{
+		List<Teleport> next = compute();
+		if (next.equals(available))
+		{
+			return;
+		}
+		available = next;
+		for (Runnable l : new ArrayList<>(listeners))
+		{
+			try
+			{
+				l.run();
+			}
+			catch (RuntimeException ex)
+			{
+				log.warn("Better Farming: teleport listener {} threw", l.getClass().getName(), ex);
+			}
+		}
+	}
+
+	private List<Teleport> compute()
+	{
+		if (client.getGameState() != GameState.LOGGED_IN)
+		{
+			return Collections.emptyList();
+		}
+
+		boolean fairyRingsUnlocked =
+			client.getVarbitValue(VarbitID.FAIRY2_QUEENCURE_QUEST) > 39;
+		boolean fairyRingsNeedStaff =
+			client.getVarbitValue(VarbitID.LUMBRIDGE_DIARY_ELITE_COMPLETE) != 1;
+		boolean spiritTreesUnlocked = isFinished(Quest.TREE_GNOME_VILLAGE);
+		boolean glidersUnlocked = isFinished(Quest.THE_GRAND_TREE);
+		boolean mushtreesUnlocked = isFinished(Quest.BONE_VOYAGE);
+
+		Map<Integer, Integer> varCache = new HashMap<>();
+		Map<Quest, QuestState> questCache = new HashMap<>();
+		List<Teleport> out = new ArrayList<>();
+
+		for (Teleport t : allTeleports)
+		{
+			switch (t.type())
+			{
+				case FAIRY_RING:
+					if (!fairyRingsUnlocked
+						|| (fairyRingsNeedStaff && !hasItems(DRAMEN_OR_LUNAR_STAFF)))
+					{
+						continue;
+					}
+					break;
+				case SPIRIT_TREE:
+					if (!spiritTreesUnlocked)
+					{
+						continue;
+					}
+					break;
+				case GNOME_GLIDER:
+					if (!glidersUnlocked)
+					{
+						continue;
+					}
+					break;
+				case MUSHTREE:
+					if (!mushtreesUnlocked)
+					{
+						continue;
+					}
+					break;
+				case POH_PORTAL:
+				case JEWELLERY_BOX:
+					if (!config.assumePohFacilities())
+					{
+						continue;
+					}
+					break;
+				default:
+					break;
+			}
+			if (t.touchesPoh() && !config.assumePohFacilities())
+			{
+				continue;
+			}
+			if (isUsable(t, varCache, questCache))
+			{
+				out.add(t);
+			}
+		}
+		return out;
+	}
+
+	private boolean isUsable(Teleport t,
+		Map<Integer, Integer> varCache, Map<Quest, QuestState> questCache)
+	{
+		for (Map.Entry<Skill, Integer> req : t.skillLevels().entrySet())
+		{
+			if (client.getBoostedSkillLevel(req.getKey()) < req.getValue())
+			{
+				return false;
+			}
+		}
+		for (Quest quest : t.quests())
+		{
+			QuestState state = questCache.computeIfAbsent(quest, this::questStateOrNull);
+			if (state != QuestState.FINISHED)
+			{
+				return false;
+			}
+		}
+		for (VarCheck check : t.varChecks())
+		{
+			int key = (check.varType() == VarCheck.VarType.VARBIT ? 1 : -1) * (check.id() + 1);
+			int value = varCache.computeIfAbsent(key, k ->
+				check.varType() == VarCheck.VarType.VARBIT
+					? client.getVarbitValue(check.id())
+					: client.getVarpValue(check.id()));
+			if (!check.satisfiedBy(value))
+			{
+				return false;
+			}
+		}
+		for (TeleportItemRequirement req : t.items())
+		{
+			if (!hasItems(req))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * A staff/offhand alternative satisfies the whole term regardless of
+	 * quantity (it supplies the runes); otherwise `quantity` of the item ids
+	 * must be on the player or (when configured) banked.
+	 */
+	private boolean hasItems(TeleportItemRequirement req)
+	{
+		boolean useBank = config.teleportItemsFromBank();
+		if (countAll(req.staffIds(), useBank) > 0 || countAll(req.offhandIds(), useBank) > 0)
+		{
+			return true;
+		}
+		return countAll(req.itemIds(), useBank) >= req.quantity();
+	}
+
+	private int countAll(int[] ids, boolean useBank)
+	{
+		if (ids.length == 0)
+		{
+			return 0;
+		}
+		Set<Integer> idSet = new HashSet<>();
+		for (int id : ids)
+		{
+			idSet.add(id);
+		}
+		int count = itemTracker.countOnPlayer(idSet);
+		if (useBank)
+		{
+			count += itemTracker.countBanked(idSet);
+		}
+		return count;
+	}
+
+	private boolean isFinished(Quest quest)
+	{
+		return questStateOrNull(quest) == QuestState.FINISHED;
+	}
+
+	private QuestState questStateOrNull(Quest quest)
+	{
+		try
+		{
+			return client.getQuestState(quest);
+		}
+		catch (RuntimeException ex)
+		{
+			return null;
+		}
+	}
+}

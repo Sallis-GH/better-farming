@@ -20,4 +20,29 @@ public interface BetterFarmingConfig extends Config
 	{
 		return "";
 	}
+
+	@ConfigItem(
+		keyName = "teleportItemsFromBank",
+		name = "Plan teleports with banked items",
+		description = "Count banked runes/teleport items as usable when planning the run order.<br>"
+			+ "Disable to only use teleports whose items you are carrying right now.",
+		position = 1
+	)
+	default boolean teleportItemsFromBank()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "assumePohFacilities",
+		name = "Use POH teleports",
+		description = "Include house portals, the jewellery box and in-house fairy ring/spirit tree<br>"
+			+ "when planning routes. Enable only if your house has them — the plugin cannot<br>"
+			+ "detect your house layout.",
+		position = 2
+	)
+	default boolean assumePohFacilities()
+	{
+		return false;
+	}
 }
