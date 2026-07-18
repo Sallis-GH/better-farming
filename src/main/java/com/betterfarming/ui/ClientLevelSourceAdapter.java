@@ -4,9 +4,11 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.Player;
 import net.runelite.api.Quest;
 import net.runelite.api.QuestState;
 import net.runelite.api.Skill;
+import net.runelite.api.coords.WorldPoint;
 
 @Singleton
 public class ClientLevelSourceAdapter implements ClientLevelSource
@@ -35,5 +37,30 @@ public class ClientLevelSourceAdapter implements ClientLevelSource
 	public QuestState getQuestState(Quest quest)
 	{
 		return quest.getState(client);
+	}
+
+	@Override
+	public int getBoostedSkillLevel(Skill skill)
+	{
+		return client.getBoostedSkillLevel(skill);
+	}
+
+	@Override
+	public int getVarbitValue(int varbitId)
+	{
+		return client.getVarbitValue(varbitId);
+	}
+
+	@Override
+	public int getVarpValue(int varpId)
+	{
+		return client.getVarpValue(varpId);
+	}
+
+	@Override
+	public WorldPoint getPlayerPosition()
+	{
+		Player local = client.getLocalPlayer();
+		return local == null ? null : local.getWorldLocation();
 	}
 }

@@ -10,6 +10,10 @@ import com.betterfarming.loader.FarmingDataValidator;
 import com.betterfarming.state.ConfigManagerStore;
 import com.betterfarming.state.ConfigStore;
 import com.betterfarming.state.PatchSelectionService;
+import com.betterfarming.travel.RunOrderService;
+import com.betterfarming.travel.Teleport;
+import com.betterfarming.travel.TeleportAvailabilityService;
+import com.betterfarming.travel.TeleportLoader;
 import com.betterfarming.data.requirement.RequirementEvaluator;
 import com.betterfarming.ui.BetterFarmingPanel;
 import com.betterfarming.ui.ClientLevelSource;
@@ -19,6 +23,7 @@ import com.betterfarming.ui.SeedAvailabilityService;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
@@ -50,6 +55,8 @@ public class BetterFarmingPlugin extends Plugin
 	@Inject private ItemTracker itemTracker;
 	@Inject private ClientThread clientThread;
 	@Inject private FarmingBankTab bankTab;
+	@Inject private TeleportLoader teleportLoader;
+	@Inject private BetterFarmingConfig config;
 
 	private NavigationButton navButton;
 	private Runnable bankTabRefreshListener;
@@ -57,6 +64,8 @@ public class BetterFarmingPlugin extends Plugin
 	private PatchSelectionService selectionService;
 	private PatchAccessibilityService accessibilityService;
 	private RunItemsService runItemsService;
+	private TeleportAvailabilityService teleportService;
+	private RunOrderService runOrderService;
 
 	@Override
 	public void configure(Binder binder)
@@ -79,11 +88,17 @@ public class BetterFarmingPlugin extends Plugin
 		runItemsService = new RunItemsService(data, selectionService, accessibilityService, itemTracker);
 		runItemsService.wire();
 
-		// SeedAvailabilityService and PatchAccessibilityService have @Subscribe
-		// methods — register both on the bus.
+		List<Teleport> teleports = teleportLoader.loadAll();
+		teleportService = new TeleportAvailabilityService(teleports, clientLevelSource, itemTracker, config);
+		runOrderService = new RunOrderService(
+			data, selectionService, accessibilityService, teleportService, clientLevelSource);
+		runOrderService.wire();
+
+		// Services with @Subscribe methods register on the bus.
 		eventBus.register(availabilityService);
 		eventBus.register(accessibilityService);
 		eventBus.register(itemTracker);
+		eventBus.register(teleportService);
 
 		// Bank tab: hand-wire the section service (RunItemsService is not
 		// Guice-managed) and refresh the open tab whenever run items change.
@@ -99,11 +114,13 @@ public class BetterFarmingPlugin extends Plugin
 		// would wait for a GameStateChanged or StatChanged that may never come
 		// for an idle-logged-in player.
 		accessibilityService.refresh();
+		teleportService.refresh();
 
 		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icons/sidebar.png");
 		SwingUtilities.invokeLater(() -> {
 			BetterFarmingPanel panel = new BetterFarmingPanel(
-				data, selectionService, availabilityService, accessibilityService, runItemsService);
+				data, selectionService, availabilityService, accessibilityService,
+				runItemsService, runOrderService);
 			navButton = NavigationButton.builder()
 				.tooltip("Better Farming")
 				.icon(icon)
@@ -135,6 +152,16 @@ public class BetterFarmingPlugin extends Plugin
 		eventBus.unregister(itemTracker);
 		eventBus.unregister(bankTab);
 		bankTab.shutDown();
+		if (teleportService != null)
+		{
+			eventBus.unregister(teleportService);
+			teleportService = null;
+		}
+		if (runOrderService != null)
+		{
+			runOrderService.unwire();
+			runOrderService = null;
+		}
 		if (runItemsService != null)
 		{
 			if (bankTabRefreshListener != null)
