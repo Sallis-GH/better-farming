@@ -3,9 +3,9 @@ package com.betterfarming.loader;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.Patch;
 import com.betterfarming.data.PatchType;
+import com.betterfarming.data.Payment;
 import com.betterfarming.data.Seed;
 import com.betterfarming.data.requirement.Requirement;
-import com.betterfarming.data.requirement.SkillRequirement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -79,6 +79,38 @@ public class FarmingDataValidator
 				throw new FarmingDataValidationException(
 					"seed[" + s.id() + "].compatiblePatchTypes is empty");
 			}
+			validatePlantable(s);
+		}
+	}
+
+	/**
+	 * plantableItemId/plantableName are optional (a seed without them is simply
+	 * skipped by the run-items feature) but must be present together and sane.
+	 */
+	private void validatePlantable(Seed s)
+	{
+		if (s.plantableItemId() == null && s.plantableName() == null && s.payments() == null)
+		{
+			return;
+		}
+		if (s.plantableItemId() == null || s.plantableItemId() <= 0)
+		{
+			throw new FarmingDataValidationException(
+				"seed[" + s.id() + "].plantableItemId is missing or non-positive");
+		}
+		requireNonEmpty(s.plantableName(), "seed[" + s.id() + "].plantableName");
+		if (s.payments() == null)
+		{
+			return;
+		}
+		for (Payment p : s.payments())
+		{
+			if (p.itemId() <= 0 || p.quantity() < 1)
+			{
+				throw new FarmingDataValidationException(
+					"seed[" + s.id() + "] has payment with bad itemId/quantity: " + p);
+			}
+			requireNonEmpty(p.name(), "seed[" + s.id() + "].payment.name");
 		}
 	}
 
@@ -102,14 +134,13 @@ public class FarmingDataValidator
 
 	private void validateRequirement(Requirement r, String owner)
 	{
-		if (r instanceof SkillRequirement)
+		try
 		{
-			SkillRequirement sr = (SkillRequirement) r;
-			if (sr.level() < 1 || sr.level() > 99)
-			{
-				throw new FarmingDataValidationException(
-					owner + " has SkillRequirement with out-of-range level: " + sr.level());
-			}
+			r.validate();
+		}
+		catch (IllegalArgumentException ex)
+		{
+			throw new FarmingDataValidationException(owner + " has " + ex.getMessage());
 		}
 	}
 

@@ -1,6 +1,8 @@
 package com.betterfarming;
 
 import com.betterfarming.data.FarmingData;
+import com.betterfarming.item.ItemTracker;
+import com.betterfarming.item.RunItemsService;
 import com.betterfarming.loader.FarmingDataLoader;
 import com.betterfarming.loader.FarmingDataValidator;
 import com.betterfarming.state.ConfigManagerStore;
@@ -42,11 +44,13 @@ public class BetterFarmingPlugin extends Plugin
 	@Inject private ClientToolbar clientToolbar;
 	@Inject private EventBus eventBus;
 	@Inject private RequirementEvaluator evaluator;
+	@Inject private ItemTracker itemTracker;
 
 	private NavigationButton navButton;
 	private SeedAvailabilityService availabilityService;
 	private PatchSelectionService selectionService;
 	private PatchAccessibilityService accessibilityService;
+	private RunItemsService runItemsService;
 
 	@Override
 	public void configure(Binder binder)
@@ -66,11 +70,14 @@ public class BetterFarmingPlugin extends Plugin
 		selectionService = new PatchSelectionService(configStore, data);
 		availabilityService = new SeedAvailabilityService(clientLevelSource, data);
 		accessibilityService = new PatchAccessibilityService(clientLevelSource, data, evaluator);
+		runItemsService = new RunItemsService(data, selectionService, accessibilityService, itemTracker);
+		runItemsService.wire();
 
 		// SeedAvailabilityService and PatchAccessibilityService have @Subscribe
 		// methods — register both on the bus.
 		eventBus.register(availabilityService);
 		eventBus.register(accessibilityService);
+		eventBus.register(itemTracker);
 
 		// Initial pass so cards built mid-session-already-logged-in see real
 		// lock state at construction. Without this, the first lock evaluation
@@ -81,7 +88,7 @@ public class BetterFarmingPlugin extends Plugin
 		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icons/sidebar.png");
 		SwingUtilities.invokeLater(() -> {
 			BetterFarmingPanel panel = new BetterFarmingPanel(
-				data, selectionService, availabilityService, accessibilityService);
+				data, selectionService, availabilityService, accessibilityService, runItemsService);
 			navButton = NavigationButton.builder()
 				.tooltip("Better Farming")
 				.icon(icon)
@@ -109,6 +116,12 @@ public class BetterFarmingPlugin extends Plugin
 		{
 			eventBus.unregister(accessibilityService);
 			accessibilityService = null;
+		}
+		eventBus.unregister(itemTracker);
+		if (runItemsService != null)
+		{
+			runItemsService.unwire();
+			runItemsService = null;
 		}
 		selectionService = null;
 		log.info("Better Farming: stopped");

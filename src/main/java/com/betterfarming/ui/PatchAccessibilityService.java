@@ -4,10 +4,8 @@ import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.Patch;
 import com.betterfarming.data.PatchGroup;
 import com.betterfarming.data.requirement.PlayerState;
-import com.betterfarming.data.requirement.QuestRequirement;
 import com.betterfarming.data.requirement.Requirement;
 import com.betterfarming.data.requirement.RequirementEvaluator;
-import com.betterfarming.data.requirement.SkillRequirement;
 import com.betterfarming.state.PatchSelectionService;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -204,10 +202,7 @@ public class PatchAccessibilityService
 		{
 			for (Requirement r : p.requirements())
 			{
-				if (r instanceof SkillRequirement)
-				{
-					out.add(((SkillRequirement) r).skill());
-				}
+				out.addAll(r.trackedSkills());
 			}
 		}
 		return out;
@@ -220,10 +215,7 @@ public class PatchAccessibilityService
 		{
 			for (Requirement r : p.requirements())
 			{
-				if (r instanceof QuestRequirement)
-				{
-					out.add(((QuestRequirement) r).quest());
-				}
+				out.addAll(r.trackedQuests());
 			}
 		}
 		return out;

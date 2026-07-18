@@ -25,19 +25,19 @@ public class SeedAvailabilityServiceTest
 
 	private final Seed potatoLvl1 = new Seed("potato_seed", "Potato seed",
 		Set.of(PatchType.ALLOTMENT),
-		List.of(new SkillRequirement(Skill.FARMING, 1)));
+		List.of(new SkillRequirement(Skill.FARMING, 1)), null, null, null);
 
 	private final Seed watermelonLvl47 = new Seed("watermelon_seed", "Watermelon seed",
 		Set.of(PatchType.ALLOTMENT),
-		List.of(new SkillRequirement(Skill.FARMING, 47)));
+		List.of(new SkillRequirement(Skill.FARMING, 47)), null, null, null);
 
 	private final Seed marigoldLvl2 = new Seed("marigold_seed", "Marigold seed",
 		Set.of(PatchType.FLOWER),
-		List.of(new SkillRequirement(Skill.FARMING, 2)));
+		List.of(new SkillRequirement(Skill.FARMING, 2)), null, null, null);
 
 	private final Seed seedWithoutSkillReq = new Seed("hespori_seed", "Hespori seed",
 		Set.of(PatchType.HESPORI),
-		List.of()); // no FARMING requirement modeled — treat as level 1
+		List.of(), null, null, null); // no FARMING requirement modeled — treat as level 1
 
 	@Before
 	public void setUp()

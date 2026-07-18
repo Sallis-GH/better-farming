@@ -137,17 +137,6 @@ public class RequirementEvaluatorTest
 	}
 
 	@Test
-	public void unknownRequirementSubtype_treatedAsUnmet()
-	{
-		Requirement unknown = new Requirement() {};
-		List<Requirement> result = evaluator.unmet(List.of(unknown),
-			loggedInWith(Collections.emptyMap(), Collections.emptyMap()));
-
-		assertEquals("unknown subtype is conservative-locked, not silently unlocked",
-			List.of(unknown), result);
-	}
-
-	@Test
 	public void unmetOrderMatchesInputOrder()
 	{
 		SkillRequirement first = new SkillRequirement(Skill.FARMING, 99);

@@ -2,9 +2,7 @@ package com.betterfarming.ui;
 
 import com.betterfarming.data.Patch;
 import com.betterfarming.data.PatchGroup;
-import com.betterfarming.data.requirement.QuestRequirement;
 import com.betterfarming.data.requirement.Requirement;
-import com.betterfarming.data.requirement.SkillRequirement;
 import com.betterfarming.state.GroupActiveEvent;
 import com.betterfarming.state.PatchSelectionService;
 import java.awt.BorderLayout;
@@ -250,30 +248,15 @@ public class PatchGroupCard extends JPanel
 		}
 		if (unmet.size() == 1)
 		{
-			return "Requires " + describe(unmet.get(0));
+			return "Requires " + unmet.get(0).describe();
 		}
 		StringBuilder sb = new StringBuilder("<html>Requires:");
 		for (Requirement r : unmet)
 		{
-			sb.append("<br>&bull; ").append(describe(r));
+			sb.append("<br>&bull; ").append(r.describe());
 		}
 		sb.append("</html>");
 		return sb.toString();
-	}
-
-	private static String describe(Requirement r)
-	{
-		if (r instanceof SkillRequirement)
-		{
-			SkillRequirement sr = (SkillRequirement) r;
-			return sr.skill().getName() + " " + sr.level();
-		}
-		if (r instanceof QuestRequirement)
-		{
-			QuestRequirement qr = (QuestRequirement) r;
-			return qr.quest().getName();
-		}
-		return r.toString();
 	}
 
 	/**

@@ -3,6 +3,7 @@ package com.betterfarming.ui;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.PatchGroup;
 import com.betterfarming.data.PatchType;
+import com.betterfarming.item.RunItemsService;
 import com.betterfarming.state.PatchSelectionService;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -41,7 +42,8 @@ public class BetterFarmingPanel extends PluginPanel
 	public BetterFarmingPanel(FarmingData data,
 		PatchSelectionService selectionService,
 		SeedAvailabilityService availabilityService,
-		PatchAccessibilityService accessibilityService)
+		PatchAccessibilityService accessibilityService,
+		RunItemsService runItemsService)
 	{
 		super(false);
 		setLayout(new BorderLayout());
@@ -57,6 +59,10 @@ public class BetterFarmingPanel extends PluginPanel
 		ScrollableColumn column = new ScrollableColumn();
 		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 		column.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
+		RunItemsSection runItemsSection = new RunItemsSection(runItemsService);
+		runItemsSection.setAlignmentX(Component.LEFT_ALIGNMENT);
+		column.add(runItemsSection);
 
 		for (PatchType type : DISPLAY_ORDER)
 		{
