@@ -23,7 +23,12 @@ public enum TeleportType
 	GNOME_GLIDER("gnome_gliders.tsv", true),
 	QUETZAL("quetzals.tsv", true),
 	QUETZAL_WHISTLE("quetzal_whistle.tsv", false),
-	MUSHTREE("magic_mushtrees.tsv", true);
+	MUSHTREE("magic_mushtrees.tsv", true),
+	SHIP("ships.tsv", false),
+	BOAT("boats.tsv", false),
+	CHARTER_SHIP("charter_ships.tsv", false),
+	/** Curated travel legs copied from shortest-path's transports.tsv. */
+	TRANSPORT("transports_curated.tsv", false);
 
 	private final String resourceFile;
 	private final boolean network;

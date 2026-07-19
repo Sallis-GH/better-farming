@@ -16,7 +16,8 @@ This is a work-in-progress hobby project.
 | 3 | Optimal run routing from unlocked teleports (transport data + availability checks) | done |
 | 4 | Guidance between patches: world/minimap arrows, world-map marker, travel hints, Shortest Path integration | done |
 | 5 | Per-patch crop state (farming varbits + Time Tracking data): plant/harvest highlights, state-based leg completion, growing patches skipped at plan time, pinned run order | done |
-| 6+ | Polish: compost/protection tracking, player-grown spirit trees as teleports, agility shortcuts, diary boosts | planned |
+| 6 | Routing coverage: multi-hop legs (ships/boats, e.g. Harmony), home-teleport cooldown modelling, slot-aware teleport preference (equipped jewellery first) | done |
+| 7+ | Polish: compost/protection tracking, player-grown spirit trees as teleports, agility shortcuts, diary boosts | planned |
 
 ## Sideload (development)
 

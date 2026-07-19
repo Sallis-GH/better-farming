@@ -46,12 +46,17 @@ teleport origins, agility shortcuts, diary cheaper teleports; UI/design pass).
   (tools/plantables/payments/teleport-items/gear rows), `Outfits` (generated, wiki-verified
   ids incl. worn/inventory variants — regenerate, don't hand-edit).
 - `travel/` — `TeleportLoader` parses vendored `resources/transports/*.tsv` (from
-  Skretzo/shortest-path, BSD-2; network files = entry-tiles × requirement-carrying exits),
+  Skretzo/shortest-path, BSD-2; network files = entry-tiles × requirement-carrying exits;
+  ships/boats/charters = origin+destination rows; transports_curated.tsv = hand-picked
+  verbatim rows from upstream transports.tsv, e.g. the Mos Le'Harmless→Harmony boat),
   `TeleportAvailabilityService` (live quest/varbit/boosted-skill/item filtering; POH
   facilities gated by granular config + composed house-chain edges), `RoutePlanner` (pure;
-  Held-Karp ≤13 stops, 2-opt beyond; 2-tick ties → fewer inventory slots win; POH bias 20
-  ticks), `RunOrderService` (recomputes on client thread via injected executor),
-  `PohPortal` (generated enum: TSV display name → config checkbox).
+  Held-Karp ≤13 stops, 2-opt beyond; slot-penalized selection — 2.5 ticks per inventory
+  slot, equipped items cost 0 via TeleportSlotCost — POH bias 20 ticks; expensive legs
+  (>50t single-hop) fall back to a Dijkstra chain search over the transport graph,
+  collapsed into one composite Teleport via Teleport.chainOf; free home teleport is
+  oncePerRun — capOncePerRun re-prices later legs), `RunOrderService` (recomputes on
+  client thread via injected executor), `PohPortal` (generated enum).
 - `bank/` — quest-helper-style bank tab (BSD-2 attribution): forces search state, hides
   real widgets, repaints sectioned layout, remaps withdraw clicks. Sections: Tools /
   Seeds & saplings / Payments / Teleports / one per outfit / Other items.

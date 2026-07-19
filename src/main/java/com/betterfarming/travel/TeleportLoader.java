@@ -436,7 +436,9 @@ public class TeleportLoader
 		{
 			return new Teleport(type, origin, dest, from.duration(),
 				from.displayInfo(), from.skills(), from.quests(), from.varChecks(),
-				from.items(), from.consumable(), from.objectInfo(), false);
+				from.items(), from.consumable(), from.objectInfo(), false,
+				// The free home teleport has a 30-minute cooldown.
+				type == TeleportType.HOME_SPELL);
 		}
 		// Network edge: union both nodes' requirements; the traveller must be
 		// allowed to use the origin node and the destination node.

@@ -96,4 +96,41 @@ public class TeleportLoaderTest
 		List<Teleport> edges = loader.parse(TeleportType.SPELL, tsv);
 		assertEquals(1, edges.size());
 	}
+
+	@Test
+	public void shipAndBoatFilesLoadAsOriginEdges() throws IOException
+	{
+		for (TeleportType type : new TeleportType[]{TeleportType.SHIP, TeleportType.BOAT,
+			TeleportType.CHARTER_SHIP, TeleportType.TRANSPORT})
+		{
+			List<Teleport> edges = loader.load(type);
+			assertTrue(type + " should load edges", !edges.isEmpty());
+			for (Teleport t : edges)
+			{
+				assertTrue(type + " edges must have an origin dock", t.origin() != null);
+			}
+		}
+	}
+
+	@Test
+	public void curatedTransportsIncludeHarmonyIsland() throws IOException
+	{
+		List<Teleport> curated = loader.load(TeleportType.TRANSPORT);
+		assertTrue("Mos Le'Harmless → Harmony boat present",
+			curated.stream().anyMatch(t ->
+				t.destination().getX() == 3786 && t.destination().getY() == 2824));
+	}
+
+	@Test
+	public void homeTeleportSpellsAreOncePerRun() throws IOException
+	{
+		List<Teleport> home = loader.load(TeleportType.HOME_SPELL);
+		assertTrue(!home.isEmpty());
+		for (Teleport t : home)
+		{
+			assertTrue("free home teleport has a cooldown", t.oncePerRun());
+		}
+		// Ordinary spells are freely repeatable.
+		assertTrue(loader.load(TeleportType.SPELL).stream().noneMatch(Teleport::oncePerRun));
+	}
 }

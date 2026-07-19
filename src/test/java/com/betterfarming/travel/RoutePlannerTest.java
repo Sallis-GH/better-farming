@@ -31,6 +31,129 @@ public class RoutePlannerTest
 		return new RoutePlanner.Stop(key, key, new WorldPoint(x, y, 0));
 	}
 
+	private static Teleport originTeleport(String name, WorldPoint origin, WorldPoint dest, int ticks)
+	{
+		return new Teleport(TeleportType.SHIP, origin, dest, ticks, name,
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, false);
+	}
+
+	private static Teleport oncePerRunTeleport(String name, WorldPoint dest, int ticks)
+	{
+		return new Teleport(TeleportType.HOME_SPELL, null, dest, ticks, name,
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, false, true);
+	}
+
+	@Test
+	public void unreachableStopIsReachedByChainingTeleportAndShips()
+	{
+		// Harmony-style: island target, no direct teleport; ectophial-like
+		// anywhere teleport to a port, then two ship hops.
+		WorldPoint port = new WorldPoint(3690, 3490, 0);
+		WorldPoint island1 = new WorldPoint(3680, 2950, 0);
+		WorldPoint island2 = new WorldPoint(3790, 2830, 0);
+		Teleport ectophial = anywhereTeleport("Ectophial", port, 4);
+		Teleport ship = originTeleport("Ship to Mos Le'Harmless",
+			new WorldPoint(3700, 3488, 0), island1, 6);
+		Teleport boat = originTeleport("Boat to Harmony",
+			new WorldPoint(3682, 2955, 0), island2, 2);
+		RoutePlanner.Stop harmony = stop("harmony", 3794, 2836);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(harmony),
+			List.of(ectophial, ship, boat));
+
+		assertEquals(1, legs.size());
+		Teleport chain = legs.get(0).teleport();
+		assertEquals("chain reaches the island",
+			"Ectophial → Ship to Mos Le'Harmless → Boat to Harmony", chain.displayInfo());
+		assertTrue("estimate covers hops + walks, well under IMPOSSIBLE",
+			legs.get(0).estimatedTicks() < 100);
+	}
+
+	@Test
+	public void cheapSingleHopLegsDoNotChain()
+	{
+		WorldPoint dest = new WorldPoint(2810, 3400, 0);
+		Teleport direct = anywhereTeleport("Falador Teleport", dest, 4);
+		Teleport ship = originTeleport("Pointless ship", new WorldPoint(2812, 3402, 0),
+			new WorldPoint(2805, 3398, 0), 1);
+		RoutePlanner.Stop near = stop("falador", 2808, 3401);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(near), List.of(direct, ship));
+		assertEquals(direct, legs.get(0).teleport());
+	}
+
+	@Test
+	public void oncePerRunTeleportCarriesOnlyTheFirstLegThatUsesIt()
+	{
+		// Two far-apart stops, each best served by a home-teleport-entered
+		// house chain (both edges share the once-per-run cooldown).
+		RoutePlanner.Stop a = stop("a", 2955, 3225);
+		RoutePlanner.Stop b = stop("b", 3500, 2800);
+		Teleport homeChainA = new Teleport(TeleportType.POH_PORTAL, null,
+			new WorldPoint(2950, 3220, 0), 20, "Home Teleport → Portal A",
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, true, true);
+		Teleport homeChainB = new Teleport(TeleportType.POH_PORTAL, null,
+			new WorldPoint(3495, 2795, 0), 20, "Home Teleport → Portal B",
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, true, true);
+
+		// Only home chains available: the first leg keeps one, the second may
+		// not use the cooldown again and degrades to an (impossible) walk.
+		List<RoutePlanner.Leg> capped = RoutePlanner.plan(
+			new WorldPoint(3400, 3400, 0), List.of(a, b),
+			List.of(homeChainA, homeChainB));
+		assertTrue(capped.get(0).teleport() != null && capped.get(0).teleport().oncePerRun());
+		assertNull("cooldown spent: no teleport left for the second leg",
+			capped.get(1).teleport());
+
+		// With a reusable tab near the second stop, the re-priced leg takes it
+		// (and its item would surface in the run-items list).
+		Teleport tabNearB = anywhereTeleport("B teleport tab", new WorldPoint(3498, 2798, 0), 4);
+		List<RoutePlanner.Leg> rerouted = RoutePlanner.plan(
+			new WorldPoint(3400, 3400, 0), List.of(a, b),
+			List.of(homeChainA, homeChainB, tabNearB));
+		int tabLegs = 0;
+		int onceLegs = 0;
+		for (RoutePlanner.Leg leg : rerouted)
+		{
+			if (leg.teleport() == tabNearB)
+			{
+				tabLegs++;
+			}
+			else if (leg.teleport() != null && leg.teleport().oncePerRun())
+			{
+				onceLegs++;
+			}
+		}
+		assertEquals("exactly one leg may ride the home-teleport cooldown", 1, onceLegs);
+		assertEquals(1, tabLegs);
+	}
+
+	@Test
+	public void equippedTeleportWinsTiesButNotClearlyFasterOptions()
+	{
+		Teleport necklace = anywhereTeleport("Skills necklace", new WorldPoint(2605, 3092, 0), 4);
+		Teleport tab = anywhereTeleport("Fishing guild tab", new WorldPoint(2601, 3092, 0), 4);
+		RoutePlanner.Stop stop = stop("guild", 2600, 3090);
+
+		// Slot costs: necklace equipped = 0, tab = 1. The necklace lands a few
+		// tiles further (1.5 ticks slower) — within the slot preference
+		// window, so the equipped item wins.
+		java.util.function.ToIntFunction<Teleport> slots =
+			t -> t == necklace ? 0 : 1;
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(stop), List.of(necklace, tab), 0, slots);
+		assertEquals(necklace, legs.get(0).teleport());
+
+		// A clearly faster option still wins regardless of slots.
+		Teleport fastTab = anywhereTeleport("Adjacent tab", new WorldPoint(2600, 3091, 0), 1);
+		legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(stop), List.of(necklace, fastTab), 0,
+			t -> t == necklace ? 0 : 1);
+		assertEquals(fastTab, legs.get(0).teleport());
+	}
+
 	@Test
 	public void planFixedOrder_keepsTheGivenSequence()
 	{

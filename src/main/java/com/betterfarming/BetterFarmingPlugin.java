@@ -135,7 +135,8 @@ public class BetterFarmingPlugin extends Plugin
 		teleportService = new TeleportAvailabilityService(teleports, clientLevelSource, itemTracker, config);
 		runOrderService = new RunOrderService(
 			data, selectionService, accessibilityService, teleportService, clientLevelSource,
-			config, clientThread::invokeLater, patchStateService::needsVisit);
+			config, clientThread::invokeLater, patchStateService::needsVisit,
+			com.betterfarming.travel.TeleportSlotCost.of(itemTracker));
 		runOrderService.wire();
 		// State changes re-plan the route (pinned order keeps it stable).
 		patchStateListener = runOrderService::recompute;

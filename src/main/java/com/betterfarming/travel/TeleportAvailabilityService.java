@@ -268,7 +268,9 @@ public class TeleportAvailabilityService
 				out.add(new Teleport(facility.type(), null, facility.destination(),
 					entry.durationTicks() + walk + facility.durationTicks(),
 					display, skills, quests, varChecks, items,
-					entry.consumable() || facility.consumable(), null, true));
+					entry.consumable() || facility.consumable(), null, true,
+					// A home-teleport-entered chain inherits the cooldown.
+					entry.oncePerRun() || facility.oncePerRun()));
 			}
 		}
 		return out;
