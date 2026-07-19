@@ -174,8 +174,10 @@ public class PatchStateServiceTest
 		client.setVarbit(VARBIT, 4); // herb growing
 		service.refresh();
 
-		// Live GROWING + remote unknown → UNKNOWN overall.
-		assertEquals(StopProgress.UNKNOWN, service.groupProgress(List.of(herb, remoteHerb)));
+		// Live GROWING + a varbit-mapped patch with no observation yet:
+		// INCOMPLETE — its state will resolve on arrival, so completion
+		// demands observation rather than proximity.
+		assertEquals(StopProgress.INCOMPLETE, service.groupProgress(List.of(herb, remoteHerb)));
 		// All growing → COMPLETE. A new Time Tracking write reaches the
 		// service through config-change invalidation, as in production.
 		timetracking.put("11062.4774", "4:" + now.get());
@@ -188,6 +190,32 @@ public class PatchStateServiceTest
 		client.setVarbit(VARBIT, 0);
 		service.refresh();
 		assertEquals(StopProgress.INCOMPLETE, service.groupProgress(List.of(herb, remoteHerb)));
+	}
+
+	@Test
+	public void mappedPatchWithoutObservationDemandsAVisit()
+	{
+		// No live read (player far away), no timetracking data: the patch is
+		// varbit-mapped, so the stop must not proximity-complete — a
+		// HARVESTABLE crop would otherwise check off in the arrival-tick
+		// window before the live read lands.
+		client.setPlayerPosition(LUMBRIDGE);
+		service.refresh();
+		assertEquals(StopProgress.INCOMPLETE, service.groupProgress(List.of(herb)));
+	}
+
+	@Test
+	public void unmappedPatchKeepsTheProximityFallback()
+	{
+		// A patch with no state varbit at all can never be observed: UNKNOWN
+		// lets guidance fall back to proximity completion.
+		Patch unmapped = new Patch("spirit_tree", "Spirit tree patch",
+			PatchType.SPIRIT_TREE, "Etceteria", null, new WorldPoint(2613, 3855, 0),
+			List.of(), null, null, null, null);
+		PatchStateService s = new PatchStateService(List.of(unmapped), client, table,
+			timetracking::get, now::get);
+		s.refresh();
+		assertEquals(StopProgress.UNKNOWN, s.groupProgress(List.of(unmapped)));
 	}
 
 	@Test

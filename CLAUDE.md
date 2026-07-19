@@ -62,12 +62,16 @@ diagnosis notes from the session):
    hand-typed ids, honours rule 6). Run-items row becomes "Skills necklace(2)+" (qty 1,
    summed quantity = charges; satisfied by any single carried/banked variant at tier ≥N);
    TeleportItemCheck applies the same rule per leg and names shortfalls "(N)+".
-5. **Run completion must track harvesting.** Visiting a HARVESTABLE patch without
-   harvesting marked the run complete — that should only happen via the UNKNOWN-proximity
-   path, so likely a value-table gap (snape grass allotment values?) or a live-read gate
-   miss. Investigate the actual varbit value at the reported patch; consider timetracking's
-   harvest-stage modelling (patch varbit steps down per pick). Completion should demand an
-   observed EMPTY/planted state when a varbit mapping exists, never proximity.
+5. **Run completion must track harvesting — DONE.** Investigation: the ALLOTMENT value
+   table is complete (0–255 contiguous; snape grass 63–73/128–134 growing, 138–140
+   harvestable — matches RuneLite core PatchImplementation), so the culprit was the
+   arrival-tick race: groupProgress returned UNKNOWN for mapped-but-unobserved patches,
+   letting the proximity path check the stop off before the live varbit read landed
+   (EventBus subscriber order unspecified); only stateCompleted regressions un-check.
+   Fix: groupProgress reports INCOMPLETE for varbit-mapped patches with no observation —
+   mapped stops never proximity-complete; completion demands observed state, the 50-tile
+   walk-away skip stays the escape when state never resolves (bad region data). Proximity
+   fallback survives only for patches with no varbit mapping at all.
 6. **Bill Teach is multi-located.** Only highlight the ferry NPC after boarding (post-
    gangplank), not whichever namesake stands nearest: stage the ship boarding as
    gangplank-object first, NPC only once aboard (detect via tiny distance / same-tile
