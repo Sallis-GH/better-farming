@@ -44,6 +44,19 @@ public class ItemTracker
 	private final Map<Integer, Integer> bank = new HashMap<>();
 	private boolean bankKnown = false;
 
+	/**
+	 * Rune pouch contents, pushed by RunePouchReader from the pouch varbits.
+	 * Folded into countOnPlayer only while a pouch item is in the inventory —
+	 * the varbits keep their values while the pouch itself sits in the bank.
+	 */
+	private final Map<Integer, Integer> runePouch = new HashMap<>();
+
+	static final java.util.Set<Integer> RUNE_POUCH_IDS = java.util.Set.of(
+		net.runelite.api.gameval.ItemID.BH_RUNE_POUCH,
+		net.runelite.api.gameval.ItemID.BH_RUNE_POUCH_TROUVER,
+		net.runelite.api.gameval.ItemID.DIVINE_RUNE_POUCH,
+		net.runelite.api.gameval.ItemID.DIVINE_RUNE_POUCH_TROUVER);
+
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
 
 	@Inject
@@ -56,7 +69,28 @@ public class ItemTracker
 	/** Count in inventory + worn equipment for any of the given item ids. */
 	public int countOnPlayer(Set<Integer> itemIds)
 	{
-		return count(inventory, itemIds) + count(equipment, itemIds);
+		int total = count(inventory, itemIds) + count(equipment, itemIds);
+		if (!runePouch.isEmpty() && count(inventory, RUNE_POUCH_IDS) > 0)
+		{
+			total += count(runePouch, itemIds);
+		}
+		return total;
+	}
+
+	/**
+	 * Replaces the rune pouch contents snapshot (itemId → quantity). Called
+	 * by RunePouchReader on the client thread whenever the pouch varbits
+	 * change; notifies only on an actual change.
+	 */
+	public void updateRunePouch(Map<Integer, Integer> contents)
+	{
+		if (runePouch.equals(contents))
+		{
+			return;
+		}
+		runePouch.clear();
+		runePouch.putAll(contents);
+		notifyListeners();
 	}
 
 	/** Last-known bank count for any of the given item ids; 0 if bank unseen. */
@@ -103,6 +137,7 @@ public class ItemTracker
 			inventory.clear();
 			equipment.clear();
 			bank.clear();
+			runePouch.clear();
 			bankKnown = false;
 			notifyListeners();
 		}

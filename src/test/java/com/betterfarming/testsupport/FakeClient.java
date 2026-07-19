@@ -25,6 +25,7 @@ public class FakeClient implements com.betterfarming.ui.ClientLevelSource
 	private final Map<Quest, QuestState> questStates = new HashMap<>();
 	private final Map<Integer, Integer> varbits = new HashMap<>();
 	private final Map<Integer, Integer> varps = new HashMap<>();
+	private final Map<Long, Integer> enumValues = new HashMap<>();
 
 	private GameState gameState = GameState.LOGGED_IN;
 	private WorldPoint playerPosition = new WorldPoint(3222, 3218, 0); // Lumbridge
@@ -100,6 +101,17 @@ public class FakeClient implements com.betterfarming.ui.ClientLevelSource
 	public int getVarpValue(int varpId)
 	{
 		return varps.getOrDefault(varpId, 0);
+	}
+
+	public void setEnumValue(int enumId, int key, int value)
+	{
+		enumValues.put(((long) enumId << 32) | key, value);
+	}
+
+	@Override
+	public int getEnumValue(int enumId, int key)
+	{
+		return enumValues.getOrDefault(((long) enumId << 32) | key, -1);
 	}
 
 	@Override

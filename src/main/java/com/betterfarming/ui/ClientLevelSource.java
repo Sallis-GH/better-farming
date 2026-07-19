@@ -28,6 +28,13 @@ public interface ClientLevelSource
 
 	int getVarpValue(int varpId);
 
+	/**
+	 * Value for `key` in the given cache enum (e.g. EnumID.RUNEPOUCH_RUNE
+	 * maps rune-type varbit values to item ids); -1 when absent. Client
+	 * thread only in production.
+	 */
+	int getEnumValue(int enumId, int key);
+
 	/** Current player tile, or null when not logged in. */
 	WorldPoint getPlayerPosition();
 }
