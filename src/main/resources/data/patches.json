@@ -361,8 +361,8 @@
     "location": "West of Civitas illa Fortis",
     "subPatchLabel": "N",
     "worldPoint": {
-      "x": 1586,
-      "y": 3102,
+      "x": 1582,
+      "y": 3100,
       "plane": 0
     },
     "requirements": [],
@@ -385,7 +385,7 @@
     "subPatchLabel": "S",
     "worldPoint": {
       "x": 1586,
-      "y": 3096,
+      "y": 3095,
       "plane": 0
     },
     "requirements": [],
@@ -568,8 +568,8 @@
     "type": "FLOWER",
     "location": "West of Civitas illa Fortis",
     "worldPoint": {
-      "x": 1593,
-      "y": 3099,
+      "x": 1585,
+      "y": 3098,
       "plane": 0
     },
     "requirements": [],
@@ -673,7 +673,7 @@
     "location": "North of Ardougne",
     "worldPoint": {
       "x": 2670,
-      "y": 3378,
+      "y": 3374,
       "plane": 0
     },
     "requirements": [],
@@ -689,8 +689,8 @@
     "type": "HERB",
     "location": "South-west Hosidius",
     "worldPoint": {
-      "x": 1737,
-      "y": 3555,
+      "x": 1738,
+      "y": 3550,
       "plane": 0
     },
     "requirements": [],
@@ -801,8 +801,8 @@
     "type": "HERB",
     "location": "West of Civitas illa Fortis",
     "worldPoint": {
-      "x": 1586,
-      "y": 3099,
+      "x": 1582,
+      "y": 3094,
       "plane": 0
     },
     "requirements": [],
