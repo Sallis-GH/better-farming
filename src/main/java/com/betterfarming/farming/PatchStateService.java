@@ -51,6 +51,8 @@ public class PatchStateService
 	static final int DEFAULT_MIN_GROW_MINUTES = 40;
 
 	private final List<Patch> statefulPatches;
+	/** Ids of patches with a varbit mapping — their state is observable. */
+	private final java.util.Set<String> statefulIds = new java.util.HashSet<>();
 	private final ClientLevelSource client;
 	private final PatchStateTable table;
 	private final Function<String, String> timetrackingLookup;
@@ -109,6 +111,7 @@ public class PatchStateService
 			if (p.stateVarbitId() != null && p.stateRegionIds() != null)
 			{
 				statefulPatches.add(p);
+				statefulIds.add(p.id());
 			}
 		}
 		this.client = client;
@@ -225,6 +228,17 @@ public class PatchStateService
 	/**
 	 * COMPLETE = every patch confirmed growing; INCOMPLETE = something needs
 	 * work; UNKNOWN = not enough state to judge (proximity fallback applies).
+	 *
+	 * A varbit-mapped patch with no observation yet reports INCOMPLETE, not
+	 * UNKNOWN: its state WILL resolve once the player is in the patch's
+	 * region, so completion can demand an observed harvested/planted state.
+	 * Reporting UNKNOWN instead lets the guidance proximity path check the
+	 * stop off in the arrival-tick window before the live varbit read lands
+	 * (EventBus subscriber order is unspecified) — which is how a
+	 * HARVESTABLE patch got a run marked complete without a harvest. The
+	 * walk-away skip remains the escape hatch if state never resolves (bad
+	 * region data). Only patches with no varbit mapping at all keep the
+	 * proximity fallback.
 	 */
 	public StopProgress groupProgress(Collection<Patch> patches)
 	{
@@ -232,20 +246,32 @@ public class PatchStateService
 		{
 			return StopProgress.UNKNOWN;
 		}
-		boolean anyUnknown = false;
+		boolean unmappedUnknown = false;
+		boolean mappedUnknown = false;
 		for (Patch p : patches)
 		{
 			CropState s = state(p);
 			if (s == CropState.UNKNOWN)
 			{
-				anyUnknown = true;
+				if (statefulIds.contains(p.id()))
+				{
+					mappedUnknown = true;
+				}
+				else
+				{
+					unmappedUnknown = true;
+				}
 			}
 			else if (s.needsVisit())
 			{
 				return StopProgress.INCOMPLETE;
 			}
 		}
-		return anyUnknown ? StopProgress.UNKNOWN : StopProgress.COMPLETE;
+		if (mappedUnknown)
+		{
+			return StopProgress.INCOMPLETE;
+		}
+		return unmappedUnknown ? StopProgress.UNKNOWN : StopProgress.COMPLETE;
 	}
 
 	/** Re-reads live varbits and rebuilds the snapshot; client thread only. */
