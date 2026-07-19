@@ -71,6 +71,35 @@ public class RoutePlannerTest
 	}
 
 	@Test
+	public void chainMergesIdenticalItemRequirements()
+	{
+		TeleportItemRequirement fare = new TeleportItemRequirement(
+			new int[]{995}, new int[0], new int[0], 2500, "Coins");
+		Teleport hopA = new Teleport(TeleportType.CHARTER_SHIP, new WorldPoint(3000, 3000, 0),
+			new WorldPoint(3100, 3000, 0), 6, "Charter A", Map.of(), Set.of(), Set.of(),
+			List.of(fare), false, null, false);
+		Teleport hopB = new Teleport(TeleportType.CHARTER_SHIP, new WorldPoint(3102, 3000, 0),
+			new WorldPoint(3200, 3000, 0), 6, "Charter B", Map.of(), Set.of(), Set.of(),
+			List.of(fare), false, null, false);
+
+		Teleport chain = Teleport.chainOf(List.of(hopA, hopB), 20);
+		assertEquals("two identical fares merge into one stackable requirement",
+			1, chain.items().size());
+		assertEquals(5000, chain.items().get(0).quantity());
+		assertEquals(20, chain.durationTicks());
+	}
+
+	@Test
+	public void unreachableLegReportsSentinelTicksNotGarbage()
+	{
+		RoutePlanner.Stop island = stop("island", 3800, 2800);
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(island), List.of());
+		assertEquals(RoutePlanner.UNREACHABLE_TICKS, legs.get(0).estimatedTicks());
+		assertNull(legs.get(0).teleport());
+	}
+
+	@Test
 	public void cheapSingleHopLegsDoNotChain()
 	{
 		WorldPoint dest = new WorldPoint(2810, 3400, 0);

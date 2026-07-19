@@ -297,7 +297,10 @@ public class TeleportLoader
 			}
 			else if (!name.isBlank())
 			{
-				log.debug("Better Farming: unknown quest name '{}' in transport data", name);
+				// Warn, not debug: an unresolvable quest gate silently makes
+				// the transport unconditionally available (upstream TSV
+				// resyncs can reference quests newer than the pinned API).
+				log.warn("Better Farming: unknown quest name '{}' in transport data", name);
 			}
 		}
 		return out;

@@ -149,6 +149,14 @@ public class TeleportAvailabilityService
 		boolean glidersUnlocked = isFinished(Quest.THE_GRAND_TREE);
 		boolean mushtreesUnlocked = isFinished(Quest.BONE_VOYAGE);
 
+		// The free home teleport has a 30-minute cooldown, tracked by
+		// VarPlayer.LAST_HOME_TELEPORT in minutes-since-epoch. While cooling
+		// down the spell (and any house chain entered through it) is not a
+		// plannable edge, so routes fall back to tabs/runes or reroute.
+		int lastHomeTeleport = client.getVarpValue(net.runelite.api.VarPlayer.LAST_HOME_TELEPORT);
+		long nowMinutes = System.currentTimeMillis() / 60_000L;
+		boolean homeTeleportReady = nowMinutes - lastHomeTeleport >= 30;
+
 		Map<Integer, Integer> varCache = new HashMap<>();
 		Map<Quest, QuestState> questCache = new HashMap<>();
 		List<Teleport> out = new ArrayList<>();
@@ -159,6 +167,10 @@ public class TeleportAvailabilityService
 
 		for (Teleport t : allTeleports)
 		{
+			if (t.oncePerRun() && !homeTeleportReady)
+			{
+				continue;
+			}
 			switch (t.type())
 			{
 				case FAIRY_RING:

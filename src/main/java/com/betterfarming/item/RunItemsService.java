@@ -242,8 +242,13 @@ public class RunItemsService
 		{
 			return out;
 		}
-		Map<String, TeleportItemRequirement> byName = new LinkedHashMap<>();
+		// Aggregate by the requirement's item identity, not its display label:
+		// the same tablet used standalone on one leg and inside a multi-hop
+		// chain on another must merge into one row with a summed quantity.
+		// The shortest label seen wins (a chain's joined display is longest).
+		Map<String, TeleportItemRequirement> byKey = new LinkedHashMap<>();
 		Map<String, Integer> totals = new LinkedHashMap<>();
+		Map<String, String> labels = new LinkedHashMap<>();
 		for (RoutePlanner.Leg leg : runOrderService.legs())
 		{
 			if (leg.teleport() == null)
@@ -252,14 +257,17 @@ public class RunItemsService
 			}
 			for (TeleportItemRequirement req : leg.teleport().items())
 			{
-				String name = displayNameFor(req, leg.teleport());
-				byName.putIfAbsent(name, req);
-				totals.merge(name, req.quantity(), Integer::sum);
+				String key = java.util.Arrays.toString(req.itemIds())
+					+ "|" + java.util.Arrays.toString(req.staffIds());
+				byKey.putIfAbsent(key, req);
+				totals.merge(key, req.quantity(), Integer::sum);
+				labels.merge(key, displayNameFor(req, leg.teleport()),
+					(a, b) -> a.length() <= b.length() ? a : b);
 			}
 		}
 		for (Map.Entry<String, Integer> e : totals.entrySet())
 		{
-			TeleportItemRequirement req = byName.get(e.getKey());
+			TeleportItemRequirement req = byKey.get(e.getKey());
 			Set<Integer> ids = boxSet(req.itemIds());
 			RunItemStatus status;
 			if (itemTracker.countOnPlayer(boxSet(req.staffIds())) > 0
@@ -271,7 +279,7 @@ public class RunItemsService
 			{
 				status = statusFor(ids, e.getValue());
 			}
-			out.add(new RunItem(req.name(), ids, e.getValue(), false,
+			out.add(new RunItem(labels.get(e.getKey()), ids, e.getValue(), false,
 				RunItemCategory.TELEPORT, status, null));
 		}
 		return out;

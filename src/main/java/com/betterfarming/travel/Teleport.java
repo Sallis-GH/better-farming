@@ -58,12 +58,28 @@ public class Teleport
 			quests, varChecks, items, consumable, objectInfo, viaPoh, false);
 	}
 
+	/** As {@link #chainOf(List, int)} with durations summed hop-only. */
+	public static Teleport chainOf(List<Teleport> hops)
+	{
+		int duration = 0;
+		for (Teleport hop : hops)
+		{
+			duration += hop.durationTicks();
+		}
+		return chainOf(hops, duration);
+	}
+
 	/**
 	 * Collapses a multi-hop travel path (e.g. Ectophial → ship → ship) into a
 	 * single edge so legs, run items, and hints handle chains unchanged:
-	 * requirements union, durations sum, display joins the hop labels.
+	 * requirements union (identical item needs merged — two 2500-coin fares
+	 * become one 5000-coin requirement occupying one stackable slot), display
+	 * joins the hop labels.
+	 *
+	 * @param durationTicks total travel time including inter-hop walking —
+	 *     the planner supplies it; hop durations alone understate the chain.
 	 */
-	public static Teleport chainOf(List<Teleport> hops)
+	public static Teleport chainOf(List<Teleport> hops, int durationTicks)
 	{
 		if (hops.size() == 1)
 		{
@@ -74,7 +90,6 @@ public class Teleport
 		Set<VarCheck> varChecks = new LinkedHashSet<>();
 		List<TeleportItemRequirement> items = new ArrayList<>();
 		StringBuilder display = new StringBuilder();
-		int duration = 0;
 		boolean consumable = false;
 		boolean viaPoh = false;
 		boolean oncePerRun = false;
@@ -83,8 +98,10 @@ public class Teleport
 			hop.skillLevels().forEach((s, lvl) -> skills.merge(s, lvl, Math::max));
 			quests.addAll(hop.quests());
 			varChecks.addAll(hop.varChecks());
-			items.addAll(hop.items());
-			duration += hop.durationTicks();
+			for (TeleportItemRequirement req : hop.items())
+			{
+				mergeRequirement(items, req);
+			}
 			consumable |= hop.consumable();
 			viaPoh |= hop.viaPoh();
 			oncePerRun |= hop.oncePerRun();
@@ -95,8 +112,27 @@ public class Teleport
 			display.append(hop.displayLabel());
 		}
 		return new Teleport(hops.get(0).type(), hops.get(0).origin(),
-			hops.get(hops.size() - 1).destination(), duration, display.toString(),
+			hops.get(hops.size() - 1).destination(), durationTicks, display.toString(),
 			skills, quests, varChecks, items, consumable, null, viaPoh, oncePerRun);
+	}
+
+	private static void mergeRequirement(List<TeleportItemRequirement> items,
+		TeleportItemRequirement req)
+	{
+		for (int i = 0; i < items.size(); i++)
+		{
+			TeleportItemRequirement existing = items.get(i);
+			if (java.util.Arrays.equals(existing.itemIds(), req.itemIds())
+				&& java.util.Arrays.equals(existing.staffIds(), req.staffIds())
+				&& java.util.Arrays.equals(existing.offhandIds(), req.offhandIds()))
+			{
+				items.set(i, new TeleportItemRequirement(existing.itemIds(),
+					existing.staffIds(), existing.offhandIds(),
+					existing.quantity() + req.quantity(), existing.name()));
+				return;
+			}
+		}
+		items.add(req);
 	}
 
 	/**
