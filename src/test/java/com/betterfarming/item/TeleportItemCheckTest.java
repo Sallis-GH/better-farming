@@ -127,6 +127,52 @@ public class TeleportItemCheckTest
 		assertTrue(TeleportItemCheck.missingOnPlayer(chain, tracker).isEmpty());
 	}
 
+	// ── charge jewellery ──
+
+	private static Teleport skillsNecklaceLeg(int neededCharges)
+	{
+		TeleportItemRequirement necklace = new TeleportItemRequirement(
+			new int[]{
+				net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_1,
+				net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_2,
+				net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_3,
+				net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_4,
+				net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_5,
+				net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_6},
+			new int[0], new int[0], neededCharges,
+			"Item " + net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_1);
+		return teleport("Skills necklace: Fishing Guild", necklace);
+	}
+
+	@Test
+	public void oneHighTierNecklaceCoversMultipleCharges()
+	{
+		tracker.updateContainer(ItemTracker.CONTAINER_EQUIPMENT,
+			new Item[]{new Item(net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_4, 1)});
+		assertTrue("necklace(4) covers a 2-charge need",
+			TeleportItemCheck.missingOnPlayer(skillsNecklaceLeg(2), tracker).isEmpty());
+	}
+
+	@Test
+	public void lowTierNecklaceDoesNotCoverAndShortfallNamesTheTier()
+	{
+		tracker.updateContainer(ItemTracker.CONTAINER_INVENTORY,
+			new Item[]{new Item(net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_1, 1)});
+		assertEquals(List.of("Skills necklace(2)+"),
+			TeleportItemCheck.missingOnPlayer(skillsNecklaceLeg(2), tracker));
+	}
+
+	@Test
+	public void twoLowTierNecklacesAreNotTwoCharges()
+	{
+		// By design: charges live on ONE item that steps down per use —
+		// counting bodies would tell the player two necklace(1)s suffice.
+		tracker.updateContainer(ItemTracker.CONTAINER_INVENTORY,
+			new Item[]{new Item(net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_1, 2)});
+		assertEquals(List.of("Skills necklace(2)+"),
+			TeleportItemCheck.missingOnPlayer(skillsNecklaceLeg(2), tracker));
+	}
+
 	@Test
 	public void chainRawItemNameLabelsFromTheOwningHop()
 	{

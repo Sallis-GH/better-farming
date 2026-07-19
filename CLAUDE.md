@@ -56,11 +56,12 @@ diagnosis notes from the session):
    deviation replans; progress kept (pause). Logout force-stops. Controls: Start/Stop +
    Skip buttons in RunOrderSection header (synced via guidance listener), Skip/Stop
    right-click entries on TravelHintOverlay.
-4. **Jewellery charges, not item count.** Two skills-necklace legs currently show
-   "Skills necklace ×2"; correct is ONE necklace with ≥2 charges, displayed like
-   "Skills necklace(2)+". Charge variants are separate item ids (ItemVariations names
-   encode charges); classify charge-jewellery requirements, sum charges needed, satisfy
-   by any carried variant with ≥N charges.
+4. **Jewellery charges, not item count — DONE.** travel/JewelleryCharges classifies a
+   requirement as charge jewellery when ALL its OR-variant ids share one gameval ItemID
+   base name with numeric _N suffixes (reflection over ItemID at class load — no
+   hand-typed ids, honours rule 6). Run-items row becomes "Skills necklace(2)+" (qty 1,
+   summed quantity = charges; satisfied by any single carried/banked variant at tier ≥N);
+   TeleportItemCheck applies the same rule per leg and names shortfalls "(N)+".
 5. **Run completion must track harvesting.** Visiting a HARVESTABLE patch without
    harvesting marked the run complete — that should only happen via the UNKNOWN-proximity
    path, so likely a value-table gap (snape grass allotment values?) or a live-read gate
