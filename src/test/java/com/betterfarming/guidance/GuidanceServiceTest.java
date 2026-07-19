@@ -439,7 +439,7 @@ public class GuidanceServiceTest
 	}
 
 	@Test
-	public void walkingFarAwayFromAReachedIncompleteStopSkipsIt()
+	public void walkingFarAwayFromAReachedIncompleteStopDefersIt()
 	{
 		GuidanceService s = stateAwareService();
 		progress.put("falador", StopProgress.INCOMPLETE);
@@ -452,10 +452,26 @@ public class GuidanceServiceTest
 		s.update();
 		assertEquals("falador", s.currentLeg().stop().groupKey());
 
-		// ...teleporting far away is: no seeds, moving on.
+		// ...teleporting far away moves on, but the stop is deferred, not
+		// done: it stays in the remaining route and blocks completion.
 		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
 		s.update();
 		assertEquals("catherby", s.currentLeg().stop().groupKey());
+		assertEquals(Arrays.asList(FALADOR, CATHERBY, ARDOUGNE), s.remainingTargets());
+
+		// Once the rest of the run is done, the deferred stop returns as
+		// current instead of the run completing without a harvest.
+		client.setPlayerPosition(CATHERBY);
+		s.update();
+		client.setPlayerPosition(ARDOUGNE);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+		assertFalse("unharvested patch: the run is not complete", s.runComplete());
+
+		// Actually planting it (observed state) is what completes the run.
+		progress.put("falador", StopProgress.COMPLETE);
+		s.update();
+		assertTrue(s.runComplete());
 	}
 
 	@Test
@@ -576,7 +592,7 @@ public class GuidanceServiceTest
 	}
 
 	@Test
-	public void skipChecksOffTheCurrentLegOnly()
+	public void skipDefersTheCurrentLegOnly()
 	{
 		service.update();
 		assertEquals("falador", service.currentLeg().stop().groupKey());
@@ -584,11 +600,28 @@ public class GuidanceServiceTest
 		service.requestSkipCurrentLeg();
 		service.update();
 		assertEquals("catherby", service.currentLeg().stop().groupKey());
-		assertEquals(Arrays.asList(CATHERBY, ARDOUGNE), service.remainingTargets());
+		// Deferred, not done: the stop stays in the remaining route.
+		assertEquals(Arrays.asList(FALADOR, CATHERBY, ARDOUGNE), service.remainingTargets());
 
-		// One request, one skip.
+		// One request, one deferral.
 		service.update();
 		assertEquals("catherby", service.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void deferredStopsReturnOnResume()
+	{
+		service.update();
+		service.requestSkipCurrentLeg();
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+
+		// Pausing drops deferrals: resuming re-offers the skipped stop.
+		service.setRunActive(false);
+		service.update();
+		service.setRunActive(true);
+		service.update();
+		assertEquals("falador", service.currentLeg().stop().groupKey());
 	}
 
 	@Test
@@ -600,10 +633,19 @@ public class GuidanceServiceTest
 		s.update();
 		assertEquals("falador", s.currentLeg().stop().groupKey());
 
-		// No seeds for it: skip moves on even though work remains.
+		// No seeds for it: skip moves on even though work remains — and
+		// standing right next to the just-skipped stop must not re-current
+		// it through the deviation path.
 		s.requestSkipCurrentLeg();
 		s.update();
 		assertEquals("catherby", s.currentLeg().stop().groupKey());
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
+
+		// Working the patch anyway still completes it by observed state.
+		progress.put("falador", StopProgress.COMPLETE);
+		s.update();
+		assertEquals(Arrays.asList(CATHERBY, ARDOUGNE), s.remainingTargets());
 	}
 
 	@Test

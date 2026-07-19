@@ -49,7 +49,15 @@ the snape-grass value-table suspicion was refuted, ALLOTMENT covers 0–255; the
 the arrival-tick subscriber-order race); staged ship boarding (gangplank first, ferry
 NPC only within 5 tiles/same plane, NPC match bounded to 10 tiles).
 
-NEXT: **in-game verification of the six fixes** (owner tests; expect feedback), then
+Post-test feedback round (PRs #34–#35): rune-pouch runes count toward spell requirements
+(item/RunePouchReader → ItemTracker; no "can cast" API exists — counting runes incl. pouch
+IS the cast count); Skip and the 50-tile walk-away now DEFER a stop instead of completing
+it (GuidanceService.deferred: excluded from leg selection and deviation while other work
+remains, returns as current once the rest is done and always on resume-after-stop, blocks
+runComplete — a stop completes only on observed harvested/replanted state; Stop ends a run
+early).
+
+NEXT: **in-game verification** (owner tests; expect feedback), then
 **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
 origins, agility shortcuts, diary cheaper teleports; UI/design pass).
 

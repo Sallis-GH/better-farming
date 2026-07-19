@@ -72,7 +72,8 @@ public class RunOrderSection extends JPanel
 		skipButton = new JButton("Skip");
 		skipButton.setName("runorder-skip");
 		skipButton.setFont(skipButton.getFont().deriveFont(11f));
-		skipButton.setToolTipText("Check off the current leg without visiting it");
+		skipButton.setToolTipText(
+			"Set the current leg aside — it returns at the end of the run and on resume");
 		skipButton.addActionListener(e -> guidance.requestSkipCurrentLeg());
 
 		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
