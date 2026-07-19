@@ -355,6 +355,7 @@ public class TeleportLoader
 			List<int[]> staves = new ArrayList<>();
 			List<int[]> offhands = new ArrayList<>();
 			int maxQuantity = -1;
+			String name = null;
 			for (String orPart : andPart.split(Pattern.quote("|")))
 			{
 				String[] itemAndQuantity = orPart.split("=");
@@ -363,6 +364,10 @@ public class TeleportLoader
 					throw new IllegalArgumentException("Bad item requirement: " + andPart);
 				}
 				maxQuantity = Math.max(maxQuantity, Integer.parseInt(itemAndQuantity[1]));
+				if (name == null)
+				{
+					name = prettifyItemToken(itemAndQuantity[0]);
+				}
 				ItemVariations variation = ItemVariations.fromName(itemAndQuantity[0]);
 				if (variation != null)
 				{
@@ -381,9 +386,20 @@ public class TeleportLoader
 				}
 			}
 			out.add(new TeleportItemRequirement(
-				concat(ids), concat(staves), concat(offhands), maxQuantity));
+				concat(ids), concat(staves), concat(offhands), maxQuantity, name));
 		}
 		return out;
+	}
+
+	/** "AIR_RUNE" → "Air rune"; a raw numeric id → "Item 563". */
+	private static String prettifyItemToken(String token)
+	{
+		if (token.chars().allMatch(Character::isDigit))
+		{
+			return "Item " + token;
+		}
+		String words = token.toLowerCase().replace('_', ' ');
+		return Character.toUpperCase(words.charAt(0)) + words.substring(1);
 	}
 
 	private static int parseDuration(String value)

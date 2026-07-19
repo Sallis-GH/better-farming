@@ -73,7 +73,7 @@ public class TeleportAvailabilityServiceTest
 	{
 		client.setLevel(Skill.MAGIC, 99);
 		TeleportItemRequirement laws = new TeleportItemRequirement(
-			new int[]{LAW_RUNE}, new int[0], new int[0], 1);
+			new int[]{LAW_RUNE}, new int[0], new int[0], 1, "Law rune");
 		TeleportAvailabilityService s = service(spell("Varrock Teleport", 25, laws));
 
 		s.refresh();
@@ -90,7 +90,7 @@ public class TeleportAvailabilityServiceTest
 		client.setLevel(Skill.MAGIC, 99);
 		int staffOfAir = 1381;
 		TeleportItemRequirement airRunes = new TeleportItemRequirement(
-			new int[]{556}, new int[]{staffOfAir}, new int[0], 3);
+			new int[]{556}, new int[]{staffOfAir}, new int[0], 3, "Air rune");
 		TeleportAvailabilityService s = service(spell("Varrock Teleport", 25, airRunes));
 
 		s.refresh();

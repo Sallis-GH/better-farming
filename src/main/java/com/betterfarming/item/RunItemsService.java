@@ -11,6 +11,9 @@ import com.betterfarming.state.GroupActiveEvent;
 import com.betterfarming.state.PatchSelection;
 import com.betterfarming.state.PatchSelectionEvent;
 import com.betterfarming.state.PatchSelectionService;
+import com.betterfarming.travel.RoutePlanner;
+import com.betterfarming.travel.RunOrderService;
+import com.betterfarming.travel.TeleportItemRequirement;
 import com.betterfarming.ui.PatchAccessibilityEvent;
 import com.betterfarming.ui.PatchAccessibilityService;
 import java.util.ArrayList;
@@ -52,8 +55,16 @@ public class RunItemsService
 	private final Consumer<PatchAccessibilityEvent> accessibilityListener = e -> recompute();
 	private final Runnable trackerListener = this::recompute;
 	private final Runnable unlocksListener = this::recompute;
+	private final Runnable runOrderListener = this::recompute;
 
 	private final Map<String, Seed> seedsById = new LinkedHashMap<>();
+
+	/**
+	 * Optional: when set, the planned legs' teleport items join the list.
+	 * Setter-wired (like the bank tab) because RunOrderService is constructed
+	 * after this service in startUp.
+	 */
+	private RunOrderService runOrderService;
 
 	public RunItemsService(FarmingData data,
 		PatchSelectionService selectionService,
@@ -93,6 +104,18 @@ public class RunItemsService
 		accessibilityService.removeListener(accessibilityListener);
 		itemTracker.removeListener(trackerListener);
 		playerUnlocks.removeListener(unlocksListener);
+		if (runOrderService != null)
+		{
+			runOrderService.removeListener(runOrderListener);
+		}
+	}
+
+	/** Wire the route plan in (teleport item rows). Call after wire(). */
+	public void setRunOrderService(RunOrderService runOrderService)
+	{
+		this.runOrderService = runOrderService;
+		runOrderService.addListener(runOrderListener);
+		recompute();
 	}
 
 	public List<RunItem> items()
@@ -199,26 +222,116 @@ public class RunItemsService
 			out.add(row(payment.name(), Set.of(payment.itemId()), e.getValue(), false,
 				RunItemCategory.PAYMENT));
 		}
+
+		// 4. Teleport items consumed by the planned legs (runes, tabs,
+		// jewellery), summed across legs. A staff/offhand substitute on the
+		// player satisfies its row outright.
+		out.addAll(teleportRows());
+
+		// 5. Recommended run gear — one row per outfit set.
+		out.add(outfitRow("Graceful", Outfits.GRACEFUL));
+		out.add(outfitRow("Farming outfit", Outfits.FARMERS));
+
 		return out;
+	}
+
+	private List<RunItem> teleportRows()
+	{
+		List<RunItem> out = new ArrayList<>();
+		if (runOrderService == null)
+		{
+			return out;
+		}
+		Map<String, TeleportItemRequirement> byName = new LinkedHashMap<>();
+		Map<String, Integer> totals = new LinkedHashMap<>();
+		for (RoutePlanner.Leg leg : runOrderService.legs())
+		{
+			if (leg.teleport() == null)
+			{
+				continue;
+			}
+			for (TeleportItemRequirement req : leg.teleport().items())
+			{
+				byName.putIfAbsent(req.name(), req);
+				totals.merge(req.name(), req.quantity(), Integer::sum);
+			}
+		}
+		for (Map.Entry<String, Integer> e : totals.entrySet())
+		{
+			TeleportItemRequirement req = byName.get(e.getKey());
+			Set<Integer> ids = boxSet(req.itemIds());
+			RunItemStatus status;
+			if (itemTracker.countOnPlayer(boxSet(req.staffIds())) > 0
+				|| itemTracker.countOnPlayer(boxSet(req.offhandIds())) > 0)
+			{
+				status = RunItemStatus.ON_PLAYER;
+			}
+			else
+			{
+				status = statusFor(ids, e.getValue());
+			}
+			out.add(new RunItem(req.name(), ids, e.getValue(), false,
+				RunItemCategory.TELEPORT, status, null));
+		}
+		return out;
+	}
+
+	/**
+	 * Outfit row: satisfied only when every slot has at least one variant.
+	 * ON_PLAYER = fully worn/carried; IN_BANK = complete across player+bank.
+	 */
+	private RunItem outfitRow(String name, List<Set<Integer>> pieces)
+	{
+		boolean allOnPlayer = true;
+		boolean allSomewhere = true;
+		Set<Integer> union = new LinkedHashSet<>();
+		for (Set<Integer> piece : pieces)
+		{
+			union.addAll(piece);
+			int onPlayer = itemTracker.countOnPlayer(piece);
+			if (onPlayer == 0)
+			{
+				allOnPlayer = false;
+				if (itemTracker.countBanked(piece) == 0)
+				{
+					allSomewhere = false;
+				}
+			}
+		}
+		RunItemStatus status = allOnPlayer ? RunItemStatus.ON_PLAYER
+			: allSomewhere ? RunItemStatus.IN_BANK : RunItemStatus.MISSING;
+		return new RunItem(name, union, pieces.size(), true,
+			RunItemCategory.GEAR, status, pieces);
 	}
 
 	private RunItem row(String name, Set<Integer> ids, int quantity, boolean recommended,
 		RunItemCategory category)
 	{
+		return new RunItem(name, ids, quantity, recommended, category,
+			statusFor(ids, quantity), null);
+	}
+
+	private RunItemStatus statusFor(Set<Integer> ids, int quantity)
+	{
 		int onPlayer = itemTracker.countOnPlayer(ids);
-		RunItemStatus status;
 		if (onPlayer >= quantity)
 		{
-			status = RunItemStatus.ON_PLAYER;
+			return RunItemStatus.ON_PLAYER;
 		}
-		else if (onPlayer + itemTracker.countBanked(ids) >= quantity)
+		if (onPlayer + itemTracker.countBanked(ids) >= quantity)
 		{
-			status = RunItemStatus.IN_BANK;
+			return RunItemStatus.IN_BANK;
 		}
-		else
+		return RunItemStatus.MISSING;
+	}
+
+	private static Set<Integer> boxSet(int[] ids)
+	{
+		Set<Integer> out = new LinkedHashSet<>();
+		for (int id : ids)
 		{
-			status = RunItemStatus.MISSING;
+			out.add(id);
 		}
-		return new RunItem(name, ids, quantity, recommended, category, status);
+		return out;
 	}
 }

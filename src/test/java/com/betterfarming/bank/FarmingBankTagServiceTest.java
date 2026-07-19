@@ -97,7 +97,13 @@ public class FarmingBankTagServiceTest
 		selection.setSeed("tree_lumbridge", "willow_seed");
 
 		List<BankTabItems> sections = service.buildSections();
-		assertEquals(3, sections.size());
+		assertEquals(5, sections.size());
+		assertEquals("Teleports", sections.get(3).getName());
+		assertEquals("Recommended gear", sections.get(4).getName());
+		assertTrue("gear section carries the outfit rows",
+			sections.get(4).getItems().stream().anyMatch(i -> i.text().equals("Graceful")));
+		assertTrue(sections.get(4).getItems().stream()
+			.anyMatch(i -> i.text().equals("Farming outfit")));
 
 		assertTrue(find(sections, "Tools", "Spade").isPresent());
 		assertTrue(find(sections, "Seeds & saplings", "Ranarr seed").isPresent());

@@ -20,4 +20,7 @@ public class TeleportItemRequirement
 	int[] staffIds;
 	int[] offhandIds;
 	int quantity;
+
+	/** Human label, e.g. "Law rune" — prettified from the TSV token. */
+	String name;
 }

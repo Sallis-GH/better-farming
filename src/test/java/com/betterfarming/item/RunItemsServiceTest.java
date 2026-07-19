@@ -200,6 +200,63 @@ public class RunItemsServiceTest
 	}
 
 	@Test
+	public void outfitRows_requireEveryPiece()
+	{
+		selection.setGroupActive("HERB|Falador", true);
+		RunItem graceful = find("Graceful").orElseThrow();
+		assertTrue(graceful.recommended());
+		assertEquals(RunItemStatus.MISSING, graceful.status());
+
+		// Five pieces banked, hood worn: complete across containers → IN_BANK.
+		tracker.updateContainer(ItemTracker.CONTAINER_EQUIPMENT,
+			new Item[]{new Item(11851, 1)}); // graceful hood (worn id)
+		tracker.updateContainer(ItemTracker.CONTAINER_BANK, new Item[]{
+			new Item(11852, 1), new Item(11854, 1), new Item(11856, 1),
+			new Item(11858, 1), new Item(11860, 1)});
+		service.recompute();
+		assertEquals(RunItemStatus.IN_BANK, find("Graceful").orElseThrow().status());
+
+		// A full worn set → ON_PLAYER (mixing recolours is fine).
+		tracker.updateContainer(ItemTracker.CONTAINER_EQUIPMENT, new Item[]{
+			new Item(11851, 1), new Item(11853, 1), new Item(11855, 1),
+			new Item(11857, 1), new Item(11859, 1), new Item(11861, 1)});
+		service.recompute();
+		assertEquals(RunItemStatus.ON_PLAYER, find("Graceful").orElseThrow().status());
+	}
+
+	@Test
+	public void teleportItems_fromPlannedLegs_appearAsRows()
+	{
+		com.betterfarming.travel.Teleport falador = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SPELL, null,
+			new WorldPoint(2964, 3378, 0), 4, "Falador Teleport",
+			java.util.Map.of(), Set.of(), Set.of(),
+			List.of(new com.betterfarming.travel.TeleportItemRequirement(
+				new int[]{563}, new int[0], new int[0], 1, "Law rune")),
+			false, null, false);
+		com.betterfarming.travel.TeleportAvailabilityService teleports =
+			new com.betterfarming.travel.TeleportAvailabilityService(
+				List.of(falador), client, tracker, config);
+		// Player position is far from the herb patch, so the leg needs the spell.
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		tracker.updateContainer(ItemTracker.CONTAINER_BANK, new Item[]{new Item(563, 50)});
+		teleports.refresh();
+		com.betterfarming.travel.RunOrderService runOrder =
+			new com.betterfarming.travel.RunOrderService(data, selection, accessibility,
+				teleports, client, config, Runnable::run);
+		service.setRunOrderService(runOrder);
+
+		selection.setGroupActive("HERB|Falador", true);
+		runOrder.recompute();
+		service.recompute();
+
+		RunItem laws = find("Law rune").orElseThrow();
+		assertEquals(RunItemCategory.TELEPORT, laws.category());
+		assertEquals(1, laws.quantity());
+		assertEquals("50 banked laws", RunItemStatus.IN_BANK, laws.status());
+	}
+
+	@Test
 	public void deactivatingGroup_dropsItsRows()
 	{
 		selection.setGroupActive("HERB|Falador", true);

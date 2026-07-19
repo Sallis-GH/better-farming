@@ -47,7 +47,7 @@ public class TeleportAvailabilityService
 	// The DRAMEN_STAFF variation includes the lunar staff.
 	private static final TeleportItemRequirement DRAMEN_OR_LUNAR_STAFF =
 		new TeleportItemRequirement(
-			ItemVariations.DRAMEN_STAFF.getIds(), new int[0], new int[0], 1);
+			ItemVariations.DRAMEN_STAFF.getIds(), new int[0], new int[0], 1, "Dramen staff");
 
 	private final List<Teleport> allTeleports;
 	private final ClientLevelSource client;

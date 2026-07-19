@@ -99,6 +99,8 @@ public class BetterFarmingPlugin extends Plugin
 			data, selectionService, accessibilityService, teleportService, clientLevelSource,
 			config, clientThread::invokeLater);
 		runOrderService.wire();
+		// The planned legs feed teleport-item rows into the run-items list.
+		runItemsService.setRunOrderService(runOrderService);
 
 		// Services with @Subscribe methods register on the bus.
 		eventBus.register(availabilityService);
