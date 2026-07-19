@@ -54,6 +54,11 @@ public class PlantingGuide
 	private volatile CropState targetState = CropState.UNKNOWN;
 	private volatile Set<Integer> highlightItemIds = Collections.emptySet();
 
+	// Travel highlights depend only on the leg's teleport; cache per instance
+	// instead of rebuilding the id set every tick. Client thread only.
+	private Teleport cachedTeleport;
+	private Set<Integer> cachedTeleportIds = Collections.emptySet();
+
 	public PlantingGuide(List<PatchGroup> groups, List<Seed> seeds,
 		PatchSelectionService selectionService, PatchStateService stateService,
 		GuidanceService guidance, ClientLevelSource client)
@@ -127,7 +132,12 @@ public class PlantingGuide
 		{
 			targetPatch = null;
 			targetState = CropState.UNKNOWN;
-			highlightItemIds = teleportItemIds(leg.teleport());
+			if (leg.teleport() != cachedTeleport)
+			{
+				cachedTeleport = leg.teleport();
+				cachedTeleportIds = teleportItemIds(leg.teleport());
+			}
+			highlightItemIds = cachedTeleportIds;
 			return;
 		}
 

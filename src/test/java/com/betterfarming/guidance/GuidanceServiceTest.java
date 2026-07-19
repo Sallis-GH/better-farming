@@ -260,6 +260,40 @@ public class GuidanceServiceTest
 	}
 
 	@Test
+	public void walkingFarAwayFromAReachedIncompleteStopSkipsIt()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.INCOMPLETE);
+		client.setPlayerPosition(FALADOR);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+
+		// Leaving a little (banking nearby) is not a skip...
+		client.setPlayerPosition(new WorldPoint(FALADOR.getX() + 30, FALADOR.getY(), 0));
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+
+		// ...teleporting far away is: no seeds, moving on.
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void completedStopThatRegressesIsUncheckedAgain()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.COMPLETE);
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
+
+		// Harvested in passing / diseased: the stop needs work again.
+		progress.put("falador", StopProgress.INCOMPLETE);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+	}
+
+	@Test
 	public void remoteCompletionChecksOffOutOfOrderStops()
 	{
 		GuidanceService s = stateAwareService();

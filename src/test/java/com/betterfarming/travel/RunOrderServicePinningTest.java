@@ -120,6 +120,21 @@ public class RunOrderServicePinningTest
 	}
 
 	@Test
+	public void pinHoldsWhenAGroupWasFilteredAsGrowingAtPlanTime()
+	{
+		// Plan with B confirmed growing: route pins [A, C].
+		growing.add("b");
+		service.replan();
+		assertEquals(List.of("HERB|A", "HERB|C"), order());
+
+		// Mid-run recompute (teleport consumed, state ticked, player moved):
+		// the pin must hold even though active groups ⊃ pinned stops.
+		client.setPlayerPosition(new WorldPoint(3410, 3200, 0));
+		service.recompute();
+		assertEquals(List.of("HERB|A", "HERB|C"), order());
+	}
+
+	@Test
 	public void replanReordersFromThePlayer()
 	{
 		client.setPlayerPosition(new WorldPoint(3410, 3200, 0));

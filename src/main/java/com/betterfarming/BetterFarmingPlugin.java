@@ -173,6 +173,10 @@ public class BetterFarmingPlugin extends Plugin
 			});
 		plantingGuide = new PlantingGuide(groups, data.seeds(), selectionService,
 			patchStateService, guidanceService, clientLevelSource);
+		// PlantingGuide polls per GameTick, but EventBus delivery order vs
+		// GuidanceService is unspecified — recomputing again on leg change
+		// keeps its highlights from lagging the arrows by a tick.
+		guidanceListeners.add(plantingGuide::recompute);
 		eventBus.register(plantingGuide);
 		worldMapMarker = new GuidanceWorldMapMarker(worldMapPointManager, config, guidanceService, itemManager);
 		shortestPathBridge = new ShortestPathBridge(eventBus, config, guidanceService, clientLevelSource);
@@ -189,8 +193,17 @@ public class BetterFarmingPlugin extends Plugin
 		guidanceOverlays.add(new ItemHighlightOverlay(config, plantingGuide));
 		guidanceOverlays.add(new TravelHintOverlay(config, guidanceService, plantingGuide,
 			() -> {
+				// Progress reset and replan are independent; a failure in one
+				// must not swallow the other (hard-won rule 2 in spirit).
+				try
+				{
+					guidanceService.reset();
+				}
+				catch (Exception | AssertionError ex)
+				{
+					log.warn("Better Farming: guidance reset threw", ex);
+				}
 				runOrderService.replan();
-				guidanceService.reset();
 			}));
 		guidanceOverlays.forEach(overlayManager::add);
 
@@ -305,6 +318,21 @@ public class BetterFarmingPlugin extends Plugin
 	 * (config panel writes), so the teleport refresh — which reads varbits —
 	 * is marshalled to the client thread; the others marshal themselves.
 	 */
+	/**
+	 * A fresh session starts a fresh run: drop the pinned route so the next
+	 * plan is solved from wherever the player logs in (guidance progress and
+	 * the live crop-state cache reset themselves via their own subscribers).
+	 */
+	@Subscribe
+	public void onGameStateChanged(net.runelite.api.events.GameStateChanged event)
+	{
+		if (event.getGameState() == net.runelite.api.GameState.LOGIN_SCREEN
+			&& runOrderService != null)
+		{
+			runOrderService.replan();
+		}
+	}
+
 	/** Config keys that only affect guidance display, not planning inputs. */
 	private static final java.util.Set<String> GUIDANCE_DISPLAY_KEYS = java.util.Set.of(
 		"showWorldArrow", "showMinimapArrow", "showWorldMapMarker",

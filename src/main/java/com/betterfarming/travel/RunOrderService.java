@@ -11,7 +11,6 @@ import com.betterfarming.ui.PatchAccessibilityService;
 import com.betterfarming.data.Patch;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +64,21 @@ public class RunOrderService
 	 * completed, a patch turned out to be growing) keep the remaining stops
 	 * in their planned sequence instead of re-solving the TSP from wherever
 	 * the player happens to stand — a mid-run reshuffle makes "next stop"
-	 * impossible to follow. A grown stop set (selection change) or replan()
-	 * re-plans from scratch. Client thread only.
+	 * impossible to follow. A grown stop set (selection change), replan(),
+	 * or logout re-plans from scratch. Client thread only.
 	 */
 	private List<String> pinnedOrder;
+
+	/**
+	 * All groups that were active when the pin was taken — including the ones
+	 * the crop-state filter excluded from pinnedOrder. The pin stays valid as
+	 * long as no NEW group activates; comparing against pinnedOrder alone
+	 * would break the pin whenever any active group was skipped as growing.
+	 */
+	private Set<String> pinnedActiveKeys;
+
+	/** Set under `this` lock; consumed by the next client-thread compute. */
+	private boolean replanRequested = false;
 
 	private final Consumer<GroupActiveEvent> groupListener = e -> recompute();
 	private final Consumer<PatchAccessibilityEvent> accessibilityListener = e -> recompute();
@@ -136,10 +146,19 @@ public class RunOrderService
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
-	/** Drops the pinned order and re-plans from the player's position. */
+	/**
+	 * Drops the pinned order and re-plans from the player's position. The
+	 * request is a flag consumed by the next compute rather than a separately
+	 * queued task: a task could be overtaken by an already-queued recompute
+	 * (whose own recompute() call the coalescing would then swallow), leaving
+	 * the pin cleared but nothing re-planned.
+	 */
 	public void replan()
 	{
-		clientThreadExecutor.accept(() -> pinnedOrder = null);
+		synchronized (this)
+		{
+			replanRequested = true;
+		}
 		recompute();
 	}
 
@@ -159,9 +178,17 @@ public class RunOrderService
 
 	private void recomputeOnClientThread()
 	{
+		boolean dropPin;
 		synchronized (this)
 		{
 			recomputeQueued = false;
+			dropPin = replanRequested;
+			replanRequested = false;
+		}
+		if (dropPin)
+		{
+			pinnedOrder = null;
+			pinnedActiveKeys = null;
 		}
 		List<RoutePlanner.Leg> next = compute();
 		if (legsEqual(next, current))
@@ -214,7 +241,7 @@ public class RunOrderService
 
 		Set<String> activeKeys = activeStops.stream().map(RoutePlanner.Stop::groupKey)
 			.collect(Collectors.toSet());
-		if (pinnedOrder != null && new HashSet<>(pinnedOrder).containsAll(activeKeys))
+		if (pinnedOrder != null && pinnedActiveKeys.containsAll(activeKeys))
 		{
 			// Mid-run: keep the planned sequence, and keep stops that became
 			// complete — guidance checks them off and the run counter stays
@@ -241,6 +268,7 @@ public class RunOrderService
 		{
 			pinnedOrder.add(leg.stop().groupKey());
 		}
+		pinnedActiveKeys = activeKeys;
 		return legs;
 	}
 

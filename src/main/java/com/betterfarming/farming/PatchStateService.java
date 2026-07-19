@@ -42,6 +42,14 @@ import net.runelite.client.eventbus.Subscribe;
 @Slf4j
 public class PatchStateService
 {
+	/**
+	 * Decay floor for patch types without extracted growth data: the fastest
+	 * crops anywhere finish in ~40 minutes, so an observation older than that
+	 * can no longer prove the crop is still growing. Conservative — decaying
+	 * early routes an extra visit; decaying late silently skips a ready patch.
+	 */
+	static final int DEFAULT_MIN_GROW_MINUTES = 40;
+
 	private final List<Patch> statefulPatches;
 	private final ClientLevelSource client;
 	private final PatchStateTable table;
@@ -62,6 +70,17 @@ public class PatchStateService
 
 	// Client thread only.
 	private final Map<String, Observation> liveObserved = new HashMap<>();
+	/**
+	 * Parsed Time Tracking observations keyed by patch id; NO_OBSERVATION
+	 * marks confirmed-absent entries. Stored config barely ever changes for
+	 * patches we are not standing at, so this is filled lazily and dropped
+	 * wholesale when the timetracking config group or profile changes —
+	 * re-reading ~85 profile-config keys every tick is pure waste otherwise.
+	 * Client thread only.
+	 */
+	private final Map<String, Observation> remoteCache = new HashMap<>();
+	private static final Observation NO_OBSERVATION = new Observation(CropState.UNKNOWN, 0);
+
 	private volatile Map<String, CropState> effective = Collections.emptyMap();
 	private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
 
@@ -88,6 +107,7 @@ public class PatchStateService
 		this.nowEpochSeconds = nowEpochSeconds;
 	}
 
+	/** Listeners run on the client thread; Swing listeners must marshal. */
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
@@ -102,11 +122,28 @@ public class PatchStateService
 	{
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
-			// Session cache is per-account; the next login may be another
+			// Session caches are per-account; the next login may be another
 			// profile whose patches differ.
 			liveObserved.clear();
+			remoteCache.clear();
 			refresh();
 		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(net.runelite.client.events.ConfigChanged event)
+	{
+		// The Time Tracking plugin stored a fresh observation.
+		if ("timetracking".equals(event.getGroup()))
+		{
+			remoteCache.clear();
+		}
+	}
+
+	@Subscribe
+	public void onProfileChanged(net.runelite.client.events.RuneScapeProfileChanged event)
+	{
+		remoteCache.clear();
 	}
 
 	public CropState state(Patch p)
@@ -171,15 +208,17 @@ public class PatchStateService
 			}
 		}
 
+		long now = nowEpochSeconds.getAsLong();
 		Map<String, CropState> next = new HashMap<>();
 		for (Patch p : statefulPatches)
 		{
-			next.put(p.id(), effectiveState(p));
+			next.put(p.id(), effectiveState(p, now));
 		}
 		if (!next.equals(effective))
 		{
 			effective = Collections.unmodifiableMap(next);
-			for (Runnable l : new ArrayList<>(listeners))
+			// CopyOnWriteArrayList iteration is already a snapshot.
+			for (Runnable l : listeners)
 			{
 				try
 				{
@@ -195,21 +234,28 @@ public class PatchStateService
 		}
 	}
 
-	private CropState effectiveState(Patch p)
+	private CropState effectiveState(Patch p, long now)
 	{
 		Observation obs = liveObserved.get(p.id());
 		if (obs == null)
 		{
-			obs = remoteObservation(p);
-		}
-		if (obs == null)
-		{
-			return CropState.UNKNOWN;
+			obs = remoteCache.computeIfAbsent(p.id(), id -> remoteObservation(p));
+			if (obs == NO_OBSERVATION)
+			{
+				return CropState.UNKNOWN;
+			}
 		}
 		if (obs.state == CropState.GROWING)
 		{
+			// Anchored at observation time, which can over-hold a mid-growth
+			// observation by up to one grow cycle — stage-aware prediction is
+			// deliberately out of scope (Phase 6).
 			int minMinutes = table.minGrowMinutes(p.type());
-			if (minMinutes > 0 && nowEpochSeconds.getAsLong() - obs.epochSeconds > minMinutes * 60L)
+			if (minMinutes <= 0)
+			{
+				minMinutes = DEFAULT_MIN_GROW_MINUTES;
+			}
+			if (now - obs.epochSeconds > minMinutes * 60L)
 			{
 				// The fastest crop of this type could have finished by now.
 				return CropState.UNKNOWN;
@@ -218,32 +264,33 @@ public class PatchStateService
 		return obs.state;
 	}
 
+	/** Never null: absence is cached as NO_OBSERVATION. */
 	private Observation remoteObservation(Patch p)
 	{
 		if (p.stateRegionId() == null)
 		{
-			return null;
+			return NO_OBSERVATION;
 		}
 		String stored = timetrackingLookup.apply(p.stateRegionId() + "." + p.stateVarbitId());
 		if (stored == null)
 		{
-			return null;
+			return NO_OBSERVATION;
 		}
 		int sep = stored.indexOf(':');
 		if (sep <= 0)
 		{
-			return null;
+			return NO_OBSERVATION;
 		}
 		try
 		{
 			int value = Integer.parseInt(stored.substring(0, sep));
 			long epoch = Long.parseLong(stored.substring(sep + 1));
 			CropState s = table.state(p.type(), value);
-			return s == CropState.UNKNOWN ? null : new Observation(s, epoch);
+			return s == CropState.UNKNOWN ? NO_OBSERVATION : new Observation(s, epoch);
 		}
 		catch (NumberFormatException ex)
 		{
-			return null;
+			return NO_OBSERVATION;
 		}
 	}
 }

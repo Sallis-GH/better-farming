@@ -39,7 +39,7 @@ public class PatchStateServiceTest
 		VARBIT, 12083, List.of(12083), new StateBounds(null, null, 3272, null, null));
 	private final Patch remoteHerb = new Patch("catherby_herb", "Catherby herb patch", PatchType.HERB,
 		"Catherby", null, new WorldPoint(2813, 3463, 0), List.of(),
-		4772, 11062, List.of(11062, 11061, 11317, 11318), null);
+		4774, 11062, List.of(11062, 11061, 11318, 11317), null);
 
 	private FakeClient client;
 	private Map<String, String> timetracking;
@@ -113,7 +113,7 @@ public class PatchStateServiceTest
 	public void timetrackingObservationCoversRemotePatches()
 	{
 		client.setPlayerPosition(LUMBRIDGE);
-		timetracking.put("11062.4772", "4:" + now.get());
+		timetracking.put("11062.4774", "4:" + now.get());
 		service.refresh();
 		assertEquals(CropState.GROWING, service.state(remoteHerb));
 		assertFalse(service.needsVisit(remoteHerb));
@@ -123,7 +123,7 @@ public class PatchStateServiceTest
 	public void growingDecaysToUnknownAfterMinGrowTime()
 	{
 		client.setPlayerPosition(LUMBRIDGE);
-		timetracking.put("11062.4772", "4:" + now.get());
+		timetracking.put("11062.4774", "4:" + now.get());
 		service.refresh();
 		assertEquals(CropState.GROWING, service.state(remoteHerb));
 
@@ -138,7 +138,7 @@ public class PatchStateServiceTest
 	public void harvestableObservationDoesNotDecay()
 	{
 		client.setPlayerPosition(LUMBRIDGE);
-		timetracking.put("11062.4772", "8:" + (now.get() - 10_000));
+		timetracking.put("11062.4774", "8:" + (now.get() - 10_000));
 		service.refresh();
 		assertEquals(CropState.HARVESTABLE, service.state(remoteHerb));
 	}
@@ -147,7 +147,7 @@ public class PatchStateServiceTest
 	public void malformedTimetrackingValueIsIgnored()
 	{
 		client.setPlayerPosition(LUMBRIDGE);
-		timetracking.put("11062.4772", "garbage");
+		timetracking.put("11062.4774", "garbage");
 		service.refresh();
 		assertEquals(CropState.UNKNOWN, service.state(remoteHerb));
 	}
@@ -176,8 +176,12 @@ public class PatchStateServiceTest
 
 		// Live GROWING + remote unknown → UNKNOWN overall.
 		assertEquals(StopProgress.UNKNOWN, service.groupProgress(List.of(herb, remoteHerb)));
-		// All growing → COMPLETE.
-		timetracking.put("11062.4772", "4:" + now.get());
+		// All growing → COMPLETE. A new Time Tracking write reaches the
+		// service through config-change invalidation, as in production.
+		timetracking.put("11062.4774", "4:" + now.get());
+		net.runelite.client.events.ConfigChanged change = new net.runelite.client.events.ConfigChanged();
+		change.setGroup("timetracking");
+		service.onConfigChanged(change);
 		service.refresh();
 		assertEquals(StopProgress.COMPLETE, service.groupProgress(List.of(herb, remoteHerb)));
 		// Anything needing work → INCOMPLETE, even alongside unknowns.

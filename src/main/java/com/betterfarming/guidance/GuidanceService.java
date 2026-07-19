@@ -28,9 +28,15 @@ import net.runelite.client.eventbus.Subscribe;
  * growing is COMPLETE (checked off wherever the player is — planting stop 5
  * before stop 2 checks off stop 5); a stop with known remaining work is
  * INCOMPLETE and stays current even while the player stands on it, until the
- * crops are actually in the ground. Only when state is UNKNOWN does the old
- * proximity rule apply: visited the moment the player comes within
- * {@link #ARRIVAL_RADIUS_TILES}.
+ * crops are actually in the ground. Two escapes keep INCOMPLETE stops from
+ * trapping the run: walking {@link #SKIP_DISTANCE_TILES} away from a stop
+ * the player already reached counts as deliberately skipping it (no seeds,
+ * no cure — move on), and a checked-off stop that regresses to needing work
+ * (harvested in passing, disease) is un-checked. Only when state is UNKNOWN
+ * does the proximity rule apply: visited the moment the player comes within
+ * {@link #ARRIVAL_RADIUS_TILES} — unless the stop was first sighted with the
+ * player already standing there (fresh reset/login at a patch), which
+ * requires leaving and returning.
  *
  * Visited stops survive route recomputes on purpose: consuming a teleport tab
  * mid-run changes teleport availability, which re-plans the remaining route,
@@ -46,17 +52,26 @@ public class GuidanceService
 {
 	public static final int ARRIVAL_RADIUS_TILES = 10;
 
+	/** Leaving a reached-but-unfinished stop this far behind skips it. */
+	public static final int SKIP_DISTANCE_TILES = 50;
+
 	private final Supplier<List<RoutePlanner.Leg>> legsSupplier;
 	private final ClientLevelSource client;
 	private final Function<RoutePlanner.Stop, StopProgress> stopProgress;
 
 	private final Set<String> visitedKeys = new HashSet<>();
 	/**
-	 * Stops the player was already standing at when reset() ran: they only
-	 * count as visited again after the player leaves and comes back, so a
-	 * reset taken at a patch still guides the new run to that patch.
+	 * Stops first sighted with the player already inside the arrival radius
+	 * (reset taken at a patch, login next to one): they only count as visited
+	 * after the player leaves and comes back.
 	 */
 	private final Set<String> requireExit = new HashSet<>();
+	/** Stops observed at least once since the last reset. */
+	private final Set<String> seenKeys = new HashSet<>();
+	/** INCOMPLETE stops the player has reached — walking far away skips them. */
+	private final Set<String> workStarted = new HashSet<>();
+	/** Stops checked off by crop state, so a regression can un-check them. */
+	private final Set<String> stateCompleted = new HashSet<>();
 	// Copy-on-write: add/removeListener run on the EDT (plugin lifecycle),
 	// the fanout iterates on the client thread.
 	private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
@@ -134,22 +149,19 @@ public class GuidanceService
 		}
 	}
 
-	/** Clears run progress; guidance starts over from leg 1. */
+	/**
+	 * Clears run progress; guidance starts over from leg 1. Stops the player
+	 * is standing at re-arm via the first-sighting rule in recompute() — no
+	 * position snapshot needed here, so a replan landing a tick later still
+	 * gets the same treatment.
+	 */
 	public void reset()
 	{
 		visitedKeys.clear();
 		requireExit.clear();
-		WorldPoint player = client.getPlayerPosition();
-		if (player != null)
-		{
-			for (RoutePlanner.Leg leg : legsSupplier.get())
-			{
-				if (player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES)
-				{
-					requireExit.add(leg.stop().groupKey());
-				}
-			}
-		}
+		seenKeys.clear();
+		workStarted.clear();
+		stateCompleted.clear();
 		refresh();
 	}
 
@@ -193,23 +205,61 @@ public class GuidanceService
 		for (RoutePlanner.Leg leg : legs)
 		{
 			String key = leg.stop().groupKey();
-			StopProgress progress = stopProgress.apply(leg.stop());
+			StopProgress progress;
+			try
+			{
+				progress = stopProgress.apply(leg.stop());
+			}
+			// A throwing progress function must degrade to proximity mode,
+			// not kill the whole per-tick update for the session.
+			catch (Exception | AssertionError ex)
+			{
+				log.warn("Better Farming: stop progress for {} threw", key, ex);
+				progress = StopProgress.UNKNOWN;
+			}
+			// Plane ignored in distances: arriving on a bridge or rooftop
+			// above the patch tile still counts as being there.
+			int distance = player.distanceTo2D(leg.stop().point());
+			boolean near = distance <= ARRIVAL_RADIUS_TILES;
+
 			if (progress == StopProgress.COMPLETE)
 			{
 				// Crops confirmed in the ground: done regardless of position.
 				visitedKeys.add(key);
+				stateCompleted.add(key);
 				requireExit.remove(key);
+				workStarted.remove(key);
 				continue;
 			}
 			if (progress == StopProgress.INCOMPLETE)
 			{
-				// Known remaining work: standing on the patch does not finish
-				// the stop — planting does.
+				if (stateCompleted.remove(key))
+				{
+					// Regression (harvested in passing, disease): needs work
+					// again, un-check it.
+					visitedKeys.remove(key);
+				}
+				if (near)
+				{
+					workStarted.add(key);
+				}
+				else if (workStarted.contains(key) && distance > SKIP_DISTANCE_TILES)
+				{
+					// Reached it, left it far behind unfinished: a deliberate
+					// skip (no seeds, no cure) — stop pointing backwards.
+					workStarted.remove(key);
+					visitedKeys.add(key);
+				}
 				continue;
 			}
-			// UNKNOWN state: proximity fallback. Plane ignored — arriving on
-			// a bridge or rooftop above the patch tile still counts.
-			boolean near = player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES;
+			// UNKNOWN state: proximity fallback.
+			if (seenKeys.add(key) && near)
+			{
+				// First sighted with the player already here (reset/login at
+				// the patch): require leaving and returning.
+				requireExit.add(key);
+				continue;
+			}
 			if (requireExit.contains(key))
 			{
 				if (!near)
@@ -263,7 +313,8 @@ public class GuidanceService
 
 	private void notifyListeners()
 	{
-		for (Runnable l : new ArrayList<>(listeners))
+		// CopyOnWriteArrayList iteration is already a snapshot.
+		for (Runnable l : listeners)
 		{
 			try
 			{

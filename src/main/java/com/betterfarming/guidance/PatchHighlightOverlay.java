@@ -59,7 +59,9 @@ public class PatchHighlightOverlay extends Overlay
 			return null;
 		}
 
-		GameObject object = findObjectAt(lp);
+		// Search the patch's own plane: the player may stand on a rooftop or
+		// upper floor where unrelated objects cover the same scene coords.
+		GameObject object = findObjectAt(lp, patch.worldPoint().getPlane());
 		Shape clickbox = object != null ? object.getClickbox() : null;
 		if (clickbox == null)
 		{
@@ -79,11 +81,10 @@ public class PatchHighlightOverlay extends Overlay
 	 * its neighbours (patch objects span several tiles and the dataset point
 	 * may sit on any of them).
 	 */
-	private GameObject findObjectAt(LocalPoint lp)
+	private GameObject findObjectAt(LocalPoint lp, int plane)
 	{
 		Scene scene = runeliteClient.getScene();
 		Tile[][][] tiles = scene.getTiles();
-		int plane = runeliteClient.getPlane();
 		int sx = lp.getSceneX();
 		int sy = lp.getSceneY();
 		for (int dx = -1; dx <= 1; dx++)
