@@ -79,9 +79,14 @@ public class TravelHintOverlay extends OverlayPanel
 		}
 		else
 		{
+			// Running from here beats the planned teleport (the route priced
+			// this leg from the previous stop): tell the player to walk.
+			String travel = guidance.walkPreferred()
+				? "Walk to " + leg.stop().displayName()
+				: TravelHint.text(leg);
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left("Travel:")
-				.right(TravelHint.text(leg))
+				.right(travel)
 				.rightColor(WorldArrowOverlay.ARROW_COLOR)
 				.build());
 			// Multi-hop legs additionally show the immediate step, so the

@@ -8,6 +8,7 @@ import net.runelite.api.coords.WorldPoint;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -381,5 +382,57 @@ public class RoutePlannerTest
 		assertTrue(RoutePlanner.walkTicks(
 			new WorldPoint(3200, 3200, 0), new WorldPoint(2500, 3200, 0))
 			>= RoutePlanner.IMPOSSIBLE);
+	}
+
+	// ── walk-beats-teleport (live-position pricing for guidance) ──
+
+	@Test
+	public void walkBeatsTeleport_nearTheStopWalkingWins()
+	{
+		// Catherby-style: the pinned route priced this leg from the previous
+		// stop and picked Camelot Teleport, but the player already stands
+		// 20 tiles from the patch.
+		Teleport camelot = anywhereTeleport("Camelot Teleport", new WorldPoint(2757, 3477, 0), 4);
+		RoutePlanner.Leg leg = new RoutePlanner.Leg(stop("catherby", 2813, 3463), camelot, 32);
+		assertTrue(RoutePlanner.walkBeatsTeleport(new WorldPoint(2833, 3463, 0), leg));
+	}
+
+	@Test
+	public void walkBeatsTeleport_teleportKeepsWinningFromFarAway()
+	{
+		Teleport camelot = anywhereTeleport("Camelot Teleport", new WorldPoint(2757, 3477, 0), 4);
+		RoutePlanner.Leg leg = new RoutePlanner.Leg(stop("catherby", 2813, 3463), camelot, 32);
+		assertFalse("200 tiles out: teleporting is faster",
+			RoutePlanner.walkBeatsTeleport(new WorldPoint(3013, 3463, 0), leg));
+		assertFalse("beyond walking range entirely",
+			RoutePlanner.walkBeatsTeleport(new WorldPoint(3222, 3218, 0), leg));
+	}
+
+	@Test
+	public void walkBeatsTeleport_walkLegHasNothingToBeat()
+	{
+		RoutePlanner.Leg leg = new RoutePlanner.Leg(stop("catherby", 2813, 3463), null, 10);
+		assertFalse(RoutePlanner.walkBeatsTeleport(new WorldPoint(2833, 3463, 0), leg));
+	}
+
+	@Test
+	public void walkBeatsTeleport_nearTieFavoursTheTeleport()
+	{
+		// Teleport lands on the stop (5 ticks); walking 8 tiles is nominally
+		// 4 ticks but within the margin — one click beats running.
+		Teleport tab = anywhereTeleport("Tab", new WorldPoint(2813, 3463, 0), 5);
+		RoutePlanner.Leg leg = new RoutePlanner.Leg(stop("catherby", 2813, 3463), tab, 5);
+		assertFalse(RoutePlanner.walkBeatsTeleport(new WorldPoint(2821, 3463, 0), leg));
+	}
+
+	@Test
+	public void walkBeatsTeleport_unwalkableBoardingOriginFallsBackToWalking()
+	{
+		// The player deviated far from the planned boarding dock but is within
+		// running range of the stop itself.
+		Teleport ship = originTeleport("Ship", new WorldPoint(3700, 3488, 0),
+			new WorldPoint(3680, 2950, 0), 6);
+		RoutePlanner.Leg leg = new RoutePlanner.Leg(stop("island", 3680, 2960), ship, 20);
+		assertTrue(RoutePlanner.walkBeatsTeleport(new WorldPoint(3600, 2960, 0), leg));
 	}
 }

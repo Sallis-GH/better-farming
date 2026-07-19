@@ -438,6 +438,43 @@ public final class RoutePlanner
 		return best;
 	}
 
+	/**
+	 * A teleport within this many ticks of plain walking still wins: teleporting
+	 * is one click while running takes attention, so near-ties shouldn't nag the
+	 * player to walk.
+	 */
+	static final double WALK_WINS_MARGIN_TICKS = 3;
+
+	/**
+	 * True when plain running from the player's live position to the leg's stop
+	 * beats executing the leg's planned teleport from that same position. A
+	 * pinned route prices leg N from stop N-1's tile, so a player who is already
+	 * near the stop can be told to teleport away and walk back; guidance uses
+	 * this per tick to hint "Walk" instead, without touching the pinned route.
+	 * Also true when the teleport's boarding origin is out of walking range from
+	 * here while the stop itself is walkable (the player left the planned path
+	 * behind).
+	 */
+	public static boolean walkBeatsTeleport(WorldPoint player, Leg leg)
+	{
+		if (player == null || leg == null || leg.teleport() == null)
+		{
+			return false;
+		}
+		double walk = walkTicks(player, leg.stop().point());
+		if (walk >= IMPOSSIBLE)
+		{
+			return false;
+		}
+		Teleport t = leg.teleport();
+		double teleport = t.durationTicks() + walkTicks(t.destination(), leg.stop().point());
+		if (t.origin() != null)
+		{
+			teleport += walkTicks(player, t.origin());
+		}
+		return walk + WALK_WINS_MARGIN_TICKS < teleport;
+	}
+
 	static double walkTicks(WorldPoint a, WorldPoint b)
 	{
 		int dist = Math.max(Math.abs(a.getX() - b.getX()), Math.abs(a.getY() - b.getY()));
