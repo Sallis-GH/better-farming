@@ -35,50 +35,22 @@ planned order mid-run (crop filter applies at plan time only; planFixedOrder rec
 teleports along the pinned sequence); GuidanceService completes legs by crop state
 (proximity only for UNKNOWN); PlantingGuide drives patch-object outlines + inventory
 highlights (seed/rake at the patch, teleport items while travelling).
-NEXT: **feedback backlog from 2026-07-19 in-game testing** (tackle in order; each item has
-diagnosis notes from the session):
+The 2026-07-19 feedback backlog is DONE (PRs #27–#32, all squash-merged):
+walk-beats-teleport hints (RoutePlanner.walkBeatsTeleport per tick, pre-chain only,
+3-tick teleport bias; travelHop nulls → highlights suppressed); missing-teleport-item
+warnings (item/TeleportItemCheck → red "Missing:" hint line + red RunOrderSection rows);
+run lifecycle (GuidanceService.runActive DEFAULT STOPPED — **guidance is opt-in via the
+sidebar Start button now** — plus queued Skip; volatile flags applied on next-tick
+recompute; logout force-stops); jewellery charges (travel/JewelleryCharges classifies
+charge tiers by gameval ItemID name reflection — "Skills necklace(2)+", one item at tier
+≥N, never ×N); harvest-aware completion (groupProgress reports INCOMPLETE for
+varbit-mapped patches with no observation, so mapped stops never proximity-complete —
+the snape-grass value-table suspicion was refuted, ALLOTMENT covers 0–255; the bug was
+the arrival-tick subscriber-order race); staged ship boarding (gangplank first, ferry
+NPC only within 5 tiles/same plane, NPC match bounded to 10 tiles).
 
-1. **Walk-beats-teleport for the current leg — DONE.** RoutePlanner.walkBeatsTeleport
-   (pure; 3-tick margin favours the teleport on near-ties) evaluated per tick in
-   GuidanceService.updateTravelTarget, only before a chain's first hop (mid-chain the
-   whole-chain price would overstate); when walking wins, travelHop nulls (suppressing
-   spell/item/boarding highlights) and TravelHintOverlay says "Walk to X". Pinned route
-   untouched.
-2. **Warn when a planned leg's teleport items aren't on the player — DONE.**
-   item/TeleportItemCheck (per-leg merged-requirement check vs ItemTracker on-player;
-   staff/offhand substitutes; chain shortfalls labelled by owning hop) drives a red
-   "Missing:" line in TravelHintOverlay (suppressed while walkPreferred) and red
-   rows + "missing: X" annotations in RunOrderSection (rebuilds on ItemTracker fanout).
-3. **Start/stop/skip run controls — DONE.** GuidanceService.runActive (volatile,
-   DEFAULT STOPPED — guidance is now opt-in per run; applied on next-tick recompute so
-   UI threads never touch client state) + requestSkipCurrentLeg() (queued flag, consumed
-   on recompute). Stopped = recompute early-outs: no leg/arrows/hints/shortest-path/
-   deviation replans; progress kept (pause). Logout force-stops. Controls: Start/Stop +
-   Skip buttons in RunOrderSection header (synced via guidance listener), Skip/Stop
-   right-click entries on TravelHintOverlay.
-4. **Jewellery charges, not item count — DONE.** travel/JewelleryCharges classifies a
-   requirement as charge jewellery when ALL its OR-variant ids share one gameval ItemID
-   base name with numeric _N suffixes (reflection over ItemID at class load — no
-   hand-typed ids, honours rule 6). Run-items row becomes "Skills necklace(2)+" (qty 1,
-   summed quantity = charges; satisfied by any single carried/banked variant at tier ≥N);
-   TeleportItemCheck applies the same rule per leg and names shortfalls "(N)+".
-5. **Run completion must track harvesting — DONE.** Investigation: the ALLOTMENT value
-   table is complete (0–255 contiguous; snape grass 63–73/128–134 growing, 138–140
-   harvestable — matches RuneLite core PatchImplementation), so the culprit was the
-   arrival-tick race: groupProgress returned UNKNOWN for mapped-but-unobserved patches,
-   letting the proximity path check the stop off before the live varbit read landed
-   (EventBus subscriber order unspecified); only stateCompleted regressions un-check.
-   Fix: groupProgress reports INCOMPLETE for varbit-mapped patches with no observation —
-   mapped stops never proximity-complete; completion demands observed state, the 50-tile
-   walk-away skip stays the escape when state never resolves (bad region data). Proximity
-   fallback survives only for patches with no varbit mapping at all.
-6. **Bill Teach is multi-located — DONE.** TravelTargetOverlay stages boarding: the
-   gangplank/travel-object highlight leads while approaching; the ferry NPC only glows
-   once the player is aboard (npcStage: ≤5 tiles from the boarding tile AND same plane),
-   and the NPC match itself is bounded to 10 tiles of the boarding tile (was 40 — that
-   caught dockside namesakes).
-
-THEN: **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
+NEXT: **in-game verification of the six fixes** (owner tests; expect feedback), then
+**Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
 origins, agility shortcuts, diary cheaper teleports; UI/design pass).
 
 ## Architecture map
