@@ -109,7 +109,8 @@ public interface BetterFarmingConfig extends Config
 		name = "Planting highlights",
 		description = "At the patch: outline the patch to work on and highlight the seed or<br>"
 			+ "sapling (and rake) in your inventory; while travelling, highlight the<br>"
-			+ "teleport item for the current leg.",
+			+ "teleport item for the current leg (in the inventory and, for equipped<br>"
+			+ "jewellery like a skills necklace, in the worn equipment tab).",
 		section = guidanceSection,
 		position = 4
 	)
