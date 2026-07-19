@@ -70,7 +70,14 @@ teleport origins, agility shortcuts, diary cheaper teleports; UI/design pass).
    SwingUtilities.invokeLater with a listener snapshot; cards unsubscribe in removeNotify().
 4. Headless tests pass ≠ works in-game. Threading bugs only reproduce in the real client
    (`.\gradlew.bat run` = dev client with --developer-mode).
-5. Data files are wiki-verified by research agents writing JSON, merged by script —
+5. **Plugin startUp/shutDown run on the EDT when toggled from the settings panel** — any
+   client-state read (quest scripts assert even at the login screen) or EventBus post
+   (subscribers run synchronously on the posting thread) in the lifecycle methods must be
+   marshalled via clientThread.invokeLater, capturing locals since shutDown nulls fields.
+   EventBus also rejects @Subscribe methods not named on<EventName> at registration —
+   EventBusNamingTest guards this; both failure modes leave the settings toggle refusing
+   to enable with only a log line to explain.
+6. Data files are wiki-verified by research agents writing JSON, merged by script —
    never hand-type OSRS item ids from memory. Graceful pieces have separate worn/inventory
    ids; farmer pieces have body-type ids; spirit trees take multi-item payments.
 
