@@ -38,13 +38,12 @@ highlights (seed/rake at the patch, teleport items while travelling).
 NEXT: **feedback backlog from 2026-07-19 in-game testing** (tackle in order; each item has
 diagnosis notes from the session):
 
-1. **Walk-beats-teleport for the current leg.** Screenshot evidence: player standing near
-   Catherby bay, leg still says "Camelot Teleport (~19s)" although running is shorter.
-   Cause: planFixedOrder prices leg N from stop N-1's tile, never from the live player
-   position, and movement deliberately doesn't trigger recompute. Fix direction: per-tick
-   in GuidanceService, price walk-from-player vs the leg's teleport-from-player; when
-   walking wins, hint "Walk" + suppress spell/item highlight (don't touch the pinned
-   route). Careful: legsEqual ignores estimatedTicks.
+1. **Walk-beats-teleport for the current leg — DONE.** RoutePlanner.walkBeatsTeleport
+   (pure; 3-tick margin favours the teleport on near-ties) evaluated per tick in
+   GuidanceService.updateTravelTarget, only before a chain's first hop (mid-chain the
+   whole-chain price would overstate); when walking wins, travelHop nulls (suppressing
+   spell/item/boarding highlights) and TravelHintOverlay says "Walk to X". Pinned route
+   untouched.
 2. **Warn when a planned leg's teleport items aren't on the player.** Player reaches a
    stop, next leg says "Break X tablet", tablet was never withdrawn. Per-leg check of
    leg.teleport().items() vs ItemTracker on-player; warning line in TravelHintOverlay

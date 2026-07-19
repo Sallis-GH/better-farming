@@ -306,6 +306,98 @@ public class GuidanceServiceTest
 		assertEquals(spiritTree, service.travelHop());
 	}
 
+	// ── walk-beats-teleport ──
+
+	private static com.betterfarming.travel.Teleport camelotSpell()
+	{
+		return new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SPELL, null,
+			new WorldPoint(2757, 3477, 0), 4, "Camelot Teleport",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, null, false);
+	}
+
+	@Test
+	public void walkingWinsNearTheStopAndSuppressesTheHop()
+	{
+		com.betterfarming.travel.Teleport camelot = camelotSpell();
+		legs.clear();
+		legs.add(new RoutePlanner.Leg(
+			new RoutePlanner.Stop("catherby", "Catherby herb patch", CATHERBY), camelot, 32));
+
+		// Standing at the Catherby bay, 20 tiles from the patch: running wins
+		// over teleporting to Camelot and walking back.
+		client.setPlayerPosition(new WorldPoint(CATHERBY.getX() + 20, CATHERBY.getY(), 0));
+		service.update();
+		assertTrue(service.walkPreferred());
+		assertNull("no hop: spell/item highlights stay dark", service.travelHop());
+		assertEquals(CATHERBY, service.travelTarget());
+	}
+
+	@Test
+	public void teleportGuidanceHoldsWhileItIsFaster()
+	{
+		com.betterfarming.travel.Teleport camelot = camelotSpell();
+		legs.clear();
+		legs.add(new RoutePlanner.Leg(
+			new RoutePlanner.Stop("catherby", "Catherby herb patch", CATHERBY), camelot, 32));
+
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0)); // Lumbridge
+		service.update();
+		assertFalse(service.walkPreferred());
+		assertEquals(camelot, service.travelHop());
+	}
+
+	@Test
+	public void midChainProgressIsNotSecondGuessedByWalkPricing()
+	{
+		// Contrived expensive chain: item teleport to a dock, then a slow sail.
+		// The player has already cast the item (stands at its destination);
+		// re-pricing the WHOLE chain from here would lose to walking, but hops
+		// already done must not count against continuing.
+		com.betterfarming.travel.Teleport item = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.ITEM, null,
+			new WorldPoint(3000, 3000, 0), 4, "Dock teleport",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, null, false);
+		com.betterfarming.travel.Teleport sail = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SHIP,
+			new WorldPoint(3010, 3000, 0), new WorldPoint(3200, 3000, 0), 196,
+			"Slow sail",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, null, false);
+		com.betterfarming.travel.Teleport chain =
+			com.betterfarming.travel.Teleport.chainOf(List.of(item, sail), 200);
+		legs.clear();
+		legs.add(new RoutePlanner.Leg(
+			new RoutePlanner.Stop("island", "Island patch", new WorldPoint(3210, 3000, 0)),
+			chain, 200));
+
+		client.setPlayerPosition(new WorldPoint(3000, 3000, 0));
+		service.update();
+		assertFalse(service.walkPreferred());
+		assertEquals("board the ship, don't restart the chain on foot",
+			sail, service.travelHop());
+	}
+
+	@Test
+	public void walkPreferredFlipNotifiesListeners()
+	{
+		legs.clear();
+		legs.add(new RoutePlanner.Leg(
+			new RoutePlanner.Stop("catherby", "Catherby herb patch", CATHERBY),
+			camelotSpell(), 32));
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		service.update();
+
+		AtomicInteger notified = new AtomicInteger();
+		service.addListener(notified::incrementAndGet);
+		client.setPlayerPosition(new WorldPoint(CATHERBY.getX() + 20, CATHERBY.getY(), 0));
+		service.update();
+		assertEquals(1, notified.get());
+		assertTrue(service.walkPreferred());
+	}
+
 	// ── crop-state driven completion ──
 
 	private final Map<String, StopProgress> progress = new HashMap<>();

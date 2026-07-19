@@ -84,6 +84,7 @@ public class GuidanceService
 	private volatile boolean runComplete = false;
 	private volatile WorldPoint travelTarget;
 	private volatile Teleport travelHop;
+	private volatile boolean walkPreferred;
 
 	/**
 	 * Fired (client thread) when the player turns up at an unvisited stop
@@ -162,6 +163,18 @@ public class GuidanceService
 		return travelHop;
 	}
 
+	/**
+	 * True when plain running from where the player stands beats the current
+	 * leg's planned teleport: the pinned route priced this leg from the
+	 * previous stop, not from here. The hint overlay shows "Walk"; travelHop
+	 * is null while this holds, which also suppresses the spell/item/boarding
+	 * highlights. The pinned route itself is never touched.
+	 */
+	public boolean walkPreferred()
+	{
+		return walkPreferred;
+	}
+
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
@@ -214,11 +227,12 @@ public class GuidanceService
 		RoutePlanner.Leg before = currentLeg;
 		boolean completeBefore = runComplete;
 		WorldPoint targetBefore = travelTarget;
+		boolean walkBefore = walkPreferred;
 		recompute();
 		// Waypoint changes matter to listeners too: the shortest-path bridge
 		// re-aims its tile path at each chain waypoint.
 		if (!sameLeg(before, currentLeg) || completeBefore != runComplete
-			|| !Objects.equals(targetBefore, travelTarget))
+			|| !Objects.equals(targetBefore, travelTarget) || walkBefore != walkPreferred)
 		{
 			notifyListeners();
 		}
@@ -409,6 +423,7 @@ public class GuidanceService
 		{
 			travelTarget = null;
 			travelHop = null;
+			walkPreferred = false;
 			return;
 		}
 		Teleport t = leg.teleport();
@@ -429,6 +444,19 @@ public class GuidanceService
 				progress = Math.max(progress, i);
 			}
 		}
+
+		// Walk-beats-teleport only applies before the chain starts: once the
+		// player is mid-chain (progress > 0), pricing the whole teleport from
+		// their position overstates it — hops already done would count again —
+		// and the remaining hops are usually the only way onward anyway.
+		if (progress == 0 && RoutePlanner.walkBeatsTeleport(player, leg))
+		{
+			travelTarget = leg.stop().point();
+			travelHop = null;
+			walkPreferred = true;
+			return;
+		}
+		walkPreferred = false;
 
 		if (progress >= m)
 		{
