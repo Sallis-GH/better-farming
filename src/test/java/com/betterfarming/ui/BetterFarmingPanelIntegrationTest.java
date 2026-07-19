@@ -76,12 +76,12 @@ public class BetterFarmingPanelIntegrationTest
 			client, data, new com.betterfarming.data.requirement.RequirementEvaluator());
 		accessibilityService.refresh();
 		itemTracker = new ItemTracker();
+		BetterFarmingConfig testConfig = new BetterFarmingConfig() {};
 		runItemsService = new RunItemsService(data, selectionService, accessibilityService,
-			itemTracker, new PlayerUnlocks(client));
+			itemTracker, new PlayerUnlocks(client), testConfig);
 		runOrderService = new RunOrderService(data, selectionService, accessibilityService,
-			new TeleportAvailabilityService(List.of(), client, itemTracker,
-				new BetterFarmingConfig() {}),
-			client, Runnable::run);
+			new TeleportAvailabilityService(List.of(), client, itemTracker, testConfig),
+			client, testConfig, Runnable::run);
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
 			accessibilityService, runItemsService, runOrderService);
 	}
@@ -352,16 +352,16 @@ public class BetterFarmingPanelIntegrationTest
 		PatchSelectionService localSelection =
 			new PatchSelectionService(new FakeConfigStore(), synthetic);
 		ItemTracker localTracker = new ItemTracker();
+		BetterFarmingConfig localConfig = new BetterFarmingConfig() {};
 		BetterFarmingPanel localPanel = new BetterFarmingPanel(synthetic,
 			localSelection,
 			new SeedAvailabilityService(localClient, synthetic),
 			localAccess,
 			new RunItemsService(synthetic, localSelection, localAccess, localTracker,
-				new PlayerUnlocks(localClient)),
+				new PlayerUnlocks(localClient), localConfig),
 			new RunOrderService(synthetic, localSelection, localAccess,
-				new TeleportAvailabilityService(List.of(), localClient, localTracker,
-					new BetterFarmingConfig() {}),
-				localClient, Runnable::run));
+				new TeleportAvailabilityService(List.of(), localClient, localTracker, localConfig),
+				localClient, localConfig, Runnable::run));
 
 		PatchGroupCard card = null;
 		for (PatchGroupCard c : findAll(localPanel, PatchGroupCard.class))

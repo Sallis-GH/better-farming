@@ -57,6 +57,18 @@ public final class RoutePlanner
 
 	public static List<Leg> plan(WorldPoint start, List<Stop> stops, List<Teleport> teleports)
 	{
+		return plan(start, stops, teleports, 0);
+	}
+
+	/**
+	 * @param pohBiasTicks when &gt; 0, a house-chain teleport wins a leg if its
+	 *     cost is within this many ticks of the overall best — players who run
+	 *     everything through their house save inventory space at a small time
+	 *     cost.
+	 */
+	public static List<Leg> plan(WorldPoint start, List<Stop> stops, List<Teleport> teleports,
+		int pohBiasTicks)
+	{
 		if (stops.isEmpty() || start == null)
 		{
 			return Collections.emptyList();
@@ -77,7 +89,7 @@ public final class RoutePlanner
 					cost[i][j] = IMPOSSIBLE;
 					continue;
 				}
-				BestLeg best = bestLeg(from, stops.get(j).point(), teleports);
+				BestLeg best = bestLeg(from, stops.get(j).point(), teleports, pohBiasTicks);
 				cost[i][j] = best.cost;
 				via[i][j] = best.teleport;
 			}
@@ -105,10 +117,12 @@ public final class RoutePlanner
 		Teleport teleport;
 	}
 
-	private static BestLeg bestLeg(WorldPoint from, WorldPoint to, List<Teleport> teleports)
+	private static BestLeg bestLeg(WorldPoint from, WorldPoint to, List<Teleport> teleports,
+		int pohBiasTicks)
 	{
 		BestLeg best = new BestLeg();
 		best.cost = walkTicks(from, to);
+		BestLeg bestPoh = new BestLeg();
 		for (Teleport t : teleports)
 		{
 			double c = t.durationTicks() + walkTicks(t.destination(), to);
@@ -121,6 +135,16 @@ public final class RoutePlanner
 				best.cost = c;
 				best.teleport = t;
 			}
+			if (t.viaPoh() && c < bestPoh.cost)
+			{
+				bestPoh.cost = c;
+				bestPoh.teleport = t;
+			}
+		}
+		if (pohBiasTicks > 0 && bestPoh.teleport != null
+			&& bestPoh.cost <= best.cost + pohBiasTicks)
+		{
+			return bestPoh;
 		}
 		return best;
 	}

@@ -1,5 +1,6 @@
 package com.betterfarming.travel;
 
+import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.PatchGroup;
 import com.betterfarming.state.GroupActiveEvent;
@@ -35,11 +36,15 @@ import net.runelite.api.coords.WorldPoint;
 @Slf4j
 public class RunOrderService
 {
+	/** How many extra ticks a house chain may cost and still win a leg. */
+	private static final int POH_PREFERENCE_TICKS = 20;
+
 	private final FarmingData data;
 	private final PatchSelectionService selectionService;
 	private final PatchAccessibilityService accessibilityService;
 	private final TeleportAvailabilityService teleportService;
 	private final ClientLevelSource client;
+	private final BetterFarmingConfig config;
 	private final Consumer<Runnable> clientThreadExecutor;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
@@ -59,6 +64,7 @@ public class RunOrderService
 		PatchAccessibilityService accessibilityService,
 		TeleportAvailabilityService teleportService,
 		ClientLevelSource client,
+		BetterFarmingConfig config,
 		Consumer<Runnable> clientThreadExecutor)
 	{
 		this.data = data;
@@ -66,6 +72,7 @@ public class RunOrderService
 		this.accessibilityService = accessibilityService;
 		this.teleportService = teleportService;
 		this.client = client;
+		this.config = config;
 		this.clientThreadExecutor = clientThreadExecutor;
 		recompute();
 	}
@@ -151,7 +158,8 @@ public class RunOrderService
 					g.location(), g.patches().get(0).worldPoint()));
 			}
 		}
-		return RoutePlanner.plan(start, stops, teleportService.available());
+		return RoutePlanner.plan(start, stops, teleportService.available(),
+			config.preferPohTeleports() ? POH_PREFERENCE_TICKS : 0);
 	}
 
 	/**

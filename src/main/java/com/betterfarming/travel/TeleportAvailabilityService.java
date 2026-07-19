@@ -4,6 +4,7 @@ package com.betterfarming.travel;
 // pathfinder.PathfinderConfig, see resources/transports/LICENSE-shortest-path
 
 import com.betterfarming.BetterFarmingConfig;
+import com.betterfarming.JewelleryBoxTier;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.ui.ClientLevelSource;
 import java.util.ArrayList;
@@ -151,6 +152,10 @@ public class TeleportAvailabilityService
 		Map<Integer, Integer> varCache = new HashMap<>();
 		Map<Quest, QuestState> questCache = new HashMap<>();
 		List<Teleport> out = new ArrayList<>();
+		// House-entry teleports (destination inside the POH) and enabled
+		// POH-origin facility edges, composed into house-chain edges below.
+		List<Teleport> houseEntries = new ArrayList<>();
+		List<Teleport> pohFacilities = new ArrayList<>();
 
 		for (Teleport t : allTeleports)
 		{
@@ -162,9 +167,17 @@ public class TeleportAvailabilityService
 					{
 						continue;
 					}
+					if (t.originInPoh() && !config.pohFairyRing())
+					{
+						continue;
+					}
 					break;
 				case SPIRIT_TREE:
 					if (!spiritTreesUnlocked)
+					{
+						continue;
+					}
+					if (t.originInPoh() && !config.pohSpiritTree())
 					{
 						continue;
 					}
@@ -182,8 +195,16 @@ public class TeleportAvailabilityService
 					}
 					break;
 				case POH_PORTAL:
+				{
+					PohPortal portal = PohPortal.forDisplayInfo(t.displayInfo());
+					if (portal == null || !portal.isEnabled(config))
+					{
+						continue;
+					}
+					break;
+				}
 				case JEWELLERY_BOX:
-					if (!config.assumePohFacilities())
+					if (!hasJewelleryFacility(t.objectInfo()))
 					{
 						continue;
 					}
@@ -191,16 +212,103 @@ public class TeleportAvailabilityService
 				default:
 					break;
 			}
-			if (t.touchesPoh() && !config.assumePohFacilities())
+			if (!isUsable(t, varCache, questCache))
 			{
 				continue;
 			}
-			if (isUsable(t, varCache, questCache))
+			if (t.destinationInPoh())
+			{
+				// Farm patches are never inside the house: only useful as the
+				// first hop of a house chain.
+				houseEntries.add(t);
+			}
+			else if (t.originInPoh())
+			{
+				pohFacilities.add(t);
+			}
+			else
 			{
 				out.add(t);
 			}
 		}
+
+		out.addAll(composeHouseChains(houseEntries, pohFacilities));
 		return out;
+	}
+
+	/**
+	 * A POH facility is only reachable after teleporting home, so expose each
+	 * (house entry × facility) pair as one anywhere-usable edge whose cost and
+	 * requirements combine both hops plus the walk between them.
+	 */
+	private static List<Teleport> composeHouseChains(
+		List<Teleport> houseEntries, List<Teleport> pohFacilities)
+	{
+		List<Teleport> out = new ArrayList<>();
+		for (Teleport entry : houseEntries)
+		{
+			for (Teleport facility : pohFacilities)
+			{
+				int walk = (int) Math.ceil(
+					RoutePlanner.walkTicks(entry.destination(), facility.origin()));
+				Map<Skill, Integer> skills = new HashMap<>(entry.skillLevels());
+				for (Map.Entry<Skill, Integer> e : facility.skillLevels().entrySet())
+				{
+					skills.merge(e.getKey(), e.getValue(), Math::max);
+				}
+				Set<Quest> quests = new HashSet<>(entry.quests());
+				quests.addAll(facility.quests());
+				Set<VarCheck> varChecks = new LinkedHashSet<>(entry.varChecks());
+				varChecks.addAll(facility.varChecks());
+				List<TeleportItemRequirement> items = new ArrayList<>(entry.items());
+				items.addAll(facility.items());
+				String display = entry.displayInfo() + " → "
+					+ (facility.displayInfo() != null ? facility.displayInfo()
+						: facility.type().name());
+				out.add(new Teleport(facility.type(), null, facility.destination(),
+					entry.durationTicks() + walk + facility.durationTicks(),
+					display, skills, quests, varChecks, items,
+					entry.consumable() || facility.consumable(), null, true));
+			}
+		}
+		return out;
+	}
+
+	private boolean hasJewelleryFacility(String objectInfo)
+	{
+		if (objectInfo == null)
+		{
+			return false;
+		}
+		if (objectInfo.contains("Basic Jewellery Box"))
+		{
+			return config.pohJewelleryBox().covers(JewelleryBoxTier.BASIC);
+		}
+		if (objectInfo.contains("Fancy Jewellery Box"))
+		{
+			return config.pohJewelleryBox().covers(JewelleryBoxTier.FANCY);
+		}
+		if (objectInfo.contains("Ornate Jewellery Box"))
+		{
+			return config.pohJewelleryBox().covers(JewelleryBoxTier.ORNATE);
+		}
+		if (objectInfo.contains("Amulet of Glory"))
+		{
+			return config.pohMountedGlory();
+		}
+		if (objectInfo.contains("Xeric's Talisman"))
+		{
+			return config.pohMountedXerics();
+		}
+		if (objectInfo.contains("Digsite Pendant"))
+		{
+			return config.pohMountedDigsite();
+		}
+		if (objectInfo.contains("Mythical cape"))
+		{
+			return config.pohMythicalCape();
+		}
+		return false;
 	}
 
 	private boolean isUsable(Teleport t,
