@@ -18,6 +18,12 @@ resets on logout or via hint-overlay right-click), overlays (world arrow with ed
 off-screen hint, minimap arrow, world-map route lines), WorldMapPoint marker,
 TravelHint text ("Cast X"/"Break X"), ShortestPathBridge (PluginMessage "shortestpath"
 path/clear), per-overlay config toggles.
+Phase 6 additions: multi-hop chain legs carry their hop list (Teleport.chainHops);
+GuidanceService derives a per-tick travelTarget/travelHop (sequential position-based
+progression — never crow-flies waypoint picking, chains exist where straight-line distance
+lies); arrows/shortest-path/item-highlights follow the waypoint; TravelTargetOverlay
+outlines the boarding NPC (id from the TSV menu column) or gangplank object;
+compost buckets glow while planting.
 Phase 5 (crop state & planting guidance) is DONE: `farming/` package — patches.json now
 carries per-patch state varbits + FarmingRegion ids (research-agent extracted from RuneLite
 core timetracking, merged by scripts/merge_patch_state_data.py; patch_states.json holds the

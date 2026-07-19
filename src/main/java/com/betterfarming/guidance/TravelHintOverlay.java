@@ -84,6 +84,17 @@ public class TravelHintOverlay extends OverlayPanel
 				.right(TravelHint.text(leg))
 				.rightColor(WorldArrowOverlay.ARROW_COLOR)
 				.build());
+			// Multi-hop legs additionally show the immediate step, so the
+			// player follows one instruction at a time.
+			com.betterfarming.travel.Teleport hop = guidance.travelHop();
+			if (hop != null && leg.teleport() != null && leg.teleport().chainHops() != null)
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left("Now:")
+					.right(TravelHint.forTeleport(hop))
+					.rightColor(Color.WHITE)
+					.build());
+			}
 		}
 		return super.render(graphics);
 	}

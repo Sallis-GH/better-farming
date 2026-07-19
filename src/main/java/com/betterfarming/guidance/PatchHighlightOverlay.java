@@ -61,7 +61,7 @@ public class PatchHighlightOverlay extends Overlay
 
 		// Search the patch's own plane: the player may stand on a rooftop or
 		// upper floor where unrelated objects cover the same scene coords.
-		GameObject object = findObjectAt(lp, patch.worldPoint().getPlane());
+		GameObject object = GuidancePerspective.findObjectAt(runeliteClient, lp, patch.worldPoint().getPlane());
 		Shape clickbox = object != null ? object.getClickbox() : null;
 		if (clickbox == null)
 		{
@@ -76,48 +76,4 @@ public class PatchHighlightOverlay extends Overlay
 		return null;
 	}
 
-	/**
-	 * The GameObject covering the patch tile, searching the tile itself and
-	 * its neighbours (patch objects span several tiles and the dataset point
-	 * may sit on any of them).
-	 */
-	private GameObject findObjectAt(LocalPoint lp, int plane)
-	{
-		Scene scene = runeliteClient.getScene();
-		Tile[][][] tiles = scene.getTiles();
-		int sx = lp.getSceneX();
-		int sy = lp.getSceneY();
-		for (int dx = -1; dx <= 1; dx++)
-		{
-			for (int dy = -1; dy <= 1; dy++)
-			{
-				int x = sx + dx;
-				int y = sy + dy;
-				if (x < 0 || y < 0 || x >= tiles[plane].length || y >= tiles[plane][x].length)
-				{
-					continue;
-				}
-				Tile tile = tiles[plane][x][y];
-				if (tile == null)
-				{
-					continue;
-				}
-				for (GameObject go : tile.getGameObjects())
-				{
-					if (go == null)
-					{
-						continue;
-					}
-					// The patch object is the one whose footprint covers the
-					// dataset tile; decorations on neighbouring tiles don't.
-					if (go.getSceneMinLocation().getX() <= sx && sx <= go.getSceneMaxLocation().getX()
-						&& go.getSceneMinLocation().getY() <= sy && sy <= go.getSceneMaxLocation().getY())
-					{
-						return go;
-					}
-				}
-			}
-		}
-		return null;
-	}
 }

@@ -43,6 +43,16 @@ public class PlantingGuide
 
 	private static final Set<Integer> RAKE_IDS = Set.of(net.runelite.api.gameval.ItemID.RAKE);
 
+	/**
+	 * Compost variants worth prompting while planting (the highlight only
+	 * shows for items actually carried — WidgetItemOverlay paints per item).
+	 */
+	private static final Set<Integer> COMPOST_IDS = Set.of(
+		net.runelite.api.gameval.ItemID.BUCKET_COMPOST,
+		net.runelite.api.gameval.ItemID.BUCKET_SUPERCOMPOST,
+		net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST,
+		net.runelite.api.gameval.ItemID.BOTTOMLESS_COMPOST_BUCKET_FILLED);
+
 	private final Map<String, PatchGroup> groupsByKey;
 	private final Map<String, Seed> seedsById;
 	private final PatchSelectionService selectionService;
@@ -132,10 +142,14 @@ public class PlantingGuide
 		{
 			targetPatch = null;
 			targetState = CropState.UNKNOWN;
-			if (leg.teleport() != cachedTeleport)
+			// Highlight only the CURRENT hop's items (the ectophial before
+			// casting, nothing while walking to a gangplank) — glowing the
+			// whole chain's items at once is noise.
+			Teleport hop = guidance.travelHop();
+			if (hop != cachedTeleport)
 			{
-				cachedTeleport = leg.teleport();
-				cachedTeleportIds = teleportItemIds(leg.teleport());
+				cachedTeleport = hop;
+				cachedTeleportIds = teleportItemIds(hop);
 			}
 			highlightItemIds = cachedTeleportIds;
 			return;
@@ -161,8 +175,10 @@ public class PlantingGuide
 		if (targetState == CropState.EMPTY)
 		{
 			// Seeds for every patch here that still wants planting, plus a
-			// rake — EMPTY covers weedy patches too.
+			// rake (EMPTY covers weedy patches) and any carried compost —
+			// composting right after planting is the standard flow.
 			Set<Integer> ids = new HashSet<>(RAKE_IDS);
+			ids.addAll(COMPOST_IDS);
 			for (Patch p : group.patches())
 			{
 				if (stateFn.apply(p) != CropState.EMPTY)

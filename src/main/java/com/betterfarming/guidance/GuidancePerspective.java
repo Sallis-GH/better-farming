@@ -140,6 +140,48 @@ public class GuidancePerspective
 		return null;
 	}
 
+	/**
+	 * The GameObject covering the scene tile at lp on the given plane,
+	 * searching the tile and its neighbours (multi-tile objects may anchor a
+	 * tile away from the dataset point). Null when nothing covers it.
+	 */
+	public static net.runelite.api.GameObject findObjectAt(Client client, LocalPoint lp, int plane)
+	{
+		net.runelite.api.Tile[][][] tiles = client.getScene().getTiles();
+		int sx = lp.getSceneX();
+		int sy = lp.getSceneY();
+		for (int dx = -1; dx <= 1; dx++)
+		{
+			for (int dy = -1; dy <= 1; dy++)
+			{
+				int x = sx + dx;
+				int y = sy + dy;
+				if (x < 0 || y < 0 || x >= tiles[plane].length || y >= tiles[plane][x].length)
+				{
+					continue;
+				}
+				net.runelite.api.Tile tile = tiles[plane][x][y];
+				if (tile == null)
+				{
+					continue;
+				}
+				for (net.runelite.api.GameObject go : tile.getGameObjects())
+				{
+					if (go == null)
+					{
+						continue;
+					}
+					if (go.getSceneMinLocation().getX() <= sx && sx <= go.getSceneMaxLocation().getX()
+						&& go.getSceneMinLocation().getY() <= sy && sy <= go.getSceneMaxLocation().getY())
+					{
+						return go;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	public static Rectangle getWorldMapClipArea(Client client)
 	{
 		Widget widget = client.getWidget(InterfaceID.Worldmap.MAP_CONTAINER);

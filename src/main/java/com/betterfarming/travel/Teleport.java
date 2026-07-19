@@ -48,6 +48,23 @@ public class Teleport
 	 */
 	boolean oncePerRun;
 
+	/**
+	 * The individual hops of a chainOf() composite, in travel order — null for
+	 * plain edges. Guidance walks the player through these one waypoint at a
+	 * time (cast the item, walk to the gangplank, board, …).
+	 */
+	List<Teleport> chainHops;
+
+	/** Pre-chainHops signature; hops default to null. */
+	public Teleport(TeleportType type, WorldPoint origin, WorldPoint destination,
+		int durationTicks, String displayInfo, Map<Skill, Integer> skillLevels,
+		Set<Quest> quests, Set<VarCheck> varChecks, List<TeleportItemRequirement> items,
+		boolean consumable, String objectInfo, boolean viaPoh, boolean oncePerRun)
+	{
+		this(type, origin, destination, durationTicks, displayInfo, skillLevels,
+			quests, varChecks, items, consumable, objectInfo, viaPoh, oncePerRun, null);
+	}
+
 	/** Pre-oncePerRun signature; the flag defaults to false. */
 	public Teleport(TeleportType type, WorldPoint origin, WorldPoint destination,
 		int durationTicks, String displayInfo, Map<Skill, Integer> skillLevels,
@@ -55,7 +72,7 @@ public class Teleport
 		boolean consumable, String objectInfo, boolean viaPoh)
 	{
 		this(type, origin, destination, durationTicks, displayInfo, skillLevels,
-			quests, varChecks, items, consumable, objectInfo, viaPoh, false);
+			quests, varChecks, items, consumable, objectInfo, viaPoh, false, null);
 	}
 
 	/** As {@link #chainOf(List, int)} with durations summed hop-only. */
@@ -113,7 +130,8 @@ public class Teleport
 		}
 		return new Teleport(hops.get(0).type(), hops.get(0).origin(),
 			hops.get(hops.size() - 1).destination(), durationTicks, display.toString(),
-			skills, quests, varChecks, items, consumable, null, viaPoh, oncePerRun);
+			skills, quests, varChecks, items, consumable, null, viaPoh, oncePerRun,
+			List.copyOf(hops));
 	}
 
 	private static void mergeRequirement(List<TeleportItemRequirement> items,

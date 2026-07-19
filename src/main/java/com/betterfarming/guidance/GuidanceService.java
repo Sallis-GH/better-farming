@@ -2,6 +2,7 @@ package com.betterfarming.guidance;
 
 import com.betterfarming.farming.StopProgress;
 import com.betterfarming.travel.RoutePlanner;
+import com.betterfarming.travel.Teleport;
 import com.betterfarming.ui.ClientLevelSource;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,6 +82,8 @@ public class GuidanceService
 	private volatile int totalLegs = 0;
 	private volatile List<WorldPoint> remainingTargets = Collections.emptyList();
 	private volatile boolean runComplete = false;
+	private volatile WorldPoint travelTarget;
+	private volatile Teleport travelHop;
 
 	/** Convenience: no crop-state input — pure proximity-based completion. */
 	public GuidanceService(Supplier<List<RoutePlanner.Leg>> legsSupplier, ClientLevelSource client)
@@ -131,6 +134,25 @@ public class GuidanceService
 		return runComplete;
 	}
 
+	/**
+	 * The tile guidance arrows should aim at right now: for multi-hop legs
+	 * this walks the chain one waypoint at a time (the gangplank, the ferry
+	 * NPC), not the far-away final stop; null when idle.
+	 */
+	public WorldPoint travelTarget()
+	{
+		return travelTarget;
+	}
+
+	/**
+	 * The hop to execute at/toward {@link #travelTarget()} — cast this item,
+	 * board here — or null when the remaining travel is plain walking.
+	 */
+	public Teleport travelHop()
+	{
+		return travelHop;
+	}
+
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
@@ -172,13 +194,17 @@ public class GuidanceService
 		notifyListeners();
 	}
 
-	/** Recomputes state, notifying only when the current leg changed. */
+	/** Recomputes state, notifying when the leg or travel waypoint changed. */
 	public void update()
 	{
 		RoutePlanner.Leg before = currentLeg;
 		boolean completeBefore = runComplete;
+		WorldPoint targetBefore = travelTarget;
 		recompute();
-		if (!sameLeg(before, currentLeg) || completeBefore != runComplete)
+		// Waypoint changes matter to listeners too: the shortest-path bridge
+		// re-aims its tile path at each chain waypoint.
+		if (!sameLeg(before, currentLeg) || completeBefore != runComplete
+			|| !Objects.equals(targetBefore, travelTarget))
 		{
 			notifyListeners();
 		}
@@ -199,6 +225,8 @@ public class GuidanceService
 			totalLegs = 0;
 			remainingTargets = Collections.emptyList();
 			runComplete = false;
+			travelTarget = null;
+			travelHop = null;
 			return;
 		}
 
@@ -296,6 +324,62 @@ public class GuidanceService
 		totalLegs = legs.size();
 		remainingTargets = Collections.unmodifiableList(remaining);
 		runComplete = !legs.isEmpty() && next == null;
+		updateTravelTarget(player, next);
+	}
+
+	/** Being this close to a hop's landing/boarding area counts as being there. */
+	static final int HOP_REACHED_RADIUS_TILES = 40;
+
+	/**
+	 * Walks the player through the current leg's travel chain one waypoint at
+	 * a time. Progress is sequential and position-derived: standing near hop
+	 * i's destination means hops 0..i are done (the next instruction is hop
+	 * i+1), and standing near hop i's boarding origin means hop i is current.
+	 * Straight-line "which waypoint is closest" reasoning is useless here —
+	 * chains exist precisely where the crow-flies distance lies (the Harmony
+	 * dock is geometrically closer to Lumbridge than Port Phasmatys is).
+	 *
+	 * A hop's waypoint is its origin when it has one (walk there and board)
+	 * or its destination (cast-from-anywhere; the item highlight leads).
+	 */
+	private void updateTravelTarget(WorldPoint player, RoutePlanner.Leg leg)
+	{
+		if (leg == null || player == null)
+		{
+			travelTarget = null;
+			travelHop = null;
+			return;
+		}
+		Teleport t = leg.teleport();
+		List<Teleport> hops = t == null ? Collections.emptyList()
+			: (t.chainHops() != null ? t.chainHops() : Collections.singletonList(t));
+		int m = hops.size();
+
+		int progress = 0;
+		for (int i = 0; i < m; i++)
+		{
+			if (player.distanceTo2D(hops.get(i).destination()) <= HOP_REACHED_RADIUS_TILES)
+			{
+				progress = Math.max(progress, i + 1);
+			}
+			if (hops.get(i).origin() != null
+				&& player.distanceTo2D(hops.get(i).origin()) <= HOP_REACHED_RADIUS_TILES)
+			{
+				progress = Math.max(progress, i);
+			}
+		}
+
+		if (progress >= m)
+		{
+			travelTarget = leg.stop().point();
+			travelHop = null;
+		}
+		else
+		{
+			Teleport hop = hops.get(progress);
+			travelTarget = hop.origin() != null ? hop.origin() : hop.destination();
+			travelHop = hop;
+		}
 	}
 
 	private static boolean sameLeg(RoutePlanner.Leg a, RoutePlanner.Leg b)
