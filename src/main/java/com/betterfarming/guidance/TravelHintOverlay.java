@@ -1,10 +1,13 @@
 package com.betterfarming.guidance;
 
 import com.betterfarming.BetterFarmingConfig;
+import com.betterfarming.item.ItemTracker;
+import com.betterfarming.item.TeleportItemCheck;
 import com.betterfarming.travel.RoutePlanner;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.List;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -21,21 +24,24 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 public class TravelHintOverlay extends OverlayPanel
 {
 	private static final Color COLOR_COMPLETE = new Color(0x6B, 0xE2, 0x6B);
+	private static final Color COLOR_WARNING = new Color(0xE2, 0x6B, 0x6B);
 
 	private final BetterFarmingConfig config;
 	private final GuidanceService guidance;
 	private final PlantingGuide plantingGuide;
+	private final ItemTracker itemTracker;
 
 	/**
 	 * @param resetAction full run reset (replan + progress clear), invoked
 	 *     from the overlay's right-click menu on the client thread.
 	 */
 	public TravelHintOverlay(BetterFarmingConfig config, GuidanceService guidance,
-		PlantingGuide plantingGuide, Runnable resetAction)
+		PlantingGuide plantingGuide, ItemTracker itemTracker, Runnable resetAction)
 	{
 		this.config = config;
 		this.guidance = guidance;
 		this.plantingGuide = plantingGuide;
+		this.itemTracker = itemTracker;
 		setPosition(OverlayPosition.TOP_LEFT);
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "Farming run progress",
 			e -> resetAction.run());
@@ -99,6 +105,23 @@ public class TravelHintOverlay extends OverlayPanel
 					.right(TravelHint.forTeleport(hop))
 					.rightColor(Color.WHITE)
 					.build());
+			}
+			// The planned teleport needs items the player isn't carrying
+			// (tablet never withdrawn): warn before they're stranded. Not
+			// shown while walking wins — nothing needs to be consumed then.
+			if (!guidance.walkPreferred())
+			{
+				List<String> missing =
+					TeleportItemCheck.missingOnPlayer(leg.teleport(), itemTracker);
+				if (!missing.isEmpty())
+				{
+					panelComponent.getChildren().add(LineComponent.builder()
+						.left("Missing:")
+						.leftColor(COLOR_WARNING)
+						.right(String.join(", ", missing))
+						.rightColor(COLOR_WARNING)
+						.build());
+				}
 			}
 		}
 		return super.render(graphics);

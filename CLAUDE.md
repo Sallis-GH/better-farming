@@ -44,10 +44,11 @@ diagnosis notes from the session):
    whole-chain price would overstate); when walking wins, travelHop nulls (suppressing
    spell/item/boarding highlights) and TravelHintOverlay says "Walk to X". Pinned route
    untouched.
-2. **Warn when a planned leg's teleport items aren't on the player.** Player reaches a
-   stop, next leg says "Break X tablet", tablet was never withdrawn. Per-leg check of
-   leg.teleport().items() vs ItemTracker on-player; warning line in TravelHintOverlay
-   (+ red row in RunOrderSection). RunItemsService statuses already computed — reuse.
+2. **Warn when a planned leg's teleport items aren't on the player — DONE.**
+   item/TeleportItemCheck (per-leg merged-requirement check vs ItemTracker on-player;
+   staff/offhand substitutes; chain shortfalls labelled by owning hop) drives a red
+   "Missing:" line in TravelHintOverlay (suppressed while walkPreferred) and red
+   rows + "missing: X" annotations in RunOrderSection (rebuilds on ItemTracker fanout).
 3. **Start/stop/skip run controls.** Plugin currently guides whenever groups are active —
    annoying during other activities. Add explicit run lifecycle (sidebar button in
    RunOrderSection + overlay right-click): stopped = no arrows/hints/shortest-path/

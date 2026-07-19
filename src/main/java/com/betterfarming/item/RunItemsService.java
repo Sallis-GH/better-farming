@@ -282,7 +282,7 @@ public class RunItemsService
 					{
 						reusableMax.merge(key, req.quantity(), Integer::max);
 					}
-					labels.merge(key, displayNameFor(req, unit),
+					labels.merge(key, TeleportItemCheck.displayName(req, unit),
 						(a, b) -> a.length() <= b.length() ? a : b);
 				}
 			}
@@ -308,24 +308,6 @@ public class RunItemsService
 				RunItemCategory.TELEPORT, status, null));
 		}
 		return out;
-	}
-
-	/**
-	 * Requirements written as raw item ids in the transport data (teleport
-	 * tabs, jewellery) prettify to "Item 8007" — the teleport's own name
-	 * ("Varrock tablet") is the better label. Trailing ": destination"
-	 * qualifiers are dropped.
-	 */
-	private static String displayNameFor(TeleportItemRequirement req,
-		com.betterfarming.travel.Teleport teleport)
-	{
-		if (!req.name().startsWith("Item ") || teleport.displayInfo() == null)
-		{
-			return req.name();
-		}
-		String info = teleport.displayInfo();
-		int colon = info.indexOf(':');
-		return colon > 0 ? info.substring(0, colon) : info;
 	}
 
 	/**
