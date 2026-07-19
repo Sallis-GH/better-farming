@@ -11,9 +11,14 @@ manager (run items with on-player/in-bank/missing), farming bank tab, teleport-a
 optimal routing with granular POH config, barbarian bare-handed planting, outfit gear
 sections, tab-over-runes preference.
 
-NEXT: **Phase 4 — guidance arrows & click highlights** (port quest-helper's DirectionArrow/
-WorldLines primitives + overlays driven by RunOrderService legs).
-THEN: **Phase 5 — per-patch step guidance** (rake→plant→harvest state machine off farming
+Phase 4 (guidance arrows) is DONE: `guidance/` package — ported DirectionArrow/WorldLines/
+GuidancePerspective (quest-helper, BSD-2), GuidanceService (visited-stop tracking off
+GameTick, 10-tile arrival radius, out-of-order tolerant, progress survives re-plans,
+resets on logout or via hint-overlay right-click), overlays (world arrow with edge-clamped
+off-screen hint, minimap arrow, world-map route lines), WorldMapPoint marker,
+TravelHint text ("Cast X"/"Break X"), ShortestPathBridge (PluginMessage "shortestpath"
+path/clear), per-overlay config toggles.
+NEXT: **Phase 5 — per-patch step guidance** (rake→plant→harvest state machine off farming
 varbits; port the varbit mappings from RuneLite core's timetracking plugin — also enables
 planted-spirit-tree detection and skip-growing-patches routing).
 

@@ -12,6 +12,13 @@ public interface BetterFarmingConfig extends Config
 	String PATCH_SELECTIONS_KEY = "patchSelections";
 
 	@ConfigSection(
+		name = "Guidance",
+		description = "On-screen guidance along the planned run order",
+		position = 5
+	)
+	String guidanceSection = "guidance";
+
+	@ConfigSection(
 		name = "Run items",
 		description = "What counts as needed equipment for a run",
 		position = 10
@@ -52,6 +59,85 @@ public interface BetterFarmingConfig extends Config
 		position = 1
 	)
 	default boolean teleportItemsFromBank()
+	{
+		return true;
+	}
+
+	// ── Guidance ──
+
+	@ConfigItem(
+		keyName = "showWorldArrow",
+		name = "World arrow",
+		description = "Arrow above the next patch in the game world; when the patch is out of<br>"
+			+ "view, an arrow at the screen edge points in its direction.",
+		section = guidanceSection,
+		position = 1
+	)
+	default boolean showWorldArrow()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showMinimapArrow",
+		name = "Minimap arrow",
+		description = "Arrow on the minimap: above the next patch when close, orbiting the<br>"
+			+ "player dot pointing toward it when far.",
+		section = guidanceSection,
+		position = 2
+	)
+	default boolean showMinimapArrow()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showWorldMapMarker",
+		name = "World map marker",
+		description = "Marker for the next patch on the world map (snaps to the map edge when<br>"
+			+ "off-view; click to jump there).",
+		section = guidanceSection,
+		position = 3
+	)
+	default boolean showWorldMapMarker()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showWorldMapRoute",
+		name = "World map route lines",
+		description = "Lines on the world map connecting the remaining stops in run order.",
+		section = guidanceSection,
+		position = 4
+	)
+	default boolean showWorldMapRoute()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showTravelHint",
+		name = "Travel hint",
+		description = "On-screen panel with the next stop and how to get there<br>"
+			+ "(e.g. \"Cast Camelot Teleport\"). Right-click it to reset run progress.",
+		section = guidanceSection,
+		position = 5
+	)
+	default boolean showTravelHint()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "useShortestPath",
+		name = "Draw path via Shortest Path plugin",
+		description = "If the Shortest Path plugin (Plugin Hub) is installed, drive it to draw<br>"
+			+ "the exact tile path to the next patch. Does nothing when not installed.",
+		section = guidanceSection,
+		position = 6
+	)
+	default boolean useShortestPath()
 	{
 		return true;
 	}
