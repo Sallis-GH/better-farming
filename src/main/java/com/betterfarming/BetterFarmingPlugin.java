@@ -210,10 +210,19 @@ public class BetterFarmingPlugin extends Plugin
 		// Initial pass so cards built mid-session-already-logged-in see real
 		// lock state at construction. Without this, the first lock evaluation
 		// would wait for a GameStateChanged or StatChanged that may never come
-		// for an idle-logged-in player.
-		accessibilityService.refresh();
-		playerUnlocks.refresh();
-		teleportService.refresh();
+		// for an idle-logged-in player. Marshalled: startUp runs on the EDT
+		// when the plugin is toggled from the settings panel, and all three
+		// refreshes read client state (quest scripts assert client thread
+		// even before the varbit reads would).
+		// Locals captured on purpose: shutDown nulls the fields, and the
+		// queued refresh may run after a quick toggle-off.
+		PatchAccessibilityService accessibility = accessibilityService;
+		TeleportAvailabilityService teleportAvailability = teleportService;
+		clientThread.invokeLater(() -> {
+			accessibility.refresh();
+			playerUnlocks.refresh();
+			teleportAvailability.refresh();
+		});
 
 		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icons/sidebar.png");
 		SwingUtilities.invokeLater(() -> {
@@ -289,8 +298,11 @@ public class BetterFarmingPlugin extends Plugin
 		if (shortestPathBridge != null)
 		{
 			// No-op unless we posted a path; a user-set Shortest Path route
-			// must survive this plugin shutting down.
-			shortestPathBridge.clear();
+			// must survive this plugin shutting down. Marshalled: shutDown
+			// can run on the EDT (settings toggle) and EventBus subscribers
+			// run synchronously on the posting thread.
+			ShortestPathBridge bridge = shortestPathBridge;
+			clientThread.invokeLater(bridge::clear);
 			shortestPathBridge = null;
 		}
 		if (runOrderService != null)
