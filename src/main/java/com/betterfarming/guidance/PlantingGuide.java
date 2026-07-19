@@ -142,12 +142,15 @@ public class PlantingGuide
 			compostStep = false;
 			// Highlight only the CURRENT hop's items (the ectophial before
 			// casting, nothing while walking to a gangplank) — glowing the
-			// whole chain's items at once is noise.
+			// whole chain's items at once is noise. For spells the click is
+			// the spellbook entry (SpellHighlightOverlay), not the runes.
 			Teleport hop = guidance.travelHop();
 			if (hop != cachedTeleport)
 			{
 				cachedTeleport = hop;
-				cachedTeleportIds = teleportItemIds(hop);
+				cachedTeleportIds = SpellWidgets.widgetFor(hop) != null
+					? Collections.emptySet()
+					: teleportItemIds(hop);
 			}
 			highlightItemIds = cachedTeleportIds;
 			return;
