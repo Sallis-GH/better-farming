@@ -65,7 +65,13 @@ public class WorldArrowOverlay extends Overlay
 		{
 			return null;
 		}
-		WorldPoint target = leg.stop().point();
+		// Chain-aware: aim at the current waypoint (gangplank, ferry NPC),
+		// not the leg's far-away final stop.
+		WorldPoint target = guidance.travelTarget();
+		if (target == null)
+		{
+			target = leg.stop().point();
+		}
 
 		LocalPoint lp = GuidancePerspective.resolveLocalPointForWorldPoint(runeliteClient, target);
 		if (lp != null)

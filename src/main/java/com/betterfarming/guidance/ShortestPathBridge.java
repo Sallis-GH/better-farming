@@ -44,7 +44,11 @@ public class ShortestPathBridge
 	public void update()
 	{
 		RoutePlanner.Leg leg = guidance.currentLeg();
-		WorldPoint target = config.useShortestPath() && leg != null ? leg.stop().point() : null;
+		// Chain-aware: path to the current waypoint (the gangplank), not to
+		// an island tile no walking route can reach.
+		WorldPoint waypoint = guidance.travelTarget();
+		WorldPoint target = config.useShortestPath() && leg != null
+			? (waypoint != null ? waypoint : leg.stop().point()) : null;
 		WorldPoint start = client.getPlayerPosition();
 		if (start == null)
 		{

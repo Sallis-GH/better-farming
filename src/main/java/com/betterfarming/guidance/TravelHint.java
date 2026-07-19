@@ -25,6 +25,12 @@ public final class TravelHint
 		{
 			return "Walk to " + leg.stop().displayName();
 		}
+		return forTeleport(t);
+	}
+
+	/** Instruction for one hop of a chain ("Sail: Mos Le'Harmless"). */
+	public static String forTeleport(Teleport t)
+	{
 		String info = t.displayLabel();
 		if (t.viaPoh())
 		{

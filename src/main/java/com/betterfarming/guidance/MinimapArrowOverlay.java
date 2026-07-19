@@ -43,7 +43,12 @@ public class MinimapArrowOverlay extends Overlay
 		{
 			return null;
 		}
-		WorldPoint target = leg.stop().point();
+		// Chain-aware: point at the current waypoint, not the final stop.
+		WorldPoint target = guidance.travelTarget();
+		if (target == null)
+		{
+			target = leg.stop().point();
+		}
 
 		LocalPoint lp = GuidancePerspective.resolveLocalPointForWorldPoint(runeliteClient, target);
 		if (lp != null)

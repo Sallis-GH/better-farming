@@ -197,6 +197,7 @@ public class BetterFarmingPlugin extends Plugin
 		guidanceOverlays.add(new WorldArrowOverlay(client, config, guidanceService));
 		guidanceOverlays.add(new MinimapArrowOverlay(client, config, guidanceService));
 		guidanceOverlays.add(new PatchHighlightOverlay(client, config, plantingGuide));
+		guidanceOverlays.add(new com.betterfarming.guidance.TravelTargetOverlay(client, config, guidanceService));
 		guidanceOverlays.add(new ItemHighlightOverlay(config, plantingGuide));
 		guidanceOverlays.add(new TravelHintOverlay(config, guidanceService, plantingGuide,
 			() -> {

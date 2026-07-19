@@ -226,6 +226,86 @@ public class GuidanceServiceTest
 		assertEquals(1, notified.get());
 	}
 
+	// ── chain waypoint guidance ──
+
+	@Test
+	public void chainLegGuidesOneWaypointAtATime()
+	{
+		// Harmony-style: ectophial (anywhere) → ship at dock A → boat at dock B.
+		com.betterfarming.travel.Teleport ecto = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.ITEM, null,
+			new WorldPoint(3690, 3490, 0), 4, "Ectophial",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, null, false);
+		com.betterfarming.travel.Teleport ship = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SHIP,
+			new WorldPoint(3702, 3488, 0), new WorldPoint(3680, 2950, 0), 6,
+			"Sail to Mos Le'Harmless",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, "Travel Bill Teach 4016", false);
+		com.betterfarming.travel.Teleport boat = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.TRANSPORT,
+			new WorldPoint(3682, 2955, 0), new WorldPoint(3790, 2830, 0), 2,
+			"Harmony Island",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, "Transport Brother Tranquility 550", false);
+		com.betterfarming.travel.Teleport chain =
+			com.betterfarming.travel.Teleport.chainOf(List.of(ecto, ship, boat), 30);
+		WorldPoint harmonyPatch = new WorldPoint(3794, 2836, 0);
+		legs.clear();
+		legs.add(new RoutePlanner.Leg(
+			new RoutePlanner.Stop("harmony", "Harmony herb patch", harmonyPatch), chain, 30));
+
+		// Far away: first instruction is casting the ectophial.
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		service.update();
+		assertEquals(ecto.destination(), service.travelTarget());
+		assertEquals(ecto, service.travelHop());
+
+		// Landed at Port Phasmatys: head for the gangplank / Bill Teach.
+		client.setPlayerPosition(new WorldPoint(3690, 3490, 0));
+		service.update();
+		assertEquals(ship.origin(), service.travelTarget());
+		assertEquals(ship, service.travelHop());
+
+		// On Mos Le'Harmless: Brother Tranquility next.
+		client.setPlayerPosition(new WorldPoint(3680, 2950, 0));
+		service.update();
+		assertEquals(boat.origin(), service.travelTarget());
+		assertEquals(boat, service.travelHop());
+
+		// On Harmony (outside the patch's arrival radius): walk to the
+		// patch, no hop left.
+		client.setPlayerPosition(new WorldPoint(3775, 2850, 0));
+		service.update();
+		assertEquals(harmonyPatch, service.travelTarget());
+		assertNull(service.travelHop());
+
+		// At the patch: the leg completes as usual.
+		client.setPlayerPosition(harmonyPatch);
+		service.update();
+		assertNull(service.currentLeg());
+	}
+
+	@Test
+	public void singleTeleportLegTargetsItsOriginWhenBoardingStyle()
+	{
+		com.betterfarming.travel.Teleport spiritTree = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SPIRIT_TREE,
+			new WorldPoint(3183, 3508, 0), new WorldPoint(2542, 3170, 0), 5,
+			"Spirit tree: Tree Gnome Village",
+			java.util.Map.of(), java.util.Set.of(), java.util.Set.of(),
+			Collections.emptyList(), false, null, false);
+		legs.clear();
+		legs.add(new RoutePlanner.Leg(
+			new RoutePlanner.Stop("village", "Village fruit tree", new WorldPoint(2490, 3180, 0)),
+			spiritTree, 20));
+		client.setPlayerPosition(new WorldPoint(3222, 3450, 0));
+		service.update();
+		assertEquals("walk to the tree first", spiritTree.origin(), service.travelTarget());
+		assertEquals(spiritTree, service.travelHop());
+	}
+
 	// ── crop-state driven completion ──
 
 	private final Map<String, StopProgress> progress = new HashMap<>();
