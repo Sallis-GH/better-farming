@@ -257,6 +257,35 @@ public class TeleportAvailabilityServiceTest
 	}
 
 	@Test
+	public void walkInHousePortalChainKeepsItsOrigin()
+	{
+		// The free walk-in house portal object is a valid house entry, but
+		// only from its own doorstep: the composed chain must keep the
+		// origin, or the planner treats "walk into your house" as a
+		// zero-item teleport usable from anywhere and rune/tab entries never
+		// appear in any plan (reported as missing bank-tab runes).
+		Teleport walkIn = new Teleport(TeleportType.PORTAL,
+			new WorldPoint(1743, 3517, 0), new WorldPoint(1923, 5709, 0), 4,
+			"Home Portal", Map.of(), Set.of(), Set.of(), Collections.emptyList(),
+			false, "Home Portal 15481", false);
+		config = new BetterFarmingConfig()
+		{
+			@Override
+			public boolean pohPortalArdougne()
+			{
+				return true;
+			}
+		};
+		TeleportAvailabilityService s = service(walkIn, ardougnePortal());
+		s.refresh();
+		assertEquals(1, s.available().size());
+		Teleport chain = s.available().get(0);
+		assertTrue(chain.viaPoh());
+		assertEquals("chain only usable from the house doorstep",
+			walkIn.origin(), chain.origin());
+	}
+
+	@Test
 	public void homeTeleportOnCooldownIsUnavailable()
 	{
 		// The cooldown is data-driven: vendored home-spell rows carry a
