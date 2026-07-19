@@ -272,13 +272,18 @@ public class TeleportAvailabilityService
 				String display = entry.displayInfo() + " → "
 					+ (facility.displayInfo() != null ? facility.displayInfo()
 						: facility.type().name());
-				out.add(new Teleport(facility.type(), null, facility.destination(),
+				// The entry's origin is preserved: the free walk-in house
+				// portal (teleportation_portals.tsv "Home Portal" rows) is an
+				// entry too, and dropping its origin would let the planner
+				// treat "walk into your house" as a zero-item teleport usable
+				// from anywhere — starving rune/tab entries out of every plan.
+				out.add(new Teleport(facility.type(), entry.origin(), facility.destination(),
 					entry.durationTicks() + walk + facility.durationTicks(),
 					display, skills, quests, varChecks, items,
 					entry.consumable() || facility.consumable(), null, true,
 					// Generic propagation; house entries are Teleport to House
-					// variants (runes/tab/cape), never the free home teleport,
-					// so this is false today.
+					// variants (runes/tab/cape/walk-in portal), never the free
+					// home teleport, so this is false today.
 					entry.oncePerRun() || facility.oncePerRun()));
 			}
 		}

@@ -259,22 +259,32 @@ public class RunItemsService
 			{
 				continue;
 			}
-			boolean consumes = leg.teleport().consumesItems();
-			for (TeleportItemRequirement req : leg.teleport().items())
+			// Chains expand into their hops so each requirement is labelled
+			// and consumption-classified by the hop that owns it ("Ectophial",
+			// not the whole "Ectophial → Ship → …" join).
+			List<com.betterfarming.travel.Teleport> units =
+				leg.teleport().chainHops() != null
+					? leg.teleport().chainHops()
+					: List.of(leg.teleport());
+			for (com.betterfarming.travel.Teleport unit : units)
 			{
-				String key = java.util.Arrays.toString(req.itemIds())
-					+ "|" + java.util.Arrays.toString(req.staffIds());
-				byKey.putIfAbsent(key, req);
-				if (consumes)
+				boolean consumes = unit.consumesItems();
+				for (TeleportItemRequirement req : unit.items())
 				{
-					consumedTotals.merge(key, req.quantity(), Integer::sum);
+					String key = java.util.Arrays.toString(req.itemIds())
+						+ "|" + java.util.Arrays.toString(req.staffIds());
+					byKey.putIfAbsent(key, req);
+					if (consumes)
+					{
+						consumedTotals.merge(key, req.quantity(), Integer::sum);
+					}
+					else
+					{
+						reusableMax.merge(key, req.quantity(), Integer::max);
+					}
+					labels.merge(key, displayNameFor(req, unit),
+						(a, b) -> a.length() <= b.length() ? a : b);
 				}
-				else
-				{
-					reusableMax.merge(key, req.quantity(), Integer::max);
-				}
-				labels.merge(key, displayNameFor(req, leg.teleport()),
-					(a, b) -> a.length() <= b.length() ? a : b);
 			}
 		}
 		Map<String, Integer> totals = new LinkedHashMap<>();
