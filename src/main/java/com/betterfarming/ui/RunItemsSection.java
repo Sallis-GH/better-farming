@@ -126,7 +126,9 @@ public class RunItemsSection extends JPanel
 		dot.setFont(dot.getFont().deriveFont(11f));
 		row.add(dot, BorderLayout.WEST);
 
-		String text = item.displayName() + (item.quantity() > 1 ? " ×" + item.quantity() : "");
+		// Outfit rows (pieces != null) read better without a ×N suffix.
+		String text = item.displayName()
+			+ (item.quantity() > 1 && item.pieces() == null ? " ×" + item.quantity() : "");
 		JLabel label = new JLabel(text);
 		label.setForeground(Color.WHITE);
 		label.setFont(label.getFont().deriveFont(11f));

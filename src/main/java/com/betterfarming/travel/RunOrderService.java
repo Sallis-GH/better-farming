@@ -48,7 +48,8 @@ public class RunOrderService
 	private final Consumer<Runnable> clientThreadExecutor;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
-	private List<RoutePlanner.Leg> current = Collections.emptyList();
+	// volatile: written on the client thread, read from the EDT (run items).
+	private volatile List<RoutePlanner.Leg> current = Collections.emptyList();
 	private boolean recomputeQueued = false;
 
 	private final Consumer<GroupActiveEvent> groupListener = e -> recompute();

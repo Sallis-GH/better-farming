@@ -5,5 +5,7 @@ public enum RunItemCategory
 {
 	TOOL,
 	PLANTABLE,
-	PAYMENT
+	PAYMENT,
+	TELEPORT,
+	GEAR
 }
