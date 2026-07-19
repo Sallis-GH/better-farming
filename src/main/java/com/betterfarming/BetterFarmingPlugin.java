@@ -4,6 +4,7 @@ import com.betterfarming.bank.FarmingBankTab;
 import com.betterfarming.bank.FarmingBankTagService;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.item.ItemTracker;
+import com.betterfarming.item.PlayerUnlocks;
 import com.betterfarming.item.RunItemsService;
 import com.betterfarming.loader.FarmingDataLoader;
 import com.betterfarming.loader.FarmingDataValidator;
@@ -53,6 +54,7 @@ public class BetterFarmingPlugin extends Plugin
 	@Inject private EventBus eventBus;
 	@Inject private RequirementEvaluator evaluator;
 	@Inject private ItemTracker itemTracker;
+	@Inject private PlayerUnlocks playerUnlocks;
 	@Inject private ClientThread clientThread;
 	@Inject private FarmingBankTab bankTab;
 	@Inject private TeleportLoader teleportLoader;
@@ -85,19 +87,22 @@ public class BetterFarmingPlugin extends Plugin
 		selectionService = new PatchSelectionService(configStore, data);
 		availabilityService = new SeedAvailabilityService(clientLevelSource, data);
 		accessibilityService = new PatchAccessibilityService(clientLevelSource, data, evaluator);
-		runItemsService = new RunItemsService(data, selectionService, accessibilityService, itemTracker);
+		runItemsService = new RunItemsService(
+			data, selectionService, accessibilityService, itemTracker, playerUnlocks);
 		runItemsService.wire();
 
 		List<Teleport> teleports = teleportLoader.loadAll();
 		teleportService = new TeleportAvailabilityService(teleports, clientLevelSource, itemTracker, config);
 		runOrderService = new RunOrderService(
-			data, selectionService, accessibilityService, teleportService, clientLevelSource);
+			data, selectionService, accessibilityService, teleportService, clientLevelSource,
+			clientThread::invokeLater);
 		runOrderService.wire();
 
 		// Services with @Subscribe methods register on the bus.
 		eventBus.register(availabilityService);
 		eventBus.register(accessibilityService);
 		eventBus.register(itemTracker);
+		eventBus.register(playerUnlocks);
 		eventBus.register(teleportService);
 
 		// Bank tab: hand-wire the section service (RunItemsService is not
@@ -114,6 +119,7 @@ public class BetterFarmingPlugin extends Plugin
 		// would wait for a GameStateChanged or StatChanged that may never come
 		// for an idle-logged-in player.
 		accessibilityService.refresh();
+		playerUnlocks.refresh();
 		teleportService.refresh();
 
 		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icons/sidebar.png");
@@ -150,6 +156,7 @@ public class BetterFarmingPlugin extends Plugin
 			accessibilityService = null;
 		}
 		eventBus.unregister(itemTracker);
+		eventBus.unregister(playerUnlocks);
 		eventBus.unregister(bankTab);
 		bankTab.shutDown();
 		if (teleportService != null)

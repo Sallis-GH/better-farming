@@ -126,7 +126,7 @@ public class TeleportAvailabilityService
 			{
 				l.run();
 			}
-			catch (RuntimeException ex)
+			catch (Exception | AssertionError ex)
 			{
 				log.warn("Better Farming: teleport listener {} threw", l.getClass().getName(), ex);
 			}

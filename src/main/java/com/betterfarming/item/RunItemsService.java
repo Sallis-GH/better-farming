@@ -40,6 +40,7 @@ public class RunItemsService
 	private final PatchSelectionService selectionService;
 	private final PatchAccessibilityService accessibilityService;
 	private final ItemTracker itemTracker;
+	private final PlayerUnlocks playerUnlocks;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
 	private List<RunItem> current = Collections.emptyList();
@@ -48,18 +49,21 @@ public class RunItemsService
 	private final Consumer<GroupActiveEvent> groupListener = e -> recompute();
 	private final Consumer<PatchAccessibilityEvent> accessibilityListener = e -> recompute();
 	private final Runnable trackerListener = this::recompute;
+	private final Runnable unlocksListener = this::recompute;
 
 	private final Map<String, Seed> seedsById = new LinkedHashMap<>();
 
 	public RunItemsService(FarmingData data,
 		PatchSelectionService selectionService,
 		PatchAccessibilityService accessibilityService,
-		ItemTracker itemTracker)
+		ItemTracker itemTracker,
+		PlayerUnlocks playerUnlocks)
 	{
 		this.data = data;
 		this.selectionService = selectionService;
 		this.accessibilityService = accessibilityService;
 		this.itemTracker = itemTracker;
+		this.playerUnlocks = playerUnlocks;
 		for (Seed s : data.seeds())
 		{
 			seedsById.put(s.id(), s);
@@ -74,6 +78,7 @@ public class RunItemsService
 		selectionService.addGroupListener(groupListener);
 		accessibilityService.addListener(accessibilityListener);
 		itemTracker.addListener(trackerListener);
+		playerUnlocks.addListener(unlocksListener);
 	}
 
 	/** Undo wire(). Call from plugin shutDown. */
@@ -83,6 +88,7 @@ public class RunItemsService
 		selectionService.removeGroupListener(groupListener);
 		accessibilityService.removeListener(accessibilityListener);
 		itemTracker.removeListener(trackerListener);
+		playerUnlocks.removeListener(unlocksListener);
 	}
 
 	public List<RunItem> items()
@@ -109,7 +115,7 @@ public class RunItemsService
 			{
 				l.run();
 			}
-			catch (RuntimeException ex)
+			catch (Exception | AssertionError ex)
 			{
 				log.warn("Better Farming: run-items listener {} threw", l.getClass().getName(), ex);
 			}
@@ -164,8 +170,9 @@ public class RunItemsService
 		List<RunItem> out = new ArrayList<>();
 		out.add(row("Rake", Set.of(FarmingTools.RAKE), 1, false, RunItemCategory.TOOL));
 		out.add(row("Spade", Set.of(FarmingTools.SPADE), 1, false, RunItemCategory.TOOL));
+		// Barbarian Training's bare-handed planting replaces the seed dibber.
 		boolean anyGroundCrop = activeTypes.stream().anyMatch(t -> !t.isSapling());
-		if (anyGroundCrop)
+		if (anyGroundCrop && !playerUnlocks.bareHandedPlanting())
 		{
 			out.add(row("Seed dibber", Set.of(FarmingTools.SEED_DIBBER), 1, false, RunItemCategory.TOOL));
 		}

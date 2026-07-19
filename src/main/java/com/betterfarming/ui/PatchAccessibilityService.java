@@ -186,7 +186,9 @@ public class PatchAccessibilityService
 				{
 					l.accept(ev);
 				}
-				catch (RuntimeException ex)
+				// AssertionError included: RuneLite's dev-mode thread assertions
+				// must not let one listener starve the rest of the fanout.
+				catch (Exception | AssertionError ex)
 				{
 					log.warn("Better Farming: accessibility listener {} threw",
 						l.getClass().getName(), ex);
