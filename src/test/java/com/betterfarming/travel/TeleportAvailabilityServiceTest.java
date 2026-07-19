@@ -259,11 +259,17 @@ public class TeleportAvailabilityServiceTest
 	@Test
 	public void homeTeleportOnCooldownIsUnavailable()
 	{
+		// The cooldown is data-driven: vendored home-spell rows carry a
+		// "892@30" varplayer check (minutes since LAST_HOME_TELEPORT > 30).
 		Teleport homeSpell = new Teleport(TeleportType.HOME_SPELL, null,
-			new WorldPoint(3222, 3218, 0), 17, "Lumbridge Home Teleport",
-			Map.of(), Set.of(), Set.of(), List.of(), false, null, false, true);
+			new WorldPoint(3221, 3218, 0), 23, "Lumbridge Home Teleport",
+			Map.of(), Set.of(),
+			Set.of(new VarCheck(VarCheck.VarType.VARPLAYER,
+				net.runelite.api.VarPlayer.LAST_HOME_TELEPORT, 30,
+				VarCheck.Op.COOLDOWN_MINUTES)),
+			List.of(), false, null, false, true);
 
-		// Just cast: VarPlayer.LAST_HOME_TELEPORT holds minutes-since-epoch.
+		// Just cast: varp holds minutes-since-epoch of the last use.
 		client.setVarp(net.runelite.api.VarPlayer.LAST_HOME_TELEPORT,
 			(int) (System.currentTimeMillis() / 60_000L));
 		TeleportAvailabilityService cooling = service(homeSpell);

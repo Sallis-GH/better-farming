@@ -149,13 +149,12 @@ public class TeleportAvailabilityService
 		boolean glidersUnlocked = isFinished(Quest.THE_GRAND_TREE);
 		boolean mushtreesUnlocked = isFinished(Quest.BONE_VOYAGE);
 
-		// The free home teleport has a 30-minute cooldown, tracked by
-		// VarPlayer.LAST_HOME_TELEPORT in minutes-since-epoch. While cooling
-		// down the spell (and any house chain entered through it) is not a
-		// plannable edge, so routes fall back to tabs/runes or reroute.
-		int lastHomeTeleport = client.getVarpValue(net.runelite.api.VarPlayer.LAST_HOME_TELEPORT);
-		long nowMinutes = System.currentTimeMillis() / 60_000L;
-		boolean homeTeleportReady = nowMinutes - lastHomeTeleport >= 30;
+		// The free home teleport's 30-minute cooldown needs no special code:
+		// the vendored rows carry a "892@30" varplayer check (VarCheck
+		// COOLDOWN_MINUTES against LAST_HOME_TELEPORT), evaluated with every
+		// other var condition below. Note the spell goes to the spellbook's
+		// home/respawn area — it never enters the POH; "Teleport to House"
+		// (runes/tab) is a different spell entirely.
 
 		Map<Integer, Integer> varCache = new HashMap<>();
 		Map<Quest, QuestState> questCache = new HashMap<>();
@@ -167,10 +166,6 @@ public class TeleportAvailabilityService
 
 		for (Teleport t : allTeleports)
 		{
-			if (t.oncePerRun() && !homeTeleportReady)
-			{
-				continue;
-			}
 			switch (t.type())
 			{
 				case FAIRY_RING:
@@ -281,7 +276,9 @@ public class TeleportAvailabilityService
 					entry.durationTicks() + walk + facility.durationTicks(),
 					display, skills, quests, varChecks, items,
 					entry.consumable() || facility.consumable(), null, true,
-					// A home-teleport-entered chain inherits the cooldown.
+					// Generic propagation; house entries are Teleport to House
+					// variants (runes/tab/cape), never the free home teleport,
+					// so this is false today.
 					entry.oncePerRun() || facility.oncePerRun()));
 			}
 		}
