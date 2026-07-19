@@ -41,6 +41,8 @@ public class GuidanceServiceTest
 			leg("catherby", "Catherby herb patch", CATHERBY),
 			leg("ardougne", "Ardougne herb patch", ARDOUGNE)));
 		service = new GuidanceService(() -> legs, client);
+		// Guidance is opt-in (default stopped); these tests exercise a run.
+		service.setRunActive(true);
 	}
 
 	private static RoutePlanner.Leg leg(String key, String name, WorldPoint point)
@@ -186,14 +188,17 @@ public class GuidanceServiceTest
 		event.setGameState(GameState.LOGIN_SCREEN);
 		service.onGameStateChanged(event);
 
-		// Position is null while logged out; nothing to guide.
+		// Position is null while logged out; nothing to guide, and the run
+		// itself has ended — the next session opts back in via Start.
 		service.update();
 		assertNull(service.currentLeg());
+		assertFalse(service.runActive());
 
-		// Logging back in starts over from leg 1 even at the Falador patch:
-		// the visit registers again immediately, which is correct behaviour.
+		// Logging back in and starting again begins from leg 1 even at the
+		// Falador patch: the visit registers immediately, which is correct.
 		client.setGameState(GameState.LOGGED_IN);
 		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		service.setRunActive(true);
 		service.update();
 		assertEquals("falador", service.currentLeg().stop().groupKey());
 	}
@@ -404,8 +409,10 @@ public class GuidanceServiceTest
 
 	private GuidanceService stateAwareService()
 	{
-		return new GuidanceService(() -> legs, client,
+		GuidanceService s = new GuidanceService(() -> legs, client,
 			stop -> progress.getOrDefault(stop.groupKey(), StopProgress.UNKNOWN));
+		s.setRunActive(true);
+		return s;
 	}
 
 	@Test
@@ -509,6 +516,94 @@ public class GuidanceServiceTest
 		s.update();
 		assertEquals("falador", s.currentLeg().stop().groupKey());
 		assertEquals(Arrays.asList(FALADOR, CATHERBY), s.remainingTargets());
+	}
+
+	// ── run lifecycle ──
+
+	@Test
+	public void guidanceIsOptIn()
+	{
+		GuidanceService fresh = new GuidanceService(() -> legs, client);
+		fresh.update();
+		assertFalse(fresh.runActive());
+		assertNull("no run started: no guidance", fresh.currentLeg());
+		assertEquals(0, fresh.totalLegs());
+		assertFalse(fresh.runComplete());
+	}
+
+	@Test
+	public void stoppingClearsGuidanceButKeepsProgress()
+	{
+		service.update();
+		client.setPlayerPosition(FALADOR);
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+
+		service.setRunActive(false);
+		service.update();
+		assertNull(service.currentLeg());
+		assertNull(service.travelTarget());
+		assertEquals(Collections.emptyList(), service.remainingTargets());
+		assertFalse(service.runComplete());
+
+		// Stop is pause, not reset: restarting resumes past Falador.
+		service.setRunActive(true);
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void stoppedRunFiresNoDeviationReplans()
+	{
+		AtomicInteger replans = new AtomicInteger();
+		service.setOnDeviation(replans::incrementAndGet);
+		service.update();
+		service.setRunActive(false);
+		service.update();
+
+		// Turning up at a later stop while stopped: no replan, no check-off.
+		client.setPlayerPosition(ARDOUGNE);
+		service.update();
+		assertEquals(0, replans.get());
+		assertEquals(Collections.emptyList(), service.remainingTargets());
+
+		// Resuming while standing there registers the arrival normally — the
+		// player is at the patch, so it checks off and the route re-plans.
+		service.setRunActive(true);
+		service.update();
+		assertEquals(Arrays.asList(FALADOR, CATHERBY), service.remainingTargets());
+		assertEquals(1, replans.get());
+	}
+
+	@Test
+	public void skipChecksOffTheCurrentLegOnly()
+	{
+		service.update();
+		assertEquals("falador", service.currentLeg().stop().groupKey());
+
+		service.requestSkipCurrentLeg();
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+		assertEquals(Arrays.asList(CATHERBY, ARDOUGNE), service.remainingTargets());
+
+		// One request, one skip.
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void skipWorksOnIncompleteStopsTheStateWouldHold()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.INCOMPLETE);
+		client.setPlayerPosition(FALADOR);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+
+		// No seeds for it: skip moves on even though work remains.
+		s.requestSkipCurrentLeg();
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
 	}
 
 	@Test

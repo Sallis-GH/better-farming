@@ -262,7 +262,7 @@ public class BetterFarmingPlugin extends Plugin
 		SwingUtilities.invokeLater(() -> {
 			BetterFarmingPanel panel = new BetterFarmingPanel(
 				data, selectionService, availabilityService, accessibilityService,
-				runItemsService, runOrderService, itemTracker);
+				runItemsService, runOrderService, itemTracker, guidanceService);
 			navButton = NavigationButton.builder()
 				.tooltip("Better Farming")
 				.icon(icon)

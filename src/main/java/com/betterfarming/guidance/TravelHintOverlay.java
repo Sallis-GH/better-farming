@@ -43,6 +43,12 @@ public class TravelHintOverlay extends OverlayPanel
 		this.plantingGuide = plantingGuide;
 		this.itemTracker = itemTracker;
 		setPosition(OverlayPosition.TOP_LEFT);
+		// Menu callbacks run on the client thread. Stop/skip only need the
+		// volatile request setters; the next GameTick applies them.
+		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Skip", "Current farming leg",
+			e -> guidance.requestSkipCurrentLeg());
+		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Stop", "Farming run",
+			e -> guidance.setRunActive(false));
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "Farming run progress",
 			e -> resetAction.run());
 	}

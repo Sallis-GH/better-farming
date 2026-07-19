@@ -31,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.betterfarming.BetterFarmingConfig;
+import com.betterfarming.guidance.GuidanceService;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.item.PlayerUnlocks;
 import com.betterfarming.item.RunItemsService;
@@ -60,6 +61,7 @@ public class BetterFarmingPanelIntegrationTest
 	private ItemTracker itemTracker;
 	private RunItemsService runItemsService;
 	private RunOrderService runOrderService;
+	private GuidanceService guidanceService;
 	private BetterFarmingPanel panel;
 
 	@Before
@@ -82,8 +84,41 @@ public class BetterFarmingPanelIntegrationTest
 		runOrderService = new RunOrderService(data, selectionService, accessibilityService,
 			new TeleportAvailabilityService(List.of(), client, itemTracker, testConfig),
 			client, testConfig, Runnable::run);
+		guidanceService = new GuidanceService(runOrderService::legs, client);
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+	}
+
+	@Test
+	public void runControls_startStopToggleAndSkipEnablement()
+	{
+		JButton startStop = findButtonByName(panel, "runorder-startstop");
+		JButton skip = findButtonByName(panel, "runorder-skip");
+		assertNotNull(startStop);
+		assertNotNull(skip);
+		assertEquals("guidance is opt-in", "Start", startStop.getText());
+		assertFalse("nothing to skip while stopped", skip.isEnabled());
+
+		startStop.doClick();
+		assertTrue(guidanceService.runActive());
+		assertEquals("Stop", startStop.getText());
+		assertTrue(skip.isEnabled());
+
+		startStop.doClick();
+		assertFalse(guidanceService.runActive());
+		assertEquals("Start", startStop.getText());
+	}
+
+	private JButton findButtonByName(Container root, String name)
+	{
+		for (JButton b : findAll(root, JButton.class))
+		{
+			if (name.equals(b.getName()))
+			{
+				return b;
+			}
+		}
+		return null;
 	}
 
 	@Test
@@ -262,7 +297,7 @@ public class BetterFarmingPanelIntegrationTest
 
 		// Rebuild the panel so cards see the locked state on construction.
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertNotNull(card);
@@ -279,7 +314,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertTrue("locked at Farming 1", card.isLocked());
@@ -300,7 +335,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setQuestState(Quest.SONG_OF_THE_ELVES, QuestState.NOT_STARTED);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Prifddinas");
 		assertTrue("locked when Song of the Elves not finished", card.isLocked());
@@ -320,7 +355,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		JLabel info = findInfoIcon(card);
@@ -362,7 +397,8 @@ public class BetterFarmingPanelIntegrationTest
 			new RunOrderService(synthetic, localSelection, localAccess,
 				new TeleportAvailabilityService(List.of(), localClient, localTracker, localConfig),
 				localClient, localConfig, Runnable::run),
-			localTracker);
+			localTracker,
+			new GuidanceService(() -> List.of(), localClient));
 
 		PatchGroupCard card = null;
 		for (PatchGroupCard c : findAll(localPanel, PatchGroupCard.class))
@@ -390,7 +426,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 99);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
 
 		// User toggles a low-requirement group active (Farming Guild needs 45 — they have 99).
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
@@ -430,7 +466,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertTrue(card.isLocked());

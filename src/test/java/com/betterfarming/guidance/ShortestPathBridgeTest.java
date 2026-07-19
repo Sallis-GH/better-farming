@@ -49,6 +49,7 @@ public class ShortestPathBridgeTest
 		client = new FakeClient();
 		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
 		guidance = new GuidanceService(() -> legs, client);
+		guidance.setRunActive(true);
 		EventBus eventBus = new EventBus();
 		capture = new Capture();
 		eventBus.register(capture);

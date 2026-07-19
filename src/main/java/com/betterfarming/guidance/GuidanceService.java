@@ -87,6 +87,18 @@ public class GuidanceService
 	private volatile boolean walkPreferred;
 
 	/**
+	 * Explicit run lifecycle: guidance only guides while a run is started.
+	 * Default stopped — active patch groups alone must not paint arrows over
+	 * unrelated play. Volatile flag written from UI threads (sidebar button on
+	 * the EDT, overlay menu on the client thread); the next client-thread
+	 * recompute applies it, so no client state is touched off-thread.
+	 */
+	private volatile boolean runActive;
+
+	/** Skip requests queue here and are consumed on the next recompute. */
+	private volatile boolean skipRequested;
+
+	/**
 	 * Fired (client thread) when the player turns up at an unvisited stop
 	 * other than the current leg — they went their own way, so the remaining
 	 * route should re-plan from where they actually are. Wired to
@@ -175,6 +187,32 @@ public class GuidanceService
 		return walkPreferred;
 	}
 
+	public boolean runActive()
+	{
+		return runActive;
+	}
+
+	/**
+	 * Starts/stops the run. Stopped means idle everywhere: no current leg, no
+	 * arrows/hints/highlights, no shortest-path posts, no deviation replans.
+	 * Progress is kept — stop is pause, not reset. Takes effect on the next
+	 * GameTick (within 0.6 s); callable from any thread.
+	 */
+	public void setRunActive(boolean active)
+	{
+		this.runActive = active;
+	}
+
+	/**
+	 * Marks the current leg visited on the next recompute — the on-demand
+	 * counterpart of the {@link #SKIP_DISTANCE_TILES} walk-away skip (no
+	 * seeds, patch inaccessible, don't care). Callable from any thread.
+	 */
+	public void requestSkipCurrentLeg()
+	{
+		skipRequested = true;
+	}
+
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
@@ -194,6 +232,9 @@ public class GuidanceService
 	{
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
+			// Logging out ends the run: progress clears, and the next session
+			// must opt back in via Start rather than resume arrows unasked.
+			runActive = false;
 			reset();
 		}
 	}
@@ -240,10 +281,35 @@ public class GuidanceService
 
 	private void recompute()
 	{
+		if (!runActive)
+		{
+			// Stopped: idle everywhere, progress retained. A skip queued just
+			// before stopping is dropped — it referred to a leg no longer shown.
+			skipRequested = false;
+			currentLeg = null;
+			currentIndex = -1;
+			totalLegs = 0;
+			remainingTargets = Collections.emptyList();
+			runComplete = false;
+			travelTarget = null;
+			travelHop = null;
+			walkPreferred = false;
+			return;
+		}
 		List<RoutePlanner.Leg> legs = legsSupplier.get();
 		WorldPoint player = client.getPlayerPosition();
 		String previousCurrentKey = currentLeg != null ? currentLeg.stop().groupKey() : null;
 		String newlyVisitedOffPlan = null;
+
+		if (skipRequested)
+		{
+			skipRequested = false;
+			if (previousCurrentKey != null)
+			{
+				visitedKeys.add(previousCurrentKey);
+				workStarted.remove(previousCurrentKey);
+			}
+		}
 
 		if (player == null)
 		{
