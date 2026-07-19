@@ -600,6 +600,14 @@ public class FarmingBankTab
 	private void makeBankText(int currentQuantity, int goalQuantity, boolean satisfied,
 		int baseX, int baseY, List<BankText> bankItemTexts)
 	{
+		// Single-item goals (tools, outfit pieces) just get the tick/cross —
+		// a "1 / 1" overlay is noise.
+		if (goalQuantity == 1)
+		{
+			bankItemTexts.add(new BankText("", baseX, baseY - 1,
+				satisfied ? TICK_SPRITE_ID : CROSS_SPRITE_ID, baseX + 2, baseY + 9));
+			return;
+		}
 		String quantityString = QuantityFormatter.quantityToStackSize(goalQuantity);
 		int requirementLength = (int) Math.round(quantityString.length() * 5.5);
 		int extraLength = QuantityFormatter.quantityToStackSize(currentQuantity).length() * 6;

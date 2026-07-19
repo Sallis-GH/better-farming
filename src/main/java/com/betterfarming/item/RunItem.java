@@ -26,6 +26,6 @@ public class RunItem
 	RunItemCategory category;
 	RunItemStatus status;
 
-	/** Null for plain rows; per-slot variant sets for outfit rows. */
-	List<Set<Integer>> pieces;
+	/** Null for plain rows; per-slot pieces for outfit rows. */
+	List<OutfitPiece> pieces;
 }

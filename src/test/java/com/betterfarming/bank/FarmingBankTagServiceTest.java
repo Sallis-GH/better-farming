@@ -97,13 +97,15 @@ public class FarmingBankTagServiceTest
 		selection.setSeed("tree_lumbridge", "willow_seed");
 
 		List<BankTabItems> sections = service.buildSections();
-		assertEquals(5, sections.size());
+		assertEquals(6, sections.size());
 		assertEquals("Teleports", sections.get(3).getName());
-		assertEquals("Recommended gear", sections.get(4).getName());
-		assertTrue("gear section carries the outfit rows",
-			sections.get(4).getItems().stream().anyMatch(i -> i.text().equals("Graceful")));
-		assertTrue(sections.get(4).getItems().stream()
-			.anyMatch(i -> i.text().equals("Farming outfit")));
+		assertEquals("Graceful", sections.get(4).getName());
+		assertEquals("Farming outfit", sections.get(5).getName());
+		assertEquals("one slot per graceful piece", 6, sections.get(4).getItems().size());
+		assertEquals("one slot per farmer piece", 4, sections.get(5).getItems().size());
+		assertTrue(sections.get(4).getItems().stream().anyMatch(i -> i.text().equals("Hood")));
+		assertTrue(sections.get(5).getItems().stream()
+			.anyMatch(i -> i.text().equals("Boro trousers")));
 
 		assertTrue(find(sections, "Tools", "Spade").isPresent());
 		assertTrue(find(sections, "Seeds & saplings", "Ranarr seed").isPresent());

@@ -280,19 +280,19 @@ public class RunItemsService
 	 * Outfit row: satisfied only when every slot has at least one variant.
 	 * ON_PLAYER = fully worn/carried; IN_BANK = complete across player+bank.
 	 */
-	private RunItem outfitRow(String name, List<Set<Integer>> pieces)
+	private RunItem outfitRow(String name, List<OutfitPiece> pieces)
 	{
 		boolean allOnPlayer = true;
 		boolean allSomewhere = true;
 		Set<Integer> union = new LinkedHashSet<>();
-		for (Set<Integer> piece : pieces)
+		for (OutfitPiece piece : pieces)
 		{
-			union.addAll(piece);
-			int onPlayer = itemTracker.countOnPlayer(piece);
+			union.addAll(piece.ids());
+			int onPlayer = itemTracker.countOnPlayer(piece.ids());
 			if (onPlayer == 0)
 			{
 				allOnPlayer = false;
-				if (itemTracker.countBanked(piece) == 0)
+				if (itemTracker.countBanked(piece.ids()) == 0)
 				{
 					allSomewhere = false;
 				}
