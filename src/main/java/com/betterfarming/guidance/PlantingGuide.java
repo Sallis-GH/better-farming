@@ -43,25 +43,17 @@ public class PlantingGuide
 
 	private static final Set<Integer> RAKE_IDS = Set.of(net.runelite.api.gameval.ItemID.RAKE);
 
-	/**
-	 * Compost variants worth prompting while planting (the highlight only
-	 * shows for items actually carried — WidgetItemOverlay paints per item).
-	 */
-	private static final Set<Integer> COMPOST_IDS = Set.of(
-		net.runelite.api.gameval.ItemID.BUCKET_COMPOST,
-		net.runelite.api.gameval.ItemID.BUCKET_SUPERCOMPOST,
-		net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST,
-		net.runelite.api.gameval.ItemID.BOTTOMLESS_COMPOST_BUCKET_FILLED);
-
 	private final Map<String, PatchGroup> groupsByKey;
 	private final Map<String, Seed> seedsById;
 	private final PatchSelectionService selectionService;
+	private final PatchStateService stateService;
 	private final GuidanceService guidance;
 	private final ClientLevelSource client;
 	private final Function<Patch, CropState> stateFn;
 
 	private volatile Patch targetPatch;
 	private volatile CropState targetState = CropState.UNKNOWN;
+	private volatile boolean compostStep = false;
 	private volatile Set<Integer> highlightItemIds = Collections.emptySet();
 
 	// Travel highlights depend only on the leg's teleport; cache per instance
@@ -76,6 +68,7 @@ public class PlantingGuide
 		this.groupsByKey = groups.stream().collect(Collectors.toMap(PatchGroup::key, g -> g));
 		this.seedsById = seeds.stream().collect(Collectors.toMap(Seed::id, s -> s));
 		this.selectionService = selectionService;
+		this.stateService = stateService;
 		this.guidance = guidance;
 		this.client = client;
 		this.stateFn = stateService::state;
@@ -105,6 +98,10 @@ public class PlantingGuide
 		if (p == null)
 		{
 			return null;
+		}
+		if (compostStep)
+		{
+			return "Compost";
 		}
 		switch (targetState)
 		{
@@ -142,6 +139,7 @@ public class PlantingGuide
 		{
 			targetPatch = null;
 			targetState = CropState.UNKNOWN;
+			compostStep = false;
 			// Highlight only the CURRENT hop's items (the ectophial before
 			// casting, nothing while walking to a gangplank) — glowing the
 			// whole chain's items at once is noise.
@@ -166,19 +164,31 @@ public class PlantingGuide
 		}
 		if (target == null)
 		{
-			// All patches growing; leg will complete on the next guidance tick.
+			// Everything planted: the compost step is its own guide — one
+			// patch at a time, until treated (chat-detected) or skipped.
+			for (Patch p : group.patches())
+			{
+				if (stateService.compostPending(p))
+				{
+					targetPatch = p;
+					targetState = stateFn.apply(p);
+					compostStep = true;
+					highlightItemIds = com.betterfarming.item.FarmingTools.COMPOST_VARIANTS;
+					return;
+				}
+			}
 			clear();
 			return;
 		}
+		compostStep = false;
 		targetPatch = target;
 		targetState = stateFn.apply(target);
 		if (targetState == CropState.EMPTY)
 		{
 			// Seeds for every patch here that still wants planting, plus a
-			// rake (EMPTY covers weedy patches) and any carried compost —
-			// composting right after planting is the standard flow.
+			// rake (EMPTY covers weedy patches). Compost gets its own step
+			// after planting.
 			Set<Integer> ids = new HashSet<>(RAKE_IDS);
-			ids.addAll(COMPOST_IDS);
 			for (Patch p : group.patches())
 			{
 				if (stateFn.apply(p) != CropState.EMPTY)
@@ -208,6 +218,7 @@ public class PlantingGuide
 	{
 		targetPatch = null;
 		targetState = CropState.UNKNOWN;
+		compostStep = false;
 		highlightItemIds = Collections.emptySet();
 	}
 

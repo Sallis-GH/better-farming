@@ -191,6 +191,53 @@ public class PatchStateServiceTest
 	}
 
 	@Test
+	public void watchedPlantingStartsTheCompostStep()
+	{
+		client.setPlayerPosition(PATCH_TILE);
+		client.setVarbit(VARBIT, 0); // empty
+		service.refresh();
+		assertFalse(service.compostPending(herb));
+
+		client.setVarbit(VARBIT, 4); // planted in front of us
+		service.refresh();
+		assertTrue(service.compostPending(herb));
+
+		// "You treat the herb patch with supercompost." while standing there.
+		service.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You treat the herb patch with supercompost.", null, 0));
+		assertFalse(service.compostPending(herb));
+	}
+
+	@Test
+	public void cropsAlreadyGrowingAtFirstSightHaveNoCompostStep()
+	{
+		// First observation is GROWING: the planting wasn't watched, the crop
+		// may already be treated — never prompt.
+		client.setPlayerPosition(PATCH_TILE);
+		client.setVarbit(VARBIT, 4);
+		service.refresh();
+		assertFalse(service.compostPending(herb));
+	}
+
+	@Test
+	public void compostChatIgnoredWhenNoPatchIsNearby()
+	{
+		client.setPlayerPosition(PATCH_TILE);
+		client.setVarbit(VARBIT, 0);
+		service.refresh();
+		client.setVarbit(VARBIT, 4);
+		service.refresh();
+
+		client.setPlayerPosition(LUMBRIDGE);
+		service.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You treat the herb patch with compost.", null, 0));
+		assertTrue("message far from any patch changes nothing",
+			service.compostPending(herb));
+	}
+
+	@Test
 	public void stateChangeNotifiesListeners()
 	{
 		java.util.concurrent.atomic.AtomicInteger notified = new java.util.concurrent.atomic.AtomicInteger();

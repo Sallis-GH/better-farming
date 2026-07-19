@@ -70,17 +70,12 @@ public class TravelTargetOverlay extends Overlay
 		Shape shape = npcShape(hop, target);
 		if (shape == null)
 		{
+			shape = boardingObjectShape(target);
+		}
+		if (shape == null)
+		{
 			LocalPoint lp = GuidancePerspective.resolveLocalPointForWorldPoint(runeliteClient, target);
-			if (lp == null)
-			{
-				return null;
-			}
-			GameObject object = GuidancePerspective.findObjectAt(runeliteClient, lp, target.getPlane());
-			shape = object != null ? object.getClickbox() : null;
-			if (shape == null)
-			{
-				shape = Perspective.getCanvasTilePoly(runeliteClient, lp);
-			}
+			shape = lp != null ? Perspective.getCanvasTilePoly(runeliteClient, lp) : null;
 		}
 		if (shape != null)
 		{
@@ -91,23 +86,135 @@ public class TravelTargetOverlay extends Overlay
 		return null;
 	}
 
-	/** Convex hull of the hop's NPC (ferryman) when it is nearby. */
+	/**
+	 * Convex hull of the hop's NPC (ferryman) when it is nearby. Matched by
+	 * the NAME in the vendored "menuOption menuTarget id" column — NPCs like
+	 * Bill Teach exist under several ids and the data pins only one, so the
+	 * id is a fallback, not the primary key.
+	 */
 	private Shape npcShape(Teleport hop, WorldPoint target)
 	{
+		String name = menuTargetName(hop.objectInfo());
 		int npcId = trailingId(hop.objectInfo());
-		if (npcId < 0)
+		if (name == null && npcId < 0)
 		{
 			return null;
 		}
 		for (NPC npc : runeliteClient.getTopLevelWorldView().npcs())
 		{
-			if (npc != null && npc.getId() == npcId
-				&& npc.getWorldLocation().distanceTo2D(target) <= HIGHLIGHT_RADIUS_TILES)
+			if (npc == null
+				|| npc.getWorldLocation().distanceTo2D(target) > HIGHLIGHT_RADIUS_TILES)
+			{
+				continue;
+			}
+			if ((name != null && name.equalsIgnoreCase(npc.getName()))
+				|| (npcId >= 0 && npc.getId() == npcId))
 			{
 				return npc.getConvexHull();
 			}
 		}
 		return null;
+	}
+
+	/** Menu options marking a click-to-travel object (gangplank, ladder). */
+	private static final java.util.Set<String> TRAVEL_ACTIONS = java.util.Set.of(
+		"Cross", "Board", "Travel", "Enter", "Climb", "Climb-up", "Climb-down");
+
+	private static final int OBJECT_SCAN_RADIUS = 5;
+
+	// Object resolution is a tile scan with composition lookups; cache per
+	// waypoint and re-resolve when the clickbox goes stale (scene reload).
+	private WorldPoint cachedObjectFor;
+	private GameObject cachedObject;
+
+	/**
+	 * Clickbox of the nearest travel object (a gangplank's "Cross", a
+	 * ladder's "Climb") around the boarding tile. The dataset tile is where
+	 * the player stands to board, so the clickable object is usually on a
+	 * neighbouring tile rather than covering it.
+	 */
+	private Shape boardingObjectShape(WorldPoint target)
+	{
+		if (!target.equals(cachedObjectFor) || cachedObject == null
+			|| cachedObject.getClickbox() == null)
+		{
+			cachedObjectFor = target;
+			cachedObject = findBoardingObject(target);
+		}
+		return cachedObject != null ? cachedObject.getClickbox() : null;
+	}
+
+	private GameObject findBoardingObject(WorldPoint target)
+	{
+		LocalPoint lp = GuidancePerspective.resolveLocalPointForWorldPoint(runeliteClient, target);
+		if (lp == null)
+		{
+			return null;
+		}
+		net.runelite.api.Tile[][][] tiles = runeliteClient.getScene().getTiles();
+		int plane = target.getPlane();
+		GameObject best = null;
+		int bestDistance = Integer.MAX_VALUE;
+		for (int dx = -OBJECT_SCAN_RADIUS; dx <= OBJECT_SCAN_RADIUS; dx++)
+		{
+			for (int dy = -OBJECT_SCAN_RADIUS; dy <= OBJECT_SCAN_RADIUS; dy++)
+			{
+				int x = lp.getSceneX() + dx;
+				int y = lp.getSceneY() + dy;
+				if (x < 0 || y < 0 || x >= tiles[plane].length || y >= tiles[plane][x].length
+					|| tiles[plane][x][y] == null)
+				{
+					continue;
+				}
+				for (GameObject go : tiles[plane][x][y].getGameObjects())
+				{
+					if (go == null)
+					{
+						continue;
+					}
+					int distance = Math.max(Math.abs(dx), Math.abs(dy));
+					if (distance >= bestDistance || !hasTravelAction(go.getId()))
+					{
+						continue;
+					}
+					best = go;
+					bestDistance = distance;
+				}
+			}
+		}
+		return best;
+	}
+
+	private boolean hasTravelAction(int objectId)
+	{
+		net.runelite.api.ObjectComposition def = runeliteClient.getObjectDefinition(objectId);
+		if (def == null || def.getActions() == null)
+		{
+			return false;
+		}
+		for (String action : def.getActions())
+		{
+			if (action != null && TRAVEL_ACTIONS.contains(action))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** The name between the menu option and the trailing id, or null. */
+	private static String menuTargetName(String objectInfo)
+	{
+		if (objectInfo == null || objectInfo.isBlank())
+		{
+			return null;
+		}
+		String[] parts = objectInfo.trim().split(" ");
+		if (parts.length < 3)
+		{
+			return null;
+		}
+		return String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length - 1));
 	}
 
 	/** The trailing numeric token of "menuOption menuTarget id", or -1. */
