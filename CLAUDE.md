@@ -53,10 +53,13 @@ teleport origins, agility shortcuts, diary cheaper teleports; UI/design pass).
   facilities gated by granular config + composed house-chain edges), `RoutePlanner` (pure;
   Held-Karp ≤13 stops, 2-opt beyond; slot-penalized selection — 2.5 ticks per inventory
   slot, equipped items cost 0 via TeleportSlotCost — POH bias 20 ticks; expensive legs
-  (>50t single-hop) fall back to a Dijkstra chain search over the transport graph,
+  (unreachable single-hop) fall back to a Dijkstra chain search over the transport graph,
   collapsed into one composite Teleport via Teleport.chainOf; free home teleport is
-  oncePerRun — capOncePerRun re-prices later legs), `RunOrderService` (recomputes on
-  client thread via injected executor), `PohPortal` (generated enum).
+  oncePerRun — capOncePerRun re-prices later legs; its 30-min cooldown is data-driven via
+  the vendored "892@30" varplayer check, NOT special-cased code. Home teleport ≠ Teleport
+  to House: the free spell goes to the spellbook home area, never the POH),
+  `RunOrderService` (recomputes on client thread via injected executor), `PohPortal`
+  (generated enum).
 - `bank/` — quest-helper-style bank tab (BSD-2 attribution): forces search state, hides
   real widgets, repaints sectioned layout, remaps withdraw clicks. Sections: Tools /
   Seeds & saplings / Payments / Teleports / one per outfit / Other items.
@@ -120,4 +123,7 @@ Rune pouch contents not counted; player-grown spirit trees not modeled as telepo
 (Phase 6); walking legs are straight-line estimates (no collision map); POH facilities are
 config-declared (house layout unreadable); remote crop state needs the Time Tracking
 plugin's stored observations (absent → patches treated as worth visiting); run-items/bank
-tab list seeds for all active groups, not just the planned route.
+tab list seeds for all active groups, not just the planned route; a chain's total coin
+fare isn't affordability-checked across hops; vendored home-teleport rows use fixed
+spellbook destinations while the live spell goes to the respawn point (upstream data —
+players with a moved respawn get a slightly wrong home-teleport landing tile).

@@ -257,6 +257,66 @@ public class RunItemsServiceTest
 	}
 
 	@Test
+	public void houseChainLegItems_appearAsTeleportRows()
+	{
+		// Entry: Teleport to House spell (law+air+earth runes) into the POH;
+		// facility: Falador-side portal near the herb patch. The composed
+		// chain must surface the entry's runes in the run-items list.
+		com.betterfarming.travel.Teleport houseSpell = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SPELL, null,
+			new WorldPoint(1923, 5709, 0), 4, "Teleport to House",
+			java.util.Map.of(), Set.of(), Set.of(),
+			List.of(
+				new com.betterfarming.travel.TeleportItemRequirement(
+					new int[]{563}, new int[0], new int[0], 1, "Law rune"),
+				new com.betterfarming.travel.TeleportItemRequirement(
+					new int[]{556}, new int[0], new int[0], 1, "Air rune"),
+				new com.betterfarming.travel.TeleportItemRequirement(
+					new int[]{557}, new int[0], new int[0], 1, "Earth rune")),
+			false, null, false);
+		com.betterfarming.travel.Teleport faladorPortal = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.POH_PORTAL,
+			new WorldPoint(1928, 5731, 0), new WorldPoint(2964, 3378, 0), 1,
+			"Falador Portal", java.util.Map.of(), Set.of(), Set.of(),
+			java.util.Collections.emptyList(), false,
+			"Enter Falador Portal 13618", false);
+		config = new com.betterfarming.BetterFarmingConfig()
+		{
+			@Override
+			public boolean pohPortalFalador()
+			{
+				return true;
+			}
+		};
+		com.betterfarming.travel.TeleportAvailabilityService teleports =
+			new com.betterfarming.travel.TeleportAvailabilityService(
+				List.of(houseSpell, faladorPortal), client, tracker, config);
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		tracker.updateContainer(ItemTracker.CONTAINER_BANK, new Item[]{
+			new Item(563, 50), new Item(556, 500), new Item(557, 500)});
+		teleports.refresh();
+		com.betterfarming.travel.RunOrderService runOrder =
+			new com.betterfarming.travel.RunOrderService(data, selection, accessibility,
+				teleports, client, config, Runnable::run);
+		service = new RunItemsService(data, selection, accessibility, tracker,
+			new PlayerUnlocks(client), config);
+		service.wire();
+		service.setRunOrderService(runOrder);
+
+		selection.setGroupActive("HERB|Falador", true);
+		runOrder.recompute();
+		service.recompute();
+
+		com.betterfarming.travel.RoutePlanner.Leg leg = runOrder.legs().get(0);
+		assertTrue("leg should ride the house chain", leg.teleport().viaPoh());
+		RunItem laws = find("Law rune").orElseThrow();
+		assertEquals(RunItemCategory.TELEPORT, laws.category());
+		assertEquals(RunItemStatus.IN_BANK, laws.status());
+		assertTrue(find("Air rune").isPresent());
+		assertTrue(find("Earth rune").isPresent());
+	}
+
+	@Test
 	public void deactivatingGroup_dropsItsRows()
 	{
 		selection.setGroupActive("HERB|Falador", true);
