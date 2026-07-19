@@ -1,5 +1,6 @@
 package com.betterfarming.ui;
 
+import com.betterfarming.guidance.GuidanceService;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.item.TeleportItemCheck;
 import com.betterfarming.travel.RoutePlanner;
@@ -7,10 +8,12 @@ import com.betterfarming.travel.RunOrderService;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -21,6 +24,8 @@ import net.runelite.client.ui.ColorScheme;
  * group with the suggested teleport for that leg ("1. Trollheim — Stony
  * basalt"). Legs whose teleport items aren't on the player get a red
  * "missing" annotation — visible while banking, before the run strands.
+ * The header carries the run lifecycle controls: Start/Stop (guidance is
+ * opt-in per run) and Skip (check off the current leg without visiting).
  * RunOrderService may notify from the client thread, so the listener hops to
  * the EDT before rebuilding; ItemTracker's fanout already lands on the EDT.
  */
@@ -32,14 +37,20 @@ public class RunOrderSection extends JPanel
 
 	private final RunOrderService service;
 	private final ItemTracker itemTracker;
+	private final GuidanceService guidance;
 	private final JPanel rowsContainer;
+	private final JButton startStopButton;
+	private final JButton skipButton;
 	private final Runnable listener;
 	private final Runnable trackerListener;
+	private final Runnable guidanceListener;
 
-	public RunOrderSection(RunOrderService service, ItemTracker itemTracker)
+	public RunOrderSection(RunOrderService service, ItemTracker itemTracker,
+		GuidanceService guidance)
 	{
 		this.service = service;
 		this.itemTracker = itemTracker;
+		this.guidance = guidance;
 
 		setLayout(new BorderLayout());
 		setOpaque(false);
@@ -50,8 +61,31 @@ public class RunOrderSection extends JPanel
 		header.setForeground(Color.WHITE);
 		header.setFont(header.getFont().deriveFont(Font.BOLD, 14f));
 		header.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 16));
-		header.setOpaque(true);
-		header.setBackground(new Color(0x26, 0x26, 0x26));
+
+		startStopButton = new JButton();
+		startStopButton.setName("runorder-startstop");
+		startStopButton.setFont(startStopButton.getFont().deriveFont(11f));
+		startStopButton.addActionListener(e -> {
+			guidance.setRunActive(!guidance.runActive());
+			syncControls();
+		});
+		skipButton = new JButton("Skip");
+		skipButton.setName("runorder-skip");
+		skipButton.setFont(skipButton.getFont().deriveFont(11f));
+		skipButton.setToolTipText("Check off the current leg without visiting it");
+		skipButton.addActionListener(e -> guidance.requestSkipCurrentLeg());
+
+		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
+		buttons.setOpaque(false);
+		buttons.add(skipButton);
+		buttons.add(startStopButton);
+
+		JPanel headerPanel = new JPanel(new BorderLayout());
+		headerPanel.setOpaque(true);
+		headerPanel.setBackground(new Color(0x26, 0x26, 0x26));
+		headerPanel.add(header, BorderLayout.WEST);
+		headerPanel.add(buttons, BorderLayout.EAST);
+		syncControls();
 
 		rowsContainer = new JPanel();
 		rowsContainer.setLayout(new BoxLayout(rowsContainer, BoxLayout.Y_AXIS));
@@ -59,7 +93,7 @@ public class RunOrderSection extends JPanel
 		rowsContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		rowsContainer.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 14));
 
-		add(header, BorderLayout.NORTH);
+		add(headerPanel, BorderLayout.NORTH);
 		add(rowsContainer, BorderLayout.CENTER);
 
 		rebuild(service.legs());
@@ -78,6 +112,18 @@ public class RunOrderSection extends JPanel
 			repaint();
 		};
 		itemTracker.addListener(trackerListener);
+		// Stopping from the overlay's right-click menu (client thread) must
+		// flip the sidebar button too.
+		guidanceListener = () -> SwingUtilities.invokeLater(this::syncControls);
+		guidance.addListener(guidanceListener);
+	}
+
+	/** Button state from the lifecycle: label toggles, Skip needs a run. */
+	private void syncControls()
+	{
+		boolean active = guidance.runActive();
+		startStopButton.setText(active ? "Stop" : "Start");
+		skipButton.setEnabled(active);
 	}
 
 	@Override
@@ -85,6 +131,7 @@ public class RunOrderSection extends JPanel
 	{
 		service.removeListener(listener);
 		itemTracker.removeListener(trackerListener);
+		guidance.removeListener(guidanceListener);
 		super.removeNotify();
 	}
 

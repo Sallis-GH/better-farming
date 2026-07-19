@@ -49,11 +49,13 @@ diagnosis notes from the session):
    staff/offhand substitutes; chain shortfalls labelled by owning hop) drives a red
    "Missing:" line in TravelHintOverlay (suppressed while walkPreferred) and red
    rows + "missing: X" annotations in RunOrderSection (rebuilds on ItemTracker fanout).
-3. **Start/stop/skip run controls.** Plugin currently guides whenever groups are active —
-   annoying during other activities. Add explicit run lifecycle (sidebar button in
-   RunOrderSection + overlay right-click): stopped = no arrows/hints/shortest-path/
-   deviation replans; skip = mark current leg visited (the 50-tile walk-away skip exists
-   in GuidanceService, make it a button too).
+3. **Start/stop/skip run controls — DONE.** GuidanceService.runActive (volatile,
+   DEFAULT STOPPED — guidance is now opt-in per run; applied on next-tick recompute so
+   UI threads never touch client state) + requestSkipCurrentLeg() (queued flag, consumed
+   on recompute). Stopped = recompute early-outs: no leg/arrows/hints/shortest-path/
+   deviation replans; progress kept (pause). Logout force-stops. Controls: Start/Stop +
+   Skip buttons in RunOrderSection header (synced via guidance listener), Skip/Stop
+   right-click entries on TravelHintOverlay.
 4. **Jewellery charges, not item count.** Two skills-necklace legs currently show
    "Skills necklace ×2"; correct is ONE necklace with ≥2 charges, displayed like
    "Skills necklace(2)+". Charge variants are separate item ids (ItemVariations names

@@ -3,6 +3,7 @@ package com.betterfarming.ui;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.PatchGroup;
 import com.betterfarming.data.PatchType;
+import com.betterfarming.guidance.GuidanceService;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.item.RunItemsService;
 import com.betterfarming.state.PatchSelectionService;
@@ -47,7 +48,8 @@ public class BetterFarmingPanel extends PluginPanel
 		PatchAccessibilityService accessibilityService,
 		RunItemsService runItemsService,
 		RunOrderService runOrderService,
-		ItemTracker itemTracker)
+		ItemTracker itemTracker,
+		GuidanceService guidanceService)
 	{
 		super(false);
 		setLayout(new BorderLayout());
@@ -64,7 +66,8 @@ public class BetterFarmingPanel extends PluginPanel
 		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 		column.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-		RunOrderSection runOrderSection = new RunOrderSection(runOrderService, itemTracker);
+		RunOrderSection runOrderSection = new RunOrderSection(runOrderService, itemTracker,
+			guidanceService);
 		runOrderSection.setAlignmentX(Component.LEFT_ALIGNMENT);
 		column.add(runOrderSection);
 
