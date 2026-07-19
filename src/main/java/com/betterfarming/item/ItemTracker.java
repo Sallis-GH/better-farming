@@ -142,7 +142,7 @@ public class ItemTracker
 				{
 					l.run();
 				}
-				catch (RuntimeException ex)
+				catch (Exception | AssertionError ex)
 				{
 					log.warn("Better Farming: item listener {} threw", l.getClass().getName(), ex);
 				}

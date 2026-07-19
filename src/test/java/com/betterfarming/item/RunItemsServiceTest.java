@@ -48,22 +48,25 @@ public class RunItemsServiceTest
 		Collections.<Requirement>emptyList());
 
 	private FarmingData data;
+	private FakeClient client;
 	private PatchSelectionService selection;
 	private PatchAccessibilityService accessibility;
 	private ItemTracker tracker;
+	private PlayerUnlocks unlocks;
 	private RunItemsService service;
 
 	@Before
 	public void setUp()
 	{
 		data = new FarmingData(List.of(herbPatch, treePatch), List.of(ranarr, willow));
-		FakeClient client = new FakeClient();
+		client = new FakeClient();
 		client.setLevel(Skill.FARMING, 99);
 		selection = new PatchSelectionService(new FakeConfigStore(), data);
 		accessibility = new PatchAccessibilityService(client, data, new RequirementEvaluator());
 		accessibility.refresh();
 		tracker = new ItemTracker();
-		service = new RunItemsService(data, selection, accessibility, tracker);
+		unlocks = new PlayerUnlocks(client);
+		service = new RunItemsService(data, selection, accessibility, tracker, unlocks);
 		service.wire();
 	}
 
@@ -153,6 +156,21 @@ public class RunItemsServiceTest
 		service.recompute();
 
 		assertEquals(RunItemStatus.ON_PLAYER, find("Magic secateurs").orElseThrow().status());
+	}
+
+	@Test
+	public void bareHandedPlanting_removesSeedDibber()
+	{
+		selection.setGroupActive("HERB|Falador", true);
+		assertTrue(find("Seed dibber").isPresent());
+
+		// Barbarian Training farming section complete (varbit 9609 == 3).
+		client.setVarbit(net.runelite.api.gameval.VarbitID.BRUT_FARMING_PLANTING, 3);
+		unlocks.refresh();
+		service.recompute();
+
+		assertTrue("bare-handed planting waives the dibber", find("Seed dibber").isEmpty());
+		assertTrue("other tools unaffected", find("Rake").isPresent());
 	}
 
 	@Test

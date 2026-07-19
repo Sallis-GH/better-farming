@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.item.ItemTracker;
+import com.betterfarming.item.PlayerUnlocks;
 import com.betterfarming.item.RunItemsService;
 import com.betterfarming.travel.RunOrderService;
 import com.betterfarming.travel.TeleportAvailabilityService;
@@ -75,11 +76,12 @@ public class BetterFarmingPanelIntegrationTest
 			client, data, new com.betterfarming.data.requirement.RequirementEvaluator());
 		accessibilityService.refresh();
 		itemTracker = new ItemTracker();
-		runItemsService = new RunItemsService(data, selectionService, accessibilityService, itemTracker);
+		runItemsService = new RunItemsService(data, selectionService, accessibilityService,
+			itemTracker, new PlayerUnlocks(client));
 		runOrderService = new RunOrderService(data, selectionService, accessibilityService,
 			new TeleportAvailabilityService(List.of(), client, itemTracker,
 				new BetterFarmingConfig() {}),
-			client);
+			client, Runnable::run);
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
 			accessibilityService, runItemsService, runOrderService);
 	}
@@ -149,6 +151,22 @@ public class BetterFarmingPanelIntegrationTest
 			}
 		}
 		assertFalse("singleton row should suppress the sub-label slot", hasLabel);
+	}
+
+	@Test
+	public void clickingGroupToggle_updatesCheckmarkRendering() throws Exception
+	{
+		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|South of Falador");
+		JButton toggle = findGroupToggleButton(card);
+		assertEquals("inactive at start — no checkmark", "", toggle.getText());
+
+		toggle.doClick();
+		SwingUtilities.invokeAndWait(() -> {});
+		assertEquals("activation renders the checkmark", "✓", toggle.getText());
+
+		toggle.doClick();
+		SwingUtilities.invokeAndWait(() -> {});
+		assertEquals("deactivation clears the checkmark", "", toggle.getText());
 	}
 
 	@Test
@@ -338,11 +356,12 @@ public class BetterFarmingPanelIntegrationTest
 			localSelection,
 			new SeedAvailabilityService(localClient, synthetic),
 			localAccess,
-			new RunItemsService(synthetic, localSelection, localAccess, localTracker),
+			new RunItemsService(synthetic, localSelection, localAccess, localTracker,
+				new PlayerUnlocks(localClient)),
 			new RunOrderService(synthetic, localSelection, localAccess,
 				new TeleportAvailabilityService(List.of(), localClient, localTracker,
 					new BetterFarmingConfig() {}),
-				localClient));
+				localClient, Runnable::run));
 
 		PatchGroupCard card = null;
 		for (PatchGroupCard c : findAll(localPanel, PatchGroupCard.class))

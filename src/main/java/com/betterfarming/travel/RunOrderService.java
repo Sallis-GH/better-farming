@@ -23,9 +23,14 @@ import net.runelite.api.coords.WorldPoint;
  *
  * The player's position moves constantly, so it is NOT a recompute trigger —
  * the route is planned from wherever the player was when the inputs last
- * changed, and refreshed on demand via recompute(). Listener fanout happens
- * on whatever thread triggered the recompute (EDT for selection changes,
- * client thread for teleport availability); RunOrderSection hops to the EDT.
+ * changed, and refreshed on demand via recompute().
+ *
+ * Threading: change notifications arrive on the EDT (selection/accessibility)
+ * and the client thread (teleports), but compute() reads live client state
+ * (player position), which RuneLite asserts is client-thread-only. recompute()
+ * therefore only marks and schedules; the actual work runs on the client
+ * thread via the injected executor. UI listeners are notified from there and
+ * must hop to the EDT themselves (RunOrderSection does).
  */
 @Slf4j
 public class RunOrderService
@@ -35,25 +40,33 @@ public class RunOrderService
 	private final PatchAccessibilityService accessibilityService;
 	private final TeleportAvailabilityService teleportService;
 	private final ClientLevelSource client;
+	private final Consumer<Runnable> clientThreadExecutor;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
 	private List<RoutePlanner.Leg> current = Collections.emptyList();
+	private boolean recomputeQueued = false;
 
 	private final Consumer<GroupActiveEvent> groupListener = e -> recompute();
 	private final Consumer<PatchAccessibilityEvent> accessibilityListener = e -> recompute();
 	private final Runnable teleportListener = this::recompute;
 
+	/**
+	 * @param clientThreadExecutor marshals work onto the client thread
+	 *     (ClientThread::invokeLater in production, Runnable::run in tests).
+	 */
 	public RunOrderService(FarmingData data,
 		PatchSelectionService selectionService,
 		PatchAccessibilityService accessibilityService,
 		TeleportAvailabilityService teleportService,
-		ClientLevelSource client)
+		ClientLevelSource client,
+		Consumer<Runnable> clientThreadExecutor)
 	{
 		this.data = data;
 		this.selectionService = selectionService;
 		this.accessibilityService = accessibilityService;
 		this.teleportService = teleportService;
 		this.client = client;
+		this.clientThreadExecutor = clientThreadExecutor;
 		recompute();
 	}
 
@@ -79,8 +92,26 @@ public class RunOrderService
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
+	/** Schedule a re-plan on the client thread; back-to-back calls coalesce. */
 	public void recompute()
 	{
+		synchronized (this)
+		{
+			if (recomputeQueued)
+			{
+				return;
+			}
+			recomputeQueued = true;
+		}
+		clientThreadExecutor.accept(this::recomputeOnClientThread);
+	}
+
+	private void recomputeOnClientThread()
+	{
+		synchronized (this)
+		{
+			recomputeQueued = false;
+		}
 		List<RoutePlanner.Leg> next = compute();
 		if (legsEqual(next, current))
 		{
@@ -93,7 +124,9 @@ public class RunOrderService
 			{
 				l.run();
 			}
-			catch (RuntimeException ex)
+			// AssertionError included: RuneLite's dev-mode thread assertions
+			// must not let one listener starve the rest of the fanout.
+			catch (Exception | AssertionError ex)
 			{
 				log.warn("Better Farming: run-order listener {} threw", l.getClass().getName(), ex);
 			}

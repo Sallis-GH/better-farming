@@ -147,6 +147,25 @@ public class PatchSelectionServiceTest
 	}
 
 	@Test
+	public void throwingGroupListener_doesNotStarveLaterListeners()
+	{
+		// Regression: RuneLite dev-mode thread assertions throw AssertionError
+		// (not RuntimeException) from service listeners registered before the
+		// UI cards; the dispatch loop must survive and still notify the cards.
+		service.addGroupListener(e -> {
+			throw new AssertionError("simulated client-thread assertion");
+		});
+		java.util.concurrent.atomic.AtomicReference<GroupActiveEvent> received =
+			new java.util.concurrent.atomic.AtomicReference<>();
+		service.addGroupListener(received::set);
+
+		service.setGroupActive("ALLOTMENT|Catherby", true);
+
+		assertTrue("later listener must still fire", received.get() != null);
+		assertTrue(received.get().newActive());
+	}
+
+	@Test
 	public void activeGroupsReturnsActiveSet()
 	{
 		service.setGroupActive("ALLOTMENT|Catherby", true);

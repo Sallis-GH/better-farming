@@ -66,7 +66,8 @@ public class FarmingBankTagServiceTest
 			new PatchAccessibilityService(client, data, new RequirementEvaluator());
 		accessibility.refresh();
 		tracker = new ItemTracker();
-		RunItemsService runItems = new RunItemsService(data, selection, accessibility, tracker);
+		RunItemsService runItems = new RunItemsService(data, selection, accessibility, tracker,
+			new com.betterfarming.item.PlayerUnlocks(client));
 		runItems.wire();
 		service = new FarmingBankTagService(runItems, tracker);
 	}

@@ -168,7 +168,9 @@ public class PatchSelectionService
 			{
 				listener.accept(event);
 			}
-			catch (RuntimeException ex)
+			// AssertionError included: RuneLite's dev-mode thread assertions
+			// must not let one listener starve the rest of the fanout.
+			catch (Exception | AssertionError ex)
 			{
 				log.warn("Better Farming: seed listener {} threw on patch {}",
 					listener.getClass().getName(), event.patchId(), ex);
@@ -184,7 +186,7 @@ public class PatchSelectionService
 			{
 				listener.accept(event);
 			}
-			catch (RuntimeException ex)
+			catch (Exception | AssertionError ex)
 			{
 				log.warn("Better Farming: group listener {} threw on group {}",
 					listener.getClass().getName(), event.groupKey(), ex);
