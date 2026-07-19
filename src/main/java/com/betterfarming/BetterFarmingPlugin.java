@@ -3,13 +3,19 @@ package com.betterfarming;
 import com.betterfarming.bank.FarmingBankTab;
 import com.betterfarming.bank.FarmingBankTagService;
 import com.betterfarming.data.FarmingData;
+import com.betterfarming.data.PatchGroup;
+import com.betterfarming.farming.PatchStateService;
+import com.betterfarming.farming.PatchStateTable;
+import com.betterfarming.farming.StopProgress;
 import com.betterfarming.guidance.GuidanceService;
+import com.betterfarming.guidance.ItemHighlightOverlay;
+import com.betterfarming.guidance.PatchHighlightOverlay;
+import com.betterfarming.guidance.PlantingGuide;
 import com.betterfarming.guidance.GuidanceWorldMapMarker;
 import com.betterfarming.guidance.MinimapArrowOverlay;
 import com.betterfarming.guidance.ShortestPathBridge;
 import com.betterfarming.guidance.TravelHintOverlay;
 import com.betterfarming.guidance.WorldArrowOverlay;
-import com.betterfarming.guidance.WorldMapRouteOverlay;
 import com.betterfarming.item.ItemTracker;
 import com.betterfarming.item.PlayerUnlocks;
 import com.betterfarming.item.RunItemsService;
@@ -75,6 +81,9 @@ public class BetterFarmingPlugin extends Plugin
 	@Inject private Client client;
 	@Inject private OverlayManager overlayManager;
 	@Inject private WorldMapPointManager worldMapPointManager;
+	@Inject private net.runelite.client.game.ItemManager itemManager;
+	@Inject private ConfigManager configManager;
+	@Inject private com.google.gson.Gson gson;
 
 	private NavigationButton navButton;
 	private Runnable bankTabRefreshListener;
@@ -84,6 +93,9 @@ public class BetterFarmingPlugin extends Plugin
 	private RunItemsService runItemsService;
 	private TeleportAvailabilityService teleportService;
 	private RunOrderService runOrderService;
+	private PatchStateService patchStateService;
+	private Runnable patchStateListener;
+	private PlantingGuide plantingGuide;
 	private GuidanceService guidanceService;
 	private GuidanceWorldMapMarker worldMapMarker;
 	private ShortestPathBridge shortestPathBridge;
@@ -112,12 +124,22 @@ public class BetterFarmingPlugin extends Plugin
 			data, selectionService, accessibilityService, itemTracker, playerUnlocks, config);
 		runItemsService.wire();
 
+		// Crop state: live farming varbits + the Time Tracking plugin's
+		// persisted observations (RS-profile scoped config reads).
+		PatchStateTable stateTable = PatchStateTable.load(gson);
+		patchStateService = new PatchStateService(data.patches(), clientLevelSource, stateTable,
+			key -> configManager.getRSProfileConfiguration("timetracking", key),
+			() -> System.currentTimeMillis() / 1000L);
+
 		List<Teleport> teleports = teleportLoader.loadAll();
 		teleportService = new TeleportAvailabilityService(teleports, clientLevelSource, itemTracker, config);
 		runOrderService = new RunOrderService(
 			data, selectionService, accessibilityService, teleportService, clientLevelSource,
-			config, clientThread::invokeLater);
+			config, clientThread::invokeLater, patchStateService::needsVisit);
 		runOrderService.wire();
+		// State changes re-plan the route (pinned order keeps it stable).
+		patchStateListener = runOrderService::recompute;
+		patchStateService.addListener(patchStateListener);
 		// The planned legs feed teleport-item rows into the run-items list.
 		runItemsService.setRunOrderService(runOrderService);
 
@@ -127,6 +149,7 @@ public class BetterFarmingPlugin extends Plugin
 		eventBus.register(itemTracker);
 		eventBus.register(playerUnlocks);
 		eventBus.register(teleportService);
+		eventBus.register(patchStateService);
 
 		// Bank tab: hand-wire the section service (RunItemsService is not
 		// Guice-managed) and refresh the open tab whenever run items change.
@@ -140,8 +163,22 @@ public class BetterFarmingPlugin extends Plugin
 		// Guidance: leg tracking on GameTick, overlays reading its snapshot,
 		// and side-effect listeners (world-map marker, shortest-path push)
 		// running inside the fanout on the client thread.
-		guidanceService = new GuidanceService(runOrderService::legs, clientLevelSource);
-		worldMapMarker = new GuidanceWorldMapMarker(worldMapPointManager, config, guidanceService);
+		List<PatchGroup> groups = PatchGroup.groupAll(data.patches());
+		java.util.Map<String, PatchGroup> groupsByKey = new java.util.HashMap<>();
+		groups.forEach(g -> groupsByKey.put(g.key(), g));
+		guidanceService = new GuidanceService(runOrderService::legs, clientLevelSource,
+			stop -> {
+				PatchGroup g = groupsByKey.get(stop.groupKey());
+				return g == null ? StopProgress.UNKNOWN : patchStateService.groupProgress(g.patches());
+			});
+		plantingGuide = new PlantingGuide(groups, data.seeds(), selectionService,
+			patchStateService, guidanceService, clientLevelSource);
+		// PlantingGuide polls per GameTick, but EventBus delivery order vs
+		// GuidanceService is unspecified — recomputing again on leg change
+		// keeps its highlights from lagging the arrows by a tick.
+		guidanceListeners.add(plantingGuide::recompute);
+		eventBus.register(plantingGuide);
+		worldMapMarker = new GuidanceWorldMapMarker(worldMapPointManager, config, guidanceService, itemManager);
 		shortestPathBridge = new ShortestPathBridge(eventBus, config, guidanceService, clientLevelSource);
 		// Separate listeners on purpose: the fanout isolates failures per
 		// listener, and bundling both updates into one Runnable would let a
@@ -152,8 +189,22 @@ public class BetterFarmingPlugin extends Plugin
 		eventBus.register(guidanceService);
 		guidanceOverlays.add(new WorldArrowOverlay(client, config, guidanceService));
 		guidanceOverlays.add(new MinimapArrowOverlay(client, config, guidanceService));
-		guidanceOverlays.add(new WorldMapRouteOverlay(client, config, guidanceService));
-		guidanceOverlays.add(new TravelHintOverlay(config, guidanceService));
+		guidanceOverlays.add(new PatchHighlightOverlay(client, config, plantingGuide));
+		guidanceOverlays.add(new ItemHighlightOverlay(config, plantingGuide));
+		guidanceOverlays.add(new TravelHintOverlay(config, guidanceService, plantingGuide,
+			() -> {
+				// Progress reset and replan are independent; a failure in one
+				// must not swallow the other (hard-won rule 2 in spirit).
+				try
+				{
+					guidanceService.reset();
+				}
+				catch (Exception | AssertionError ex)
+				{
+					log.warn("Better Farming: guidance reset threw", ex);
+				}
+				runOrderService.replan();
+			}));
 		guidanceOverlays.forEach(overlayManager::add);
 
 		// Initial pass so cards built mid-session-already-logged-in see real
@@ -212,6 +263,21 @@ public class BetterFarmingPlugin extends Plugin
 			guidanceListeners.forEach(guidanceService::removeListener);
 			guidanceService = null;
 		}
+		if (plantingGuide != null)
+		{
+			eventBus.unregister(plantingGuide);
+			plantingGuide = null;
+		}
+		if (patchStateService != null)
+		{
+			eventBus.unregister(patchStateService);
+			if (patchStateListener != null)
+			{
+				patchStateService.removeListener(patchStateListener);
+				patchStateListener = null;
+			}
+			patchStateService = null;
+		}
 		guidanceListeners.clear();
 		guidanceOverlays.forEach(overlayManager::remove);
 		guidanceOverlays.clear();
@@ -252,10 +318,25 @@ public class BetterFarmingPlugin extends Plugin
 	 * (config panel writes), so the teleport refresh — which reads varbits —
 	 * is marshalled to the client thread; the others marshal themselves.
 	 */
+	/**
+	 * A fresh session starts a fresh run: drop the pinned route so the next
+	 * plan is solved from wherever the player logs in (guidance progress and
+	 * the live crop-state cache reset themselves via their own subscribers).
+	 */
+	@Subscribe
+	public void onGameStateChanged(net.runelite.api.events.GameStateChanged event)
+	{
+		if (event.getGameState() == net.runelite.api.GameState.LOGIN_SCREEN
+			&& runOrderService != null)
+		{
+			runOrderService.replan();
+		}
+	}
+
 	/** Config keys that only affect guidance display, not planning inputs. */
 	private static final java.util.Set<String> GUIDANCE_DISPLAY_KEYS = java.util.Set.of(
 		"showWorldArrow", "showMinimapArrow", "showWorldMapMarker",
-		"showWorldMapRoute", "showTravelHint", "useShortestPath");
+		"showTravelHint", "useShortestPath", "showPlantingHighlights");
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)

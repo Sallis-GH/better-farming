@@ -46,7 +46,9 @@ public class PatchSelectionService
 	private final Set<String> validSeedIds;
 	private final Set<String> validGroupKeys;
 
-	private final Map<String, PatchSelection> selections = new HashMap<>();
+	// Concurrent: mutated on the EDT (sidebar seed pickers) but read from the
+	// client thread every GameTick by PlantingGuide's highlight computation.
+	private final Map<String, PatchSelection> selections = new java.util.concurrent.ConcurrentHashMap<>();
 	private final Set<String> activeGroupKeys = new LinkedHashSet<>();
 	private final Set<Consumer<PatchSelectionEvent>> listeners = new LinkedHashSet<>();
 	private final Set<Consumer<GroupActiveEvent>> groupListeners = new LinkedHashSet<>();

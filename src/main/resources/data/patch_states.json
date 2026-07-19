@@ -1,0 +1,2433 @@
+{
+ "states": {
+  "ALLOTMENT": [
+   {
+    "from": 0,
+    "to": 5,
+    "state": "EMPTY"
+   },
+   {
+    "from": 6,
+    "to": 9,
+    "state": "GROWING"
+   },
+   {
+    "from": 10,
+    "to": 12,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 13,
+    "to": 16,
+    "state": "GROWING"
+   },
+   {
+    "from": 17,
+    "to": 19,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 20,
+    "to": 23,
+    "state": "GROWING"
+   },
+   {
+    "from": 24,
+    "to": 26,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 27,
+    "to": 30,
+    "state": "GROWING"
+   },
+   {
+    "from": 31,
+    "to": 33,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 34,
+    "to": 39,
+    "state": "GROWING"
+   },
+   {
+    "from": 40,
+    "to": 42,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 43,
+    "to": 48,
+    "state": "GROWING"
+   },
+   {
+    "from": 49,
+    "to": 51,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 52,
+    "to": 59,
+    "state": "GROWING"
+   },
+   {
+    "from": 60,
+    "to": 62,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 63,
+    "to": 73,
+    "state": "GROWING"
+   },
+   {
+    "from": 74,
+    "to": 76,
+    "state": "EMPTY"
+   },
+   {
+    "from": 77,
+    "to": 80,
+    "state": "GROWING"
+   },
+   {
+    "from": 81,
+    "to": 83,
+    "state": "EMPTY"
+   },
+   {
+    "from": 84,
+    "to": 87,
+    "state": "GROWING"
+   },
+   {
+    "from": 88,
+    "to": 90,
+    "state": "EMPTY"
+   },
+   {
+    "from": 91,
+    "to": 94,
+    "state": "GROWING"
+   },
+   {
+    "from": 95,
+    "to": 97,
+    "state": "EMPTY"
+   },
+   {
+    "from": 98,
+    "to": 103,
+    "state": "GROWING"
+   },
+   {
+    "from": 104,
+    "to": 106,
+    "state": "EMPTY"
+   },
+   {
+    "from": 107,
+    "to": 112,
+    "state": "GROWING"
+   },
+   {
+    "from": 113,
+    "to": 115,
+    "state": "EMPTY"
+   },
+   {
+    "from": 116,
+    "to": 123,
+    "state": "GROWING"
+   },
+   {
+    "from": 124,
+    "to": 127,
+    "state": "EMPTY"
+   },
+   {
+    "from": 128,
+    "to": 134,
+    "state": "GROWING"
+   },
+   {
+    "from": 135,
+    "to": 137,
+    "state": "DISEASED"
+   },
+   {
+    "from": 138,
+    "to": 140,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 141,
+    "to": 141,
+    "state": "EMPTY"
+   },
+   {
+    "from": 142,
+    "to": 144,
+    "state": "DISEASED"
+   },
+   {
+    "from": 145,
+    "to": 148,
+    "state": "EMPTY"
+   },
+   {
+    "from": 149,
+    "to": 151,
+    "state": "DISEASED"
+   },
+   {
+    "from": 152,
+    "to": 155,
+    "state": "EMPTY"
+   },
+   {
+    "from": 156,
+    "to": 158,
+    "state": "DISEASED"
+   },
+   {
+    "from": 159,
+    "to": 162,
+    "state": "EMPTY"
+   },
+   {
+    "from": 163,
+    "to": 167,
+    "state": "DISEASED"
+   },
+   {
+    "from": 168,
+    "to": 171,
+    "state": "EMPTY"
+   },
+   {
+    "from": 172,
+    "to": 176,
+    "state": "DISEASED"
+   },
+   {
+    "from": 177,
+    "to": 180,
+    "state": "EMPTY"
+   },
+   {
+    "from": 181,
+    "to": 187,
+    "state": "DISEASED"
+   },
+   {
+    "from": 188,
+    "to": 192,
+    "state": "EMPTY"
+   },
+   {
+    "from": 193,
+    "to": 195,
+    "state": "DEAD"
+   },
+   {
+    "from": 196,
+    "to": 198,
+    "state": "DISEASED"
+   },
+   {
+    "from": 199,
+    "to": 201,
+    "state": "DEAD"
+   },
+   {
+    "from": 202,
+    "to": 204,
+    "state": "DISEASED"
+   },
+   {
+    "from": 205,
+    "to": 205,
+    "state": "EMPTY"
+   },
+   {
+    "from": 206,
+    "to": 211,
+    "state": "DEAD"
+   },
+   {
+    "from": 212,
+    "to": 212,
+    "state": "EMPTY"
+   },
+   {
+    "from": 213,
+    "to": 215,
+    "state": "DEAD"
+   },
+   {
+    "from": 216,
+    "to": 219,
+    "state": "EMPTY"
+   },
+   {
+    "from": 220,
+    "to": 222,
+    "state": "DEAD"
+   },
+   {
+    "from": 223,
+    "to": 226,
+    "state": "EMPTY"
+   },
+   {
+    "from": 227,
+    "to": 231,
+    "state": "DEAD"
+   },
+   {
+    "from": 232,
+    "to": 235,
+    "state": "EMPTY"
+   },
+   {
+    "from": 236,
+    "to": 240,
+    "state": "DEAD"
+   },
+   {
+    "from": 241,
+    "to": 244,
+    "state": "EMPTY"
+   },
+   {
+    "from": 245,
+    "to": 251,
+    "state": "DEAD"
+   },
+   {
+    "from": 252,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "FLOWER": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 11,
+    "state": "GROWING"
+   },
+   {
+    "from": 12,
+    "to": 12,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 13,
+    "to": 16,
+    "state": "GROWING"
+   },
+   {
+    "from": 17,
+    "to": 17,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 18,
+    "to": 21,
+    "state": "GROWING"
+   },
+   {
+    "from": 22,
+    "to": 22,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 23,
+    "to": 26,
+    "state": "GROWING"
+   },
+   {
+    "from": 27,
+    "to": 27,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 28,
+    "to": 31,
+    "state": "GROWING"
+   },
+   {
+    "from": 32,
+    "to": 32,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 33,
+    "to": 40,
+    "state": "GROWING"
+   },
+   {
+    "from": 41,
+    "to": 41,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 42,
+    "to": 71,
+    "state": "EMPTY"
+   },
+   {
+    "from": 72,
+    "to": 75,
+    "state": "GROWING"
+   },
+   {
+    "from": 76,
+    "to": 76,
+    "state": "EMPTY"
+   },
+   {
+    "from": 77,
+    "to": 80,
+    "state": "GROWING"
+   },
+   {
+    "from": 81,
+    "to": 81,
+    "state": "EMPTY"
+   },
+   {
+    "from": 82,
+    "to": 85,
+    "state": "GROWING"
+   },
+   {
+    "from": 86,
+    "to": 86,
+    "state": "EMPTY"
+   },
+   {
+    "from": 87,
+    "to": 90,
+    "state": "GROWING"
+   },
+   {
+    "from": 91,
+    "to": 91,
+    "state": "EMPTY"
+   },
+   {
+    "from": 92,
+    "to": 95,
+    "state": "GROWING"
+   },
+   {
+    "from": 96,
+    "to": 100,
+    "state": "EMPTY"
+   },
+   {
+    "from": 101,
+    "to": 104,
+    "state": "GROWING"
+   },
+   {
+    "from": 105,
+    "to": 136,
+    "state": "EMPTY"
+   },
+   {
+    "from": 137,
+    "to": 139,
+    "state": "DISEASED"
+   },
+   {
+    "from": 140,
+    "to": 141,
+    "state": "EMPTY"
+   },
+   {
+    "from": 142,
+    "to": 144,
+    "state": "DISEASED"
+   },
+   {
+    "from": 145,
+    "to": 146,
+    "state": "EMPTY"
+   },
+   {
+    "from": 147,
+    "to": 149,
+    "state": "DISEASED"
+   },
+   {
+    "from": 150,
+    "to": 151,
+    "state": "EMPTY"
+   },
+   {
+    "from": 152,
+    "to": 154,
+    "state": "DISEASED"
+   },
+   {
+    "from": 155,
+    "to": 156,
+    "state": "EMPTY"
+   },
+   {
+    "from": 157,
+    "to": 159,
+    "state": "DISEASED"
+   },
+   {
+    "from": 160,
+    "to": 165,
+    "state": "EMPTY"
+   },
+   {
+    "from": 166,
+    "to": 168,
+    "state": "DISEASED"
+   },
+   {
+    "from": 169,
+    "to": 200,
+    "state": "EMPTY"
+   },
+   {
+    "from": 201,
+    "to": 204,
+    "state": "DEAD"
+   },
+   {
+    "from": 205,
+    "to": 205,
+    "state": "EMPTY"
+   },
+   {
+    "from": 206,
+    "to": 209,
+    "state": "DEAD"
+   },
+   {
+    "from": 210,
+    "to": 210,
+    "state": "EMPTY"
+   },
+   {
+    "from": 211,
+    "to": 214,
+    "state": "DEAD"
+   },
+   {
+    "from": 215,
+    "to": 215,
+    "state": "EMPTY"
+   },
+   {
+    "from": 216,
+    "to": 219,
+    "state": "DEAD"
+   },
+   {
+    "from": 220,
+    "to": 220,
+    "state": "EMPTY"
+   },
+   {
+    "from": 221,
+    "to": 224,
+    "state": "DEAD"
+   },
+   {
+    "from": 225,
+    "to": 229,
+    "state": "EMPTY"
+   },
+   {
+    "from": 230,
+    "to": 233,
+    "state": "DEAD"
+   },
+   {
+    "from": 234,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "HERB": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 7,
+    "state": "GROWING"
+   },
+   {
+    "from": 8,
+    "to": 10,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 11,
+    "to": 14,
+    "state": "GROWING"
+   },
+   {
+    "from": 15,
+    "to": 17,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 18,
+    "to": 21,
+    "state": "GROWING"
+   },
+   {
+    "from": 22,
+    "to": 24,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 25,
+    "to": 28,
+    "state": "GROWING"
+   },
+   {
+    "from": 29,
+    "to": 31,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 32,
+    "to": 35,
+    "state": "GROWING"
+   },
+   {
+    "from": 36,
+    "to": 38,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 39,
+    "to": 42,
+    "state": "GROWING"
+   },
+   {
+    "from": 43,
+    "to": 45,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 46,
+    "to": 49,
+    "state": "GROWING"
+   },
+   {
+    "from": 50,
+    "to": 52,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 53,
+    "to": 56,
+    "state": "GROWING"
+   },
+   {
+    "from": 57,
+    "to": 59,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 60,
+    "to": 63,
+    "state": "GROWING"
+   },
+   {
+    "from": 64,
+    "to": 66,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 67,
+    "to": 67,
+    "state": "EMPTY"
+   },
+   {
+    "from": 68,
+    "to": 71,
+    "state": "GROWING"
+   },
+   {
+    "from": 72,
+    "to": 74,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 75,
+    "to": 78,
+    "state": "GROWING"
+   },
+   {
+    "from": 79,
+    "to": 81,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 82,
+    "to": 85,
+    "state": "GROWING"
+   },
+   {
+    "from": 86,
+    "to": 88,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 89,
+    "to": 92,
+    "state": "GROWING"
+   },
+   {
+    "from": 93,
+    "to": 95,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 96,
+    "to": 99,
+    "state": "GROWING"
+   },
+   {
+    "from": 100,
+    "to": 102,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 103,
+    "to": 106,
+    "state": "GROWING"
+   },
+   {
+    "from": 107,
+    "to": 109,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 128,
+    "to": 169,
+    "state": "DISEASED"
+   },
+   {
+    "from": 170,
+    "to": 172,
+    "state": "DEAD"
+   },
+   {
+    "from": 173,
+    "to": 175,
+    "state": "DISEASED"
+   },
+   {
+    "from": 176,
+    "to": 191,
+    "state": "EMPTY"
+   },
+   {
+    "from": 192,
+    "to": 195,
+    "state": "GROWING"
+   },
+   {
+    "from": 196,
+    "to": 197,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 198,
+    "to": 200,
+    "state": "DISEASED"
+   },
+   {
+    "from": 201,
+    "to": 203,
+    "state": "DEAD"
+   },
+   {
+    "from": 204,
+    "to": 219,
+    "state": "EMPTY"
+   },
+   {
+    "from": 221,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "HOPS": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 7,
+    "state": "GROWING"
+   },
+   {
+    "from": 8,
+    "to": 10,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 11,
+    "to": 13,
+    "state": "DISEASED"
+   },
+   {
+    "from": 14,
+    "to": 18,
+    "state": "GROWING"
+   },
+   {
+    "from": 19,
+    "to": 21,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 22,
+    "to": 25,
+    "state": "DISEASED"
+   },
+   {
+    "from": 26,
+    "to": 31,
+    "state": "GROWING"
+   },
+   {
+    "from": 32,
+    "to": 34,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 35,
+    "to": 39,
+    "state": "DISEASED"
+   },
+   {
+    "from": 40,
+    "to": 46,
+    "state": "GROWING"
+   },
+   {
+    "from": 47,
+    "to": 49,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 50,
+    "to": 55,
+    "state": "DISEASED"
+   },
+   {
+    "from": 56,
+    "to": 63,
+    "state": "GROWING"
+   },
+   {
+    "from": 64,
+    "to": 66,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 67,
+    "to": 73,
+    "state": "DISEASED"
+   },
+   {
+    "from": 74,
+    "to": 77,
+    "state": "GROWING"
+   },
+   {
+    "from": 78,
+    "to": 80,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 81,
+    "to": 83,
+    "state": "DISEASED"
+   },
+   {
+    "from": 84,
+    "to": 88,
+    "state": "GROWING"
+   },
+   {
+    "from": 89,
+    "to": 91,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 92,
+    "to": 95,
+    "state": "DISEASED"
+   },
+   {
+    "from": 96,
+    "to": 98,
+    "state": "GROWING"
+   },
+   {
+    "from": 99,
+    "to": 101,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 102,
+    "to": 103,
+    "state": "DISEASED"
+   },
+   {
+    "from": 104,
+    "to": 107,
+    "state": "GROWING"
+   },
+   {
+    "from": 108,
+    "to": 110,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 111,
+    "to": 113,
+    "state": "DISEASED"
+   },
+   {
+    "from": 114,
+    "to": 118,
+    "state": "GROWING"
+   },
+   {
+    "from": 119,
+    "to": 121,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 122,
+    "to": 125,
+    "state": "DISEASED"
+   },
+   {
+    "from": 126,
+    "to": 131,
+    "state": "EMPTY"
+   },
+   {
+    "from": 132,
+    "to": 135,
+    "state": "GROWING"
+   },
+   {
+    "from": 136,
+    "to": 138,
+    "state": "EMPTY"
+   },
+   {
+    "from": 139,
+    "to": 141,
+    "state": "DEAD"
+   },
+   {
+    "from": 142,
+    "to": 146,
+    "state": "GROWING"
+   },
+   {
+    "from": 147,
+    "to": 149,
+    "state": "EMPTY"
+   },
+   {
+    "from": 150,
+    "to": 153,
+    "state": "DEAD"
+   },
+   {
+    "from": 154,
+    "to": 159,
+    "state": "GROWING"
+   },
+   {
+    "from": 160,
+    "to": 162,
+    "state": "EMPTY"
+   },
+   {
+    "from": 163,
+    "to": 167,
+    "state": "DEAD"
+   },
+   {
+    "from": 168,
+    "to": 174,
+    "state": "GROWING"
+   },
+   {
+    "from": 175,
+    "to": 177,
+    "state": "EMPTY"
+   },
+   {
+    "from": 178,
+    "to": 183,
+    "state": "DEAD"
+   },
+   {
+    "from": 184,
+    "to": 191,
+    "state": "GROWING"
+   },
+   {
+    "from": 192,
+    "to": 194,
+    "state": "EMPTY"
+   },
+   {
+    "from": 195,
+    "to": 201,
+    "state": "DEAD"
+   },
+   {
+    "from": 202,
+    "to": 205,
+    "state": "GROWING"
+   },
+   {
+    "from": 206,
+    "to": 208,
+    "state": "EMPTY"
+   },
+   {
+    "from": 209,
+    "to": 211,
+    "state": "DEAD"
+   },
+   {
+    "from": 212,
+    "to": 216,
+    "state": "GROWING"
+   },
+   {
+    "from": 217,
+    "to": 219,
+    "state": "EMPTY"
+   },
+   {
+    "from": 220,
+    "to": 223,
+    "state": "DEAD"
+   },
+   {
+    "from": 224,
+    "to": 226,
+    "state": "GROWING"
+   },
+   {
+    "from": 227,
+    "to": 229,
+    "state": "EMPTY"
+   },
+   {
+    "from": 230,
+    "to": 231,
+    "state": "DEAD"
+   },
+   {
+    "from": 232,
+    "to": 235,
+    "state": "GROWING"
+   },
+   {
+    "from": 236,
+    "to": 238,
+    "state": "EMPTY"
+   },
+   {
+    "from": 239,
+    "to": 241,
+    "state": "DEAD"
+   },
+   {
+    "from": 242,
+    "to": 246,
+    "state": "GROWING"
+   },
+   {
+    "from": 247,
+    "to": 249,
+    "state": "EMPTY"
+   },
+   {
+    "from": 250,
+    "to": 253,
+    "state": "DEAD"
+   },
+   {
+    "from": 254,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "BUSH": [
+   {
+    "from": 0,
+    "to": 4,
+    "state": "EMPTY"
+   },
+   {
+    "from": 5,
+    "to": 9,
+    "state": "GROWING"
+   },
+   {
+    "from": 10,
+    "to": 14,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 15,
+    "to": 20,
+    "state": "GROWING"
+   },
+   {
+    "from": 21,
+    "to": 25,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 26,
+    "to": 32,
+    "state": "GROWING"
+   },
+   {
+    "from": 33,
+    "to": 37,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 38,
+    "to": 45,
+    "state": "GROWING"
+   },
+   {
+    "from": 46,
+    "to": 50,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 51,
+    "to": 58,
+    "state": "GROWING"
+   },
+   {
+    "from": 59,
+    "to": 63,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 64,
+    "to": 69,
+    "state": "EMPTY"
+   },
+   {
+    "from": 70,
+    "to": 74,
+    "state": "DISEASED"
+   },
+   {
+    "from": 75,
+    "to": 79,
+    "state": "EMPTY"
+   },
+   {
+    "from": 80,
+    "to": 85,
+    "state": "DISEASED"
+   },
+   {
+    "from": 86,
+    "to": 90,
+    "state": "EMPTY"
+   },
+   {
+    "from": 91,
+    "to": 97,
+    "state": "DISEASED"
+   },
+   {
+    "from": 98,
+    "to": 102,
+    "state": "EMPTY"
+   },
+   {
+    "from": 103,
+    "to": 110,
+    "state": "DISEASED"
+   },
+   {
+    "from": 111,
+    "to": 115,
+    "state": "EMPTY"
+   },
+   {
+    "from": 116,
+    "to": 123,
+    "state": "DISEASED"
+   },
+   {
+    "from": 124,
+    "to": 133,
+    "state": "EMPTY"
+   },
+   {
+    "from": 134,
+    "to": 138,
+    "state": "DEAD"
+   },
+   {
+    "from": 139,
+    "to": 143,
+    "state": "EMPTY"
+   },
+   {
+    "from": 144,
+    "to": 149,
+    "state": "DEAD"
+   },
+   {
+    "from": 150,
+    "to": 154,
+    "state": "EMPTY"
+   },
+   {
+    "from": 155,
+    "to": 161,
+    "state": "DEAD"
+   },
+   {
+    "from": 162,
+    "to": 166,
+    "state": "EMPTY"
+   },
+   {
+    "from": 167,
+    "to": 174,
+    "state": "DEAD"
+   },
+   {
+    "from": 175,
+    "to": 179,
+    "state": "EMPTY"
+   },
+   {
+    "from": 180,
+    "to": 187,
+    "state": "DEAD"
+   },
+   {
+    "from": 188,
+    "to": 196,
+    "state": "EMPTY"
+   },
+   {
+    "from": 197,
+    "to": 204,
+    "state": "GROWING"
+   },
+   {
+    "from": 205,
+    "to": 209,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 210,
+    "to": 216,
+    "state": "DISEASED"
+   },
+   {
+    "from": 217,
+    "to": 224,
+    "state": "DEAD"
+   },
+   {
+    "from": 225,
+    "to": 225,
+    "state": "DISEASED"
+   },
+   {
+    "from": 226,
+    "to": 249,
+    "state": "EMPTY"
+   },
+   {
+    "from": 250,
+    "to": 255,
+    "state": "HARVESTABLE"
+   }
+  ],
+  "TREE": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 11,
+    "state": "GROWING"
+   },
+   {
+    "from": 12,
+    "to": 14,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 15,
+    "to": 20,
+    "state": "GROWING"
+   },
+   {
+    "from": 21,
+    "to": 23,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 24,
+    "to": 31,
+    "state": "GROWING"
+   },
+   {
+    "from": 32,
+    "to": 34,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 35,
+    "to": 44,
+    "state": "GROWING"
+   },
+   {
+    "from": 45,
+    "to": 47,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 48,
+    "to": 59,
+    "state": "GROWING"
+   },
+   {
+    "from": 60,
+    "to": 62,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 63,
+    "to": 72,
+    "state": "EMPTY"
+   },
+   {
+    "from": 73,
+    "to": 75,
+    "state": "DISEASED"
+   },
+   {
+    "from": 77,
+    "to": 77,
+    "state": "DISEASED"
+   },
+   {
+    "from": 78,
+    "to": 79,
+    "state": "EMPTY"
+   },
+   {
+    "from": 80,
+    "to": 84,
+    "state": "DISEASED"
+   },
+   {
+    "from": 86,
+    "to": 86,
+    "state": "DISEASED"
+   },
+   {
+    "from": 87,
+    "to": 88,
+    "state": "EMPTY"
+   },
+   {
+    "from": 89,
+    "to": 95,
+    "state": "DISEASED"
+   },
+   {
+    "from": 97,
+    "to": 97,
+    "state": "DISEASED"
+   },
+   {
+    "from": 98,
+    "to": 99,
+    "state": "EMPTY"
+   },
+   {
+    "from": 100,
+    "to": 108,
+    "state": "DISEASED"
+   },
+   {
+    "from": 110,
+    "to": 110,
+    "state": "DISEASED"
+   },
+   {
+    "from": 111,
+    "to": 112,
+    "state": "EMPTY"
+   },
+   {
+    "from": 113,
+    "to": 123,
+    "state": "DISEASED"
+   },
+   {
+    "from": 125,
+    "to": 125,
+    "state": "DISEASED"
+   },
+   {
+    "from": 126,
+    "to": 136,
+    "state": "EMPTY"
+   },
+   {
+    "from": 137,
+    "to": 139,
+    "state": "DEAD"
+   },
+   {
+    "from": 141,
+    "to": 141,
+    "state": "DEAD"
+   },
+   {
+    "from": 142,
+    "to": 143,
+    "state": "EMPTY"
+   },
+   {
+    "from": 144,
+    "to": 148,
+    "state": "DEAD"
+   },
+   {
+    "from": 150,
+    "to": 150,
+    "state": "DEAD"
+   },
+   {
+    "from": 151,
+    "to": 152,
+    "state": "EMPTY"
+   },
+   {
+    "from": 153,
+    "to": 159,
+    "state": "DEAD"
+   },
+   {
+    "from": 161,
+    "to": 161,
+    "state": "DEAD"
+   },
+   {
+    "from": 162,
+    "to": 163,
+    "state": "EMPTY"
+   },
+   {
+    "from": 164,
+    "to": 172,
+    "state": "DEAD"
+   },
+   {
+    "from": 174,
+    "to": 174,
+    "state": "DEAD"
+   },
+   {
+    "from": 175,
+    "to": 176,
+    "state": "EMPTY"
+   },
+   {
+    "from": 177,
+    "to": 187,
+    "state": "DEAD"
+   },
+   {
+    "from": 189,
+    "to": 189,
+    "state": "DEAD"
+   },
+   {
+    "from": 190,
+    "to": 191,
+    "state": "EMPTY"
+   },
+   {
+    "from": 192,
+    "to": 197,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 198,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "FRUIT_TREE": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 13,
+    "state": "GROWING"
+   },
+   {
+    "from": 14,
+    "to": 20,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 21,
+    "to": 26,
+    "state": "DISEASED"
+   },
+   {
+    "from": 27,
+    "to": 32,
+    "state": "DEAD"
+   },
+   {
+    "from": 33,
+    "to": 34,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 35,
+    "to": 40,
+    "state": "GROWING"
+   },
+   {
+    "from": 41,
+    "to": 47,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 48,
+    "to": 53,
+    "state": "DISEASED"
+   },
+   {
+    "from": 54,
+    "to": 59,
+    "state": "DEAD"
+   },
+   {
+    "from": 60,
+    "to": 61,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 62,
+    "to": 71,
+    "state": "EMPTY"
+   },
+   {
+    "from": 72,
+    "to": 77,
+    "state": "GROWING"
+   },
+   {
+    "from": 78,
+    "to": 84,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 85,
+    "to": 90,
+    "state": "DISEASED"
+   },
+   {
+    "from": 91,
+    "to": 96,
+    "state": "DEAD"
+   },
+   {
+    "from": 97,
+    "to": 98,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 99,
+    "to": 104,
+    "state": "GROWING"
+   },
+   {
+    "from": 105,
+    "to": 111,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 112,
+    "to": 117,
+    "state": "DISEASED"
+   },
+   {
+    "from": 118,
+    "to": 123,
+    "state": "DEAD"
+   },
+   {
+    "from": 124,
+    "to": 125,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 126,
+    "to": 135,
+    "state": "EMPTY"
+   },
+   {
+    "from": 136,
+    "to": 141,
+    "state": "GROWING"
+   },
+   {
+    "from": 142,
+    "to": 148,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 149,
+    "to": 154,
+    "state": "DISEASED"
+   },
+   {
+    "from": 155,
+    "to": 160,
+    "state": "DEAD"
+   },
+   {
+    "from": 161,
+    "to": 162,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 163,
+    "to": 168,
+    "state": "GROWING"
+   },
+   {
+    "from": 169,
+    "to": 175,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 176,
+    "to": 181,
+    "state": "DISEASED"
+   },
+   {
+    "from": 182,
+    "to": 187,
+    "state": "DEAD"
+   },
+   {
+    "from": 188,
+    "to": 189,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 190,
+    "to": 199,
+    "state": "EMPTY"
+   },
+   {
+    "from": 200,
+    "to": 205,
+    "state": "GROWING"
+   },
+   {
+    "from": 206,
+    "to": 212,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 213,
+    "to": 218,
+    "state": "DISEASED"
+   },
+   {
+    "from": 219,
+    "to": 224,
+    "state": "DEAD"
+   },
+   {
+    "from": 225,
+    "to": 226,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 227,
+    "to": 232,
+    "state": "GROWING"
+   },
+   {
+    "from": 233,
+    "to": 239,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 240,
+    "to": 245,
+    "state": "DISEASED"
+   },
+   {
+    "from": 246,
+    "to": 251,
+    "state": "DEAD"
+   },
+   {
+    "from": 252,
+    "to": 253,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 254,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "HARDWOOD_TREE": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 14,
+    "state": "GROWING"
+   },
+   {
+    "from": 15,
+    "to": 17,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 18,
+    "to": 23,
+    "state": "DISEASED"
+   },
+   {
+    "from": 24,
+    "to": 29,
+    "state": "DEAD"
+   },
+   {
+    "from": 30,
+    "to": 37,
+    "state": "GROWING"
+   },
+   {
+    "from": 38,
+    "to": 40,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 41,
+    "to": 47,
+    "state": "DISEASED"
+   },
+   {
+    "from": 48,
+    "to": 54,
+    "state": "DEAD"
+   },
+   {
+    "from": 55,
+    "to": 62,
+    "state": "GROWING"
+   },
+   {
+    "from": 63,
+    "to": 65,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 66,
+    "to": 72,
+    "state": "DISEASED"
+   },
+   {
+    "from": 73,
+    "to": 79,
+    "state": "DEAD"
+   },
+   {
+    "from": 80,
+    "to": 87,
+    "state": "GROWING"
+   },
+   {
+    "from": 88,
+    "to": 90,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 91,
+    "to": 97,
+    "state": "DISEASED"
+   },
+   {
+    "from": 98,
+    "to": 104,
+    "state": "DEAD"
+   },
+   {
+    "from": 105,
+    "to": 113,
+    "state": "GROWING"
+   },
+   {
+    "from": 114,
+    "to": 116,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 117,
+    "to": 124,
+    "state": "DISEASED"
+   },
+   {
+    "from": 125,
+    "to": 132,
+    "state": "DEAD"
+   },
+   {
+    "from": 133,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "SPIRIT_TREE": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 19,
+    "state": "GROWING"
+   },
+   {
+    "from": 20,
+    "to": 20,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 21,
+    "to": 31,
+    "state": "DISEASED"
+   },
+   {
+    "from": 32,
+    "to": 43,
+    "state": "DEAD"
+   },
+   {
+    "from": 44,
+    "to": 44,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 45,
+    "to": 63,
+    "state": "EMPTY"
+   }
+  ],
+  "CALQUAT": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 11,
+    "state": "GROWING"
+   },
+   {
+    "from": 12,
+    "to": 18,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 19,
+    "to": 25,
+    "state": "DISEASED"
+   },
+   {
+    "from": 26,
+    "to": 33,
+    "state": "DEAD"
+   },
+   {
+    "from": 34,
+    "to": 34,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 35,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "CELASTRUS": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 12,
+    "state": "GROWING"
+   },
+   {
+    "from": 13,
+    "to": 17,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 18,
+    "to": 22,
+    "state": "DISEASED"
+   },
+   {
+    "from": 23,
+    "to": 27,
+    "state": "DEAD"
+   },
+   {
+    "from": 28,
+    "to": 28,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 29,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "REDWOOD": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 17,
+    "state": "GROWING"
+   },
+   {
+    "from": 18,
+    "to": 18,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 19,
+    "to": 27,
+    "state": "DISEASED"
+   },
+   {
+    "from": 28,
+    "to": 36,
+    "state": "DEAD"
+   },
+   {
+    "from": 37,
+    "to": 37,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 41,
+    "to": 55,
+    "state": "HARVESTABLE"
+   }
+  ],
+  "CRYSTAL_TREE": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 13,
+    "state": "GROWING"
+   },
+   {
+    "from": 14,
+    "to": 15,
+    "state": "HARVESTABLE"
+   }
+  ],
+  "ANIMA": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 34,
+    "state": "GROWING"
+   },
+   {
+    "from": 35,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "HESPORI": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 6,
+    "state": "GROWING"
+   },
+   {
+    "from": 7,
+    "to": 8,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 9,
+    "to": 9,
+    "state": "EMPTY"
+   }
+  ],
+  "CACTUS": [
+   {
+    "from": 0,
+    "to": 7,
+    "state": "EMPTY"
+   },
+   {
+    "from": 8,
+    "to": 14,
+    "state": "GROWING"
+   },
+   {
+    "from": 15,
+    "to": 18,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 19,
+    "to": 24,
+    "state": "DISEASED"
+   },
+   {
+    "from": 25,
+    "to": 30,
+    "state": "DEAD"
+   },
+   {
+    "from": 31,
+    "to": 31,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 32,
+    "to": 38,
+    "state": "GROWING"
+   },
+   {
+    "from": 39,
+    "to": 45,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 46,
+    "to": 51,
+    "state": "DISEASED"
+   },
+   {
+    "from": 52,
+    "to": 57,
+    "state": "DEAD"
+   },
+   {
+    "from": 58,
+    "to": 58,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 59,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "MUSHROOM": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 9,
+    "state": "GROWING"
+   },
+   {
+    "from": 10,
+    "to": 15,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 16,
+    "to": 20,
+    "state": "DISEASED"
+   },
+   {
+    "from": 21,
+    "to": 25,
+    "state": "DEAD"
+   },
+   {
+    "from": 26,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "BELLADONNA": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 7,
+    "state": "GROWING"
+   },
+   {
+    "from": 8,
+    "to": 8,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 9,
+    "to": 11,
+    "state": "DISEASED"
+   },
+   {
+    "from": 12,
+    "to": 14,
+    "state": "DEAD"
+   },
+   {
+    "from": 15,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ],
+  "SEAWEED": [
+   {
+    "from": 0,
+    "to": 3,
+    "state": "EMPTY"
+   },
+   {
+    "from": 4,
+    "to": 7,
+    "state": "GROWING"
+   },
+   {
+    "from": 8,
+    "to": 10,
+    "state": "HARVESTABLE"
+   },
+   {
+    "from": 11,
+    "to": 13,
+    "state": "DISEASED"
+   },
+   {
+    "from": 14,
+    "to": 16,
+    "state": "DEAD"
+   },
+   {
+    "from": 17,
+    "to": 255,
+    "state": "EMPTY"
+   }
+  ]
+ },
+ "growth": {
+  "HERB": {
+   "produces": [
+    {
+     "name": "Guam",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Marrentill",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Tarromin",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Harralander",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Ranarr",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Toadflax",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Irit",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Avantoe",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Kwuarm",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Huasca",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Snapdragon",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Cadantine",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Lantadyme",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Dwarf weed",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Torstol",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Goutweed",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    },
+    {
+     "name": "Any herb",
+     "stageMinutes": 20,
+     "stages": 5,
+     "totalMinutes": 80
+    }
+   ],
+   "minTotalMinutes": 80
+  },
+  "TREE": {
+   "produces": [
+    {
+     "name": "Oak",
+     "stageMinutes": 40,
+     "stages": 5,
+     "totalMinutes": 160
+    },
+    {
+     "name": "Willow",
+     "stageMinutes": 40,
+     "stages": 7,
+     "totalMinutes": 240
+    },
+    {
+     "name": "Maple",
+     "stageMinutes": 40,
+     "stages": 9,
+     "totalMinutes": 320
+    },
+    {
+     "name": "Yew",
+     "stageMinutes": 40,
+     "stages": 11,
+     "totalMinutes": 400
+    },
+    {
+     "name": "Magic",
+     "stageMinutes": 40,
+     "stages": 13,
+     "totalMinutes": 480
+    }
+   ],
+   "minTotalMinutes": 160
+  },
+  "FRUIT_TREE": {
+   "produces": [
+    {
+     "name": "Apple",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Banana",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Orange",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Curry",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Pineapple",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Papaya",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Palm",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    },
+    {
+     "name": "Dragonfruit",
+     "stageMinutes": 160,
+     "stages": 7,
+     "totalMinutes": 960
+    }
+   ],
+   "minTotalMinutes": 960
+  }
+ },
+ "timetracking": {
+  "configGroup": "timetracking",
+  "keyPattern": "<regionID>.<varbitID> (FarmingPatch.configKey(): region.getRegionID() + \".\" + varbit), stored via ConfigManager.setRSProfileConfiguration so the full key is timetracking.<rsprofile>.<regionID>.<varbitID>",
+  "valueFormat": "<varbitValue>:<unixEpochSeconds> (Integer.toString(varbit value) + \":\" + Instant.now().getEpochSecond())",
+  "rsProfileScoped": true,
+  "sourceQuote": "FarmingTracker.java: \"// timetracking.<rsprofile>.<regionID>.<VarbitID>=<varbitValue>:<unix time>\" ... String key = patch.configKey(); ... String value = strVarbit + \":\" + unixNow; configManager.setRSProfileConfiguration(TimeTrackingConfig.CONFIG_GROUP, key, value); | FarmingPatch.java: String configKey() { return region.getRegionID() + \".\" + varbit; } | TimeTrackingConfig.java: String CONFIG_GROUP = \"timetracking\";"
+ },
+ "notes": [
+  "Coarse states derived from PatchImplementation.forVarbitValue(int) in RuneLite master (fetched 2026-07-19). Values not listed are unhandled (forVarbitValue returns null) and map to UNKNOWN.",
+  "Produce.WEEDS entries (any weed stage, incl. high-value fallback weed ranges) are mapped to EMPTY: the patch needs raking/planting.",
+  "RuneLite classifies the 'Check-health' stage of trees/bushes/fruit trees/etc. as CropState.GROWING at the final stage; per the task's coarse semantics (HARVESTABLE = fully grown / can check health) those values are mapped to HARVESTABLE here. Post-check 'Chop down' and 'stump [Clear]' values are CropState.HARVESTABLE in the source and stay HARVESTABLE.",
+  "SPIRIT_TREE value 20 ('Spirit Tree[Travel,Talk-to,Inspect,Guide,Clear]', the fully grown usable tree) and value 44 ('Check-health') are CropState.GROWING in RuneLite but mapped to HARVESTABLE here as fully grown.",
+  "FLOWER values 33-36 are a placed SCARECROW (not a crop); RuneLite classifies them GROWING. A scarecrow patch cannot be planted and never becomes harvestable.",
+  "ANIMA plants have no diseased/dead CropState in RuneLite: each plant's single GROWING range includes its 'Withering' (2nd-to-last value) and 'Dead ... [Clear]' (last value) stages per the source comments (e.g. ATTAS 8-16: 15=withering, 16=dead). Anima plants are never harvestable.",
+  "Growth: totalMinutes = tickrate * (stages - 1); Produce.stages counts states ('Typically tickcount+1' per source javadoc). Herb anchor holds: 20 min * 4 ticks = 80 min.",
+  "TREE minimum is Oak (160 min); FRUIT_TREE all produce take 960 min; HERB all produce take 80 min.",
+  "Farming ticks on Leagues worlds are 1 minute instead of 5 (FarmingTracker.isLeaguesWorld() divides tick rate by 5).",
+  "The stored timestamp is only rewritten when the varbit changed or the stored value is >5 minutes old (FarmingTracker.updateData)."
+ ]
+}

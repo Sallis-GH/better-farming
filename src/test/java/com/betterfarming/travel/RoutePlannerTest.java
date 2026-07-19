@@ -32,6 +32,25 @@ public class RoutePlannerTest
 	}
 
 	@Test
+	public void planFixedOrder_keepsTheGivenSequence()
+	{
+		// B first even though A is nearer the start: the order is pinned.
+		RoutePlanner.Stop a = stop("a", 3210, 3200);
+		RoutePlanner.Stop b = stop("b", 3300, 3200);
+		Teleport tele = anywhereTeleport("B Teleport", new WorldPoint(3300, 3205, 0), 4);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.planFixedOrder(
+			new WorldPoint(3200, 3200, 0), List.of(b, a), List.of(tele), 0);
+
+		assertEquals(2, legs.size());
+		assertEquals("b", legs.get(0).stop().groupKey());
+		assertEquals("a", legs.get(1).stop().groupKey());
+		// Per-leg teleports are still optimised within the fixed order.
+		assertEquals(tele, legs.get(0).teleport());
+		assertNull("45 tiles back to a — walking wins", legs.get(1).teleport());
+	}
+
+	@Test
 	public void emptyStops_emptyPlan()
 	{
 		assertTrue(RoutePlanner.plan(new WorldPoint(3200, 3200, 0),

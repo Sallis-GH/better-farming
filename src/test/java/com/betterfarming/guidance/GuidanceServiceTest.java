@@ -1,11 +1,14 @@
 package com.betterfarming.guidance;
 
+import com.betterfarming.farming.StopProgress;
 import com.betterfarming.testsupport.FakeClient;
 import com.betterfarming.travel.RoutePlanner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.runelite.api.GameState;
 import net.runelite.api.coords.WorldPoint;
@@ -221,6 +224,85 @@ public class GuidanceServiceTest
 
 		service.update(); // still at Falador, already advanced
 		assertEquals(1, notified.get());
+	}
+
+	// ── crop-state driven completion ──
+
+	private final Map<String, StopProgress> progress = new HashMap<>();
+
+	private GuidanceService stateAwareService()
+	{
+		return new GuidanceService(() -> legs, client,
+			stop -> progress.getOrDefault(stop.groupKey(), StopProgress.UNKNOWN));
+	}
+
+	@Test
+	public void incompleteStopIsNotCompletedByStandingOnIt()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.INCOMPLETE);
+		client.setPlayerPosition(FALADOR);
+		s.update();
+		// Work remains (patch empty): stay on this leg until planted.
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void plantingCompletesTheStop()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.INCOMPLETE);
+		client.setPlayerPosition(FALADOR);
+		s.update();
+		progress.put("falador", StopProgress.COMPLETE);
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void walkingFarAwayFromAReachedIncompleteStopSkipsIt()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.INCOMPLETE);
+		client.setPlayerPosition(FALADOR);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+
+		// Leaving a little (banking nearby) is not a skip...
+		client.setPlayerPosition(new WorldPoint(FALADOR.getX() + 30, FALADOR.getY(), 0));
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+
+		// ...teleporting far away is: no seeds, moving on.
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void completedStopThatRegressesIsUncheckedAgain()
+	{
+		GuidanceService s = stateAwareService();
+		progress.put("falador", StopProgress.COMPLETE);
+		s.update();
+		assertEquals("catherby", s.currentLeg().stop().groupKey());
+
+		// Harvested in passing / diseased: the stop needs work again.
+		progress.put("falador", StopProgress.INCOMPLETE);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void remoteCompletionChecksOffOutOfOrderStops()
+	{
+		GuidanceService s = stateAwareService();
+		s.update();
+		// Ardougne planted earlier (state says complete) without going near it.
+		progress.put("ardougne", StopProgress.COMPLETE);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+		assertEquals(Arrays.asList(FALADOR, CATHERBY), s.remainingTargets());
 	}
 
 	@Test

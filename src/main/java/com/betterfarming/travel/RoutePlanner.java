@@ -116,6 +116,30 @@ public final class RoutePlanner
 		return legs;
 	}
 
+	/**
+	 * Recomputes teleports and tick estimates for an already-decided stop
+	 * sequence without reordering it — used to keep a mid-run route pinned
+	 * while teleport availability shifts underneath it.
+	 */
+	public static List<Leg> planFixedOrder(WorldPoint start, List<Stop> stops,
+		List<Teleport> teleports, int pohBiasTicks)
+	{
+		if (stops.isEmpty() || start == null)
+		{
+			return Collections.emptyList();
+		}
+		List<Leg> legs = new ArrayList<>(stops.size());
+		WorldPoint from = start;
+		for (Stop stop : stops)
+		{
+			BestLeg best = bestLeg(from, stop.point(), teleports, pohBiasTicks);
+			legs.add(new Leg(stop, best.teleport,
+				(int) Math.min(Math.round(best.cost), Integer.MAX_VALUE)));
+			from = stop.point();
+		}
+		return legs;
+	}
+
 	// ── leg cost ──
 
 	private static final class BestLeg

@@ -18,9 +18,19 @@ resets on logout or via hint-overlay right-click), overlays (world arrow with ed
 off-screen hint, minimap arrow, world-map route lines), WorldMapPoint marker,
 TravelHint text ("Cast X"/"Break X"), ShortestPathBridge (PluginMessage "shortestpath"
 path/clear), per-overlay config toggles.
-NEXT: **Phase 5 — per-patch step guidance** (rake→plant→harvest state machine off farming
-varbits; port the varbit mappings from RuneLite core's timetracking plugin — also enables
-planted-spirit-tree detection and skip-growing-patches routing).
+Phase 5 (crop state & planting guidance) is DONE: `farming/` package — patches.json now
+carries per-patch state varbits + FarmingRegion ids (research-agent extracted from RuneLite
+core timetracking, merged by scripts/merge_patch_state_data.py; patch_states.json holds the
+value→state tables). PatchStateService reads live varbits (gated on player region +
+StateBounds for split regions) and falls back to the Time Tracking plugin's RS-profile
+config ("timetracking", key "<regionId>.<varbitId>", value "<value>:<epochSec>"); GROWING
+observations decay to UNKNOWN after the type's min grow time. RunOrderService pins the
+planned order mid-run (crop filter applies at plan time only; planFixedOrder recomputes
+teleports along the pinned sequence); GuidanceService completes legs by crop state
+(proximity only for UNKNOWN); PlantingGuide drives patch-object outlines + inventory
+highlights (seed/rake at the patch, teleport items while travelling).
+NEXT: **Phase 6 — polish** (compost/protection tracking, player-grown spirit trees as
+teleport origins, agility shortcuts, diary cheaper teleports; UI/design pass).
 
 ## Architecture map
 
@@ -94,6 +104,8 @@ in resources/):
 
 ## Known limitations (documented, not bugs)
 
-Rune pouch contents not counted; player-grown spirit trees not modeled (Phase 5); walking
-legs are straight-line estimates (no collision map); POH facilities are config-declared
-(house layout unreadable).
+Rune pouch contents not counted; player-grown spirit trees not modeled as teleports
+(Phase 6); walking legs are straight-line estimates (no collision map); POH facilities are
+config-declared (house layout unreadable); remote crop state needs the Time Tracking
+plugin's stored observations (absent → patches treated as worth visiting); run-items/bank
+tab list seeds for all active groups, not just the planned route.

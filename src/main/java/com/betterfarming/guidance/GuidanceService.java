@@ -1,5 +1,6 @@
 package com.betterfarming.guidance;
 
+import com.betterfarming.farming.StopProgress;
 import com.betterfarming.travel.RoutePlanner;
 import com.betterfarming.ui.ClientLevelSource;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
@@ -18,12 +20,23 @@ import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
 
 /**
- * Tracks progress through the planned run: which stops the player has already
- * reached, and which leg is currently being travelled. The current leg is the
- * first stop in run order the player has not yet visited; a stop counts as
- * visited the moment the player comes within {@link #ARRIVAL_RADIUS_TILES} of
- * it, in any order — doing stop 5 before stop 2 simply checks off stop 5, and
- * guidance keeps pointing at stop 2.
+ * Tracks progress through the planned run: which stops are done, and which
+ * leg is currently being travelled. The current leg is the first stop in run
+ * order not yet done.
+ *
+ * Completion is crop-state first: a stop whose patches are all confirmed
+ * growing is COMPLETE (checked off wherever the player is — planting stop 5
+ * before stop 2 checks off stop 5); a stop with known remaining work is
+ * INCOMPLETE and stays current even while the player stands on it, until the
+ * crops are actually in the ground. Two escapes keep INCOMPLETE stops from
+ * trapping the run: walking {@link #SKIP_DISTANCE_TILES} away from a stop
+ * the player already reached counts as deliberately skipping it (no seeds,
+ * no cure — move on), and a checked-off stop that regresses to needing work
+ * (harvested in passing, disease) is un-checked. Only when state is UNKNOWN
+ * does the proximity rule apply: visited the moment the player comes within
+ * {@link #ARRIVAL_RADIUS_TILES} — unless the stop was first sighted with the
+ * player already standing there (fresh reset/login at a patch), which
+ * requires leaving and returning.
  *
  * Visited stops survive route recomputes on purpose: consuming a teleport tab
  * mid-run changes teleport availability, which re-plans the remaining route,
@@ -39,16 +52,26 @@ public class GuidanceService
 {
 	public static final int ARRIVAL_RADIUS_TILES = 10;
 
+	/** Leaving a reached-but-unfinished stop this far behind skips it. */
+	public static final int SKIP_DISTANCE_TILES = 50;
+
 	private final Supplier<List<RoutePlanner.Leg>> legsSupplier;
 	private final ClientLevelSource client;
+	private final Function<RoutePlanner.Stop, StopProgress> stopProgress;
 
 	private final Set<String> visitedKeys = new HashSet<>();
 	/**
-	 * Stops the player was already standing at when reset() ran: they only
-	 * count as visited again after the player leaves and comes back, so a
-	 * reset taken at a patch still guides the new run to that patch.
+	 * Stops first sighted with the player already inside the arrival radius
+	 * (reset taken at a patch, login next to one): they only count as visited
+	 * after the player leaves and comes back.
 	 */
 	private final Set<String> requireExit = new HashSet<>();
+	/** Stops observed at least once since the last reset. */
+	private final Set<String> seenKeys = new HashSet<>();
+	/** INCOMPLETE stops the player has reached — walking far away skips them. */
+	private final Set<String> workStarted = new HashSet<>();
+	/** Stops checked off by crop state, so a regression can un-check them. */
+	private final Set<String> stateCompleted = new HashSet<>();
 	// Copy-on-write: add/removeListener run on the EDT (plugin lifecycle),
 	// the fanout iterates on the client thread.
 	private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
@@ -59,14 +82,25 @@ public class GuidanceService
 	private volatile List<WorldPoint> remainingTargets = Collections.emptyList();
 	private volatile boolean runComplete = false;
 
+	/** Convenience: no crop-state input — pure proximity-based completion. */
+	public GuidanceService(Supplier<List<RoutePlanner.Leg>> legsSupplier, ClientLevelSource client)
+	{
+		this(legsSupplier, client, stop -> StopProgress.UNKNOWN);
+	}
+
 	/**
 	 * @param legsSupplier the planned run order (RunOrderService::legs in
 	 *     production; a mutable holder in tests).
+	 * @param stopProgress crop-state progress per stop
+	 *     (PatchStateService::groupProgress in production; return UNKNOWN for
+	 *     pure proximity behaviour).
 	 */
-	public GuidanceService(Supplier<List<RoutePlanner.Leg>> legsSupplier, ClientLevelSource client)
+	public GuidanceService(Supplier<List<RoutePlanner.Leg>> legsSupplier, ClientLevelSource client,
+		Function<RoutePlanner.Stop, StopProgress> stopProgress)
 	{
 		this.legsSupplier = legsSupplier;
 		this.client = client;
+		this.stopProgress = stopProgress;
 	}
 
 	public RoutePlanner.Leg currentLeg()
@@ -115,22 +149,19 @@ public class GuidanceService
 		}
 	}
 
-	/** Clears run progress; guidance starts over from leg 1. */
+	/**
+	 * Clears run progress; guidance starts over from leg 1. Stops the player
+	 * is standing at re-arm via the first-sighting rule in recompute() — no
+	 * position snapshot needed here, so a replan landing a tick later still
+	 * gets the same treatment.
+	 */
 	public void reset()
 	{
 		visitedKeys.clear();
 		requireExit.clear();
-		WorldPoint player = client.getPlayerPosition();
-		if (player != null)
-		{
-			for (RoutePlanner.Leg leg : legsSupplier.get())
-			{
-				if (player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES)
-				{
-					requireExit.add(leg.stop().groupKey());
-				}
-			}
-		}
+		seenKeys.clear();
+		workStarted.clear();
+		stateCompleted.clear();
 		refresh();
 	}
 
@@ -173,10 +204,62 @@ public class GuidanceService
 
 		for (RoutePlanner.Leg leg : legs)
 		{
-			// Plane ignored: arriving on a bridge or rooftop above the
-			// patch tile still counts as being there.
 			String key = leg.stop().groupKey();
-			boolean near = player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES;
+			StopProgress progress;
+			try
+			{
+				progress = stopProgress.apply(leg.stop());
+			}
+			// A throwing progress function must degrade to proximity mode,
+			// not kill the whole per-tick update for the session.
+			catch (Exception | AssertionError ex)
+			{
+				log.warn("Better Farming: stop progress for {} threw", key, ex);
+				progress = StopProgress.UNKNOWN;
+			}
+			// Plane ignored in distances: arriving on a bridge or rooftop
+			// above the patch tile still counts as being there.
+			int distance = player.distanceTo2D(leg.stop().point());
+			boolean near = distance <= ARRIVAL_RADIUS_TILES;
+
+			if (progress == StopProgress.COMPLETE)
+			{
+				// Crops confirmed in the ground: done regardless of position.
+				visitedKeys.add(key);
+				stateCompleted.add(key);
+				requireExit.remove(key);
+				workStarted.remove(key);
+				continue;
+			}
+			if (progress == StopProgress.INCOMPLETE)
+			{
+				if (stateCompleted.remove(key))
+				{
+					// Regression (harvested in passing, disease): needs work
+					// again, un-check it.
+					visitedKeys.remove(key);
+				}
+				if (near)
+				{
+					workStarted.add(key);
+				}
+				else if (workStarted.contains(key) && distance > SKIP_DISTANCE_TILES)
+				{
+					// Reached it, left it far behind unfinished: a deliberate
+					// skip (no seeds, no cure) — stop pointing backwards.
+					workStarted.remove(key);
+					visitedKeys.add(key);
+				}
+				continue;
+			}
+			// UNKNOWN state: proximity fallback.
+			if (seenKeys.add(key) && near)
+			{
+				// First sighted with the player already here (reset/login at
+				// the patch): require leaving and returning.
+				requireExit.add(key);
+				continue;
+			}
 			if (requireExit.contains(key))
 			{
 				if (!near)
@@ -230,7 +313,8 @@ public class GuidanceService
 
 	private void notifyListeners()
 	{
-		for (Runnable l : new ArrayList<>(listeners))
+		// CopyOnWriteArrayList iteration is already a snapshot.
+		for (Runnable l : listeners)
 		{
 			try
 			{
