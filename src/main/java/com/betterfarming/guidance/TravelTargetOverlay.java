@@ -19,11 +19,15 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayUtil;
 
 /**
- * Outlines what to click for the current travel hop once the player is close:
- * the ferry NPC (matched by the id in the vendored "menuOption menuTarget id"
- * column — Bill Teach, Brother Tranquility) or, failing that, the boarding
- * object covering the hop's origin tile (a gangplank). Makes chain legs
- * followable without knowing the route: walk to the arrow, click the glow.
+ * Outlines what to click for the current travel hop once the player is close.
+ * Boarding is staged: while approaching, the boarding object at the hop's
+ * origin (a gangplank) leads; the ferry NPC (matched by the name/id in the
+ * vendored "menuOption menuTarget id" column) only glows once the player is
+ * essentially at the boarding tile — ferrymen like Bill Teach exist in
+ * several places at once, and matching the nearest namesake from 40 tiles
+ * out highlights the wrong one before the gangplank is even crossed. Makes
+ * chain legs followable without knowing the route: walk to the arrow, click
+ * the glow.
  */
 public class TravelTargetOverlay extends Overlay
 {
@@ -31,6 +35,20 @@ public class TravelTargetOverlay extends Overlay
 
 	/** Only highlight when the boarding point is about this close. */
 	private static final int HIGHLIGHT_RADIUS_TILES = 40;
+
+	/**
+	 * The NPC stage begins this close to the boarding tile, on its plane —
+	 * i.e. after actually crossing the gangplank, not while eyeing it from
+	 * the dock. Within this radius the nearest namesake is the right one.
+	 */
+	static final int NPC_STAGE_RADIUS_TILES = 5;
+
+	/**
+	 * How far from the boarding tile the ferryman may stand and still match:
+	 * he roams the deck, so this is looser than the player threshold but far
+	 * inside the old 40-tile search that caught dockside namesakes.
+	 */
+	static final int NPC_MATCH_RADIUS_TILES = 10;
 
 	private final Client runeliteClient;
 	private final BetterFarmingConfig config;
@@ -67,7 +85,13 @@ public class TravelTargetOverlay extends Overlay
 			return null;
 		}
 
-		Shape shape = npcShape(hop, target);
+		// Gangplank first, ferryman only once aboard: the object highlight
+		// leads while approaching, the NPC takes over after the crossing.
+		Shape shape = null;
+		if (npcStage(player.getWorldLocation(), target))
+		{
+			shape = npcShape(hop, target);
+		}
 		if (shape == null)
 		{
 			shape = boardingObjectShape(target);
@@ -87,10 +111,23 @@ public class TravelTargetOverlay extends Overlay
 	}
 
 	/**
-	 * Convex hull of the hop's NPC (ferryman) when it is nearby. Matched by
-	 * the NAME in the vendored "menuOption menuTarget id" column — NPCs like
-	 * Bill Teach exist under several ids and the data pins only one, so the
-	 * id is a fallback, not the primary key.
+	 * True once the player has effectively crossed onto the boarding tile:
+	 * within a few tiles AND on its plane — a ship deck one plane up, or a
+	 * dock the gangplank hasn't been crossed from yet, is not aboard.
+	 */
+	static boolean npcStage(WorldPoint player, WorldPoint target)
+	{
+		return player.getPlane() == target.getPlane()
+			&& player.distanceTo2D(target) <= NPC_STAGE_RADIUS_TILES;
+	}
+
+	/**
+	 * Convex hull of the hop's NPC (ferryman) when it is at the boarding
+	 * point. Matched by the NAME in the vendored "menuOption menuTarget id"
+	 * column — NPCs like Bill Teach exist under several ids and the data pins
+	 * only one, so the id is a fallback, not the primary key. The search is
+	 * bounded to the NPC match radius: a namesake standing anywhere else
+	 * must never light up.
 	 */
 	private Shape npcShape(Teleport hop, WorldPoint target)
 	{
@@ -103,7 +140,7 @@ public class TravelTargetOverlay extends Overlay
 		for (NPC npc : runeliteClient.getTopLevelWorldView().npcs())
 		{
 			if (npc == null
-				|| npc.getWorldLocation().distanceTo2D(target) > HIGHLIGHT_RADIUS_TILES)
+				|| npc.getWorldLocation().distanceTo2D(target) > NPC_MATCH_RADIUS_TILES)
 			{
 				continue;
 			}

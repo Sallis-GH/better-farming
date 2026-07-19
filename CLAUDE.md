@@ -72,10 +72,11 @@ diagnosis notes from the session):
    mapped stops never proximity-complete; completion demands observed state, the 50-tile
    walk-away skip stays the escape when state never resolves (bad region data). Proximity
    fallback survives only for patches with no varbit mapping at all.
-6. **Bill Teach is multi-located.** Only highlight the ferry NPC after boarding (post-
-   gangplank), not whichever namesake stands nearest: stage the ship boarding as
-   gangplank-object first, NPC only once aboard (detect via tiny distance / same-tile
-   plane after crossing).
+6. **Bill Teach is multi-located — DONE.** TravelTargetOverlay stages boarding: the
+   gangplank/travel-object highlight leads while approaching; the ferry NPC only glows
+   once the player is aboard (npcStage: ≤5 tiles from the boarding tile AND same plane),
+   and the NPC match itself is bounded to 10 tiles of the boarding tile (was 40 — that
+   caught dockside namesakes).
 
 THEN: **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
 origins, agility shortcuts, diary cheaper teleports; UI/design pass).
