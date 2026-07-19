@@ -225,6 +225,7 @@ public class BetterFarmingPlugin extends Plugin
 		guidanceOverlays.add(new com.betterfarming.guidance.SpellHighlightOverlay(client, config, guidanceService));
 		guidanceOverlays.add(new ItemHighlightOverlay(config, plantingGuide));
 		guidanceOverlays.add(new TravelHintOverlay(config, guidanceService, plantingGuide,
+			itemTracker,
 			() -> {
 				// Progress reset and replan are independent; a failure in one
 				// must not swallow the other (hard-won rule 2 in spirit).
@@ -261,7 +262,7 @@ public class BetterFarmingPlugin extends Plugin
 		SwingUtilities.invokeLater(() -> {
 			BetterFarmingPanel panel = new BetterFarmingPanel(
 				data, selectionService, availabilityService, accessibilityService,
-				runItemsService, runOrderService);
+				runItemsService, runOrderService, itemTracker);
 			navButton = NavigationButton.builder()
 				.tooltip("Better Farming")
 				.icon(icon)

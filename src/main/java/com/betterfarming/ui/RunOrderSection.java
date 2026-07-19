@@ -1,5 +1,7 @@
 package com.betterfarming.ui;
 
+import com.betterfarming.item.ItemTracker;
+import com.betterfarming.item.TeleportItemCheck;
 import com.betterfarming.travel.RoutePlanner;
 import com.betterfarming.travel.RunOrderService;
 import java.awt.BorderLayout;
@@ -17,21 +19,27 @@ import net.runelite.client.ui.ColorScheme;
 /**
  * Sidebar section listing the planned run order: one row per active patch
  * group with the suggested teleport for that leg ("1. Trollheim — Stony
- * basalt"). RunOrderService may notify from the client thread, so the
- * listener hops to the EDT before rebuilding.
+ * basalt"). Legs whose teleport items aren't on the player get a red
+ * "missing" annotation — visible while banking, before the run strands.
+ * RunOrderService may notify from the client thread, so the listener hops to
+ * the EDT before rebuilding; ItemTracker's fanout already lands on the EDT.
  */
 public class RunOrderSection extends JPanel
 {
 	private static final Color COLOR_TELEPORT = new Color(0x8A, 0xB4, 0xF8);
 	private static final Color COLOR_MUTED = new Color(0x88, 0x88, 0x88);
+	private static final Color COLOR_WARNING = new Color(0xE2, 0x6B, 0x6B);
 
 	private final RunOrderService service;
+	private final ItemTracker itemTracker;
 	private final JPanel rowsContainer;
 	private final Runnable listener;
+	private final Runnable trackerListener;
 
-	public RunOrderSection(RunOrderService service)
+	public RunOrderSection(RunOrderService service, ItemTracker itemTracker)
 	{
 		this.service = service;
+		this.itemTracker = itemTracker;
 
 		setLayout(new BorderLayout());
 		setOpaque(false);
@@ -62,12 +70,21 @@ public class RunOrderSection extends JPanel
 			repaint();
 		});
 		service.addListener(listener);
+		// Withdrawing a tablet must clear its red row without waiting for a
+		// route change; ItemTracker notifies on the EDT already.
+		trackerListener = () -> {
+			rebuild(service.legs());
+			revalidate();
+			repaint();
+		};
+		itemTracker.addListener(trackerListener);
 	}
 
 	@Override
 	public void removeNotify()
 	{
 		service.removeListener(listener);
+		itemTracker.removeListener(trackerListener);
 		super.removeNotify();
 	}
 
@@ -112,6 +129,18 @@ public class RunOrderSection extends JPanel
 		detail.setFont(detail.getFont().deriveFont(10f));
 		detail.setAlignmentX(Component.LEFT_ALIGNMENT);
 		row.add(detail);
+
+		List<String> missing = TeleportItemCheck.missingOnPlayer(leg.teleport(), itemTracker);
+		if (!missing.isEmpty())
+		{
+			detail.setForeground(COLOR_WARNING);
+			JLabel warning = new JLabel("   missing: " + String.join(", ", missing));
+			warning.setName("runorder-missing:" + leg.stop().groupKey());
+			warning.setForeground(COLOR_WARNING);
+			warning.setFont(warning.getFont().deriveFont(10f));
+			warning.setAlignmentX(Component.LEFT_ALIGNMENT);
+			row.add(warning);
+		}
 		return row;
 	}
 
