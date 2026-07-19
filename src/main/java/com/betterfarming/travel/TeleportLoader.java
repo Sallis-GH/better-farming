@@ -47,6 +47,7 @@ public class TeleportLoader
 	private static final String COL_CONSUMABLE = "Consumable";
 	private static final String COL_VARBITS = "Varbits";
 	private static final String COL_VARPLAYERS = "VarPlayers";
+	private static final String COL_OBJECT_INFO = "menuOption menuTarget objectID";
 
 	private static final Map<String, Quest> QUESTS_BY_NAME = new HashMap<>();
 
@@ -194,6 +195,7 @@ public class TeleportLoader
 		int duration;
 		String displayInfo;
 		boolean consumable;
+		String objectInfo;
 	}
 
 	private static String[] parseHeader(String headerLine)
@@ -232,7 +234,8 @@ public class TeleportLoader
 				parseItems(byName.get(COL_ITEMS)),
 				parseDuration(byName.get(COL_DURATION)),
 				emptyToNull(byName.get(COL_DISPLAY_INFO)),
-				"T".equalsIgnoreCase(byName.get(COL_CONSUMABLE)));
+				"T".equalsIgnoreCase(byName.get(COL_CONSUMABLE)),
+				emptyToNull(byName.get(COL_OBJECT_INFO)));
 		}
 		catch (RuntimeException ex)
 		{
@@ -417,7 +420,7 @@ public class TeleportLoader
 		{
 			return new Teleport(type, origin, dest, from.duration(),
 				from.displayInfo(), from.skills(), from.quests(), from.varChecks(),
-				from.items(), from.consumable());
+				from.items(), from.consumable(), from.objectInfo(), false);
 		}
 		// Network edge: union both nodes' requirements; the traveller must be
 		// allowed to use the origin node and the destination node.
@@ -436,6 +439,7 @@ public class TeleportLoader
 		int duration = Math.max(from.duration(), to.duration());
 		String display = to.displayInfo() != null ? to.displayInfo() : from.displayInfo();
 		return new Teleport(type, origin, dest, Math.max(duration, 1),
-			display, skills, quests, varChecks, items, from.consumable() || to.consumable());
+			display, skills, quests, varChecks, items, from.consumable() || to.consumable(),
+			from.objectInfo(), false);
 	}
 }

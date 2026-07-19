@@ -29,13 +29,23 @@ public class Teleport
 	List<TeleportItemRequirement> items;
 	boolean consumable;
 
-	/** True when either endpoint sits inside the POH instance map area. */
-	public boolean touchesPoh()
+	/** Raw "menuOption menuTarget objectID" column; classifies jewellery box tiers. */
+	String objectInfo;
+
+	/** True for synthesized house-chain edges (house teleport → POH facility). */
+	boolean viaPoh;
+
+	public boolean originInPoh()
 	{
-		return isInPoh(origin) || isInPoh(destination);
+		return isInPoh(origin);
 	}
 
-	private static boolean isInPoh(WorldPoint p)
+	public boolean destinationInPoh()
+	{
+		return isInPoh(destination);
+	}
+
+	static boolean isInPoh(WorldPoint p)
 	{
 		// POH instances live in the 1856-2047 × 5632-5951 map block.
 		return p != null && p.getX() >= 1856 && p.getX() < 2048

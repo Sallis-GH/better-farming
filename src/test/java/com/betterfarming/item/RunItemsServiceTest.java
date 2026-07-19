@@ -53,6 +53,7 @@ public class RunItemsServiceTest
 	private PatchAccessibilityService accessibility;
 	private ItemTracker tracker;
 	private PlayerUnlocks unlocks;
+	private com.betterfarming.BetterFarmingConfig config;
 	private RunItemsService service;
 
 	@Before
@@ -66,7 +67,8 @@ public class RunItemsServiceTest
 		accessibility.refresh();
 		tracker = new ItemTracker();
 		unlocks = new PlayerUnlocks(client);
-		service = new RunItemsService(data, selection, accessibility, tracker, unlocks);
+		config = new com.betterfarming.BetterFarmingConfig() {};
+		service = new RunItemsService(data, selection, accessibility, tracker, unlocks, config);
 		service.wire();
 	}
 
@@ -126,7 +128,31 @@ public class RunItemsServiceTest
 
 		assertTrue(find("Magic secateurs").orElseThrow().recommended());
 		assertTrue(find("Bottomless compost bucket").orElseThrow().recommended());
-		assertTrue(!find("Rake").orElseThrow().recommended());
+		assertTrue("rake is always optional (no weeds on planted patches; tithe autoweed)",
+			find("Rake").orElseThrow().recommended());
+		assertTrue("spade stays required by default",
+			!find("Spade").orElseThrow().recommended());
+	}
+
+	@Test
+	public void relyOnToolLeprechauns_demotesAllToolsToRecommended()
+	{
+		config = new com.betterfarming.BetterFarmingConfig()
+		{
+			@Override
+			public boolean relyOnToolLeprechauns()
+			{
+				return true;
+			}
+		};
+		service = new RunItemsService(data, selection, accessibility, tracker, unlocks, config);
+		selection.setGroupActive("HERB|Falador", true);
+		service.recompute();
+
+		assertTrue(find("Spade").orElseThrow().recommended());
+		assertTrue(find("Seed dibber").orElseThrow().recommended());
+		assertTrue("plantables stay required",
+			!find("Ranarr seed").isPresent() || !find("Ranarr seed").orElseThrow().recommended());
 	}
 
 	@Test

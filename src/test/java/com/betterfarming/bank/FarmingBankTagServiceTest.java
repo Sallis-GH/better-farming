@@ -67,7 +67,8 @@ public class FarmingBankTagServiceTest
 		accessibility.refresh();
 		tracker = new ItemTracker();
 		RunItemsService runItems = new RunItemsService(data, selection, accessibility, tracker,
-			new com.betterfarming.item.PlayerUnlocks(client));
+			new com.betterfarming.item.PlayerUnlocks(client),
+			new com.betterfarming.BetterFarmingConfig() {});
 		runItems.wire();
 		service = new FarmingBankTagService(runItems, tracker);
 	}
@@ -98,7 +99,6 @@ public class FarmingBankTagServiceTest
 		List<BankTabItems> sections = service.buildSections();
 		assertEquals(3, sections.size());
 
-		assertTrue(find(sections, "Tools", "Rake").isPresent());
 		assertTrue(find(sections, "Tools", "Spade").isPresent());
 		assertTrue(find(sections, "Seeds & saplings", "Ranarr seed").isPresent());
 		assertTrue(find(sections, "Seeds & saplings", "Willow sapling").isPresent());
@@ -107,6 +107,8 @@ public class FarmingBankTagServiceTest
 		BankTabItems tools = sections.get(0);
 		assertTrue("magic secateurs are in the recommended sub-list",
 			tools.getRecommendedItems().stream().anyMatch(i -> i.text().equals("Magic secateurs")));
+		assertTrue("rake is always optional now — recommended sub-list",
+			tools.getRecommendedItems().stream().anyMatch(i -> i.text().equals("Rake")));
 		assertFalse("recommended items not duplicated in the required list",
 			tools.getItems().stream().anyMatch(i -> i.text().equals("Magic secateurs")));
 	}

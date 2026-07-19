@@ -45,7 +45,8 @@ public class TeleportAvailabilityServiceTest
 	private static Teleport spell(String name, int magicLevel, TeleportItemRequirement... items)
 	{
 		return new Teleport(TeleportType.SPELL, null, new WorldPoint(3213, 3424, 0), 4,
-			name, Map.of(Skill.MAGIC, magicLevel), Set.of(), Set.of(), List.of(items), false);
+			name, Map.of(Skill.MAGIC, magicLevel), Set.of(), Set.of(), List.of(items), false,
+			null, false);
 	}
 
 	@Test
@@ -108,7 +109,7 @@ public class TeleportAvailabilityServiceTest
 			new WorldPoint(3213, 3424, 0), 4, "Varrock Teleport",
 			Map.of(), Set.of(),
 			Set.of(new VarCheck(VarCheck.VarType.VARBIT, 4070, 0, VarCheck.Op.EQUAL)),
-			Collections.emptyList(), false);
+			Collections.emptyList(), false, null, false);
 		TeleportAvailabilityService s = service(ancientVarrock);
 
 		client.setVarbit(4070, 1); // on Ancients — standard spells unavailable
@@ -125,7 +126,8 @@ public class TeleportAvailabilityServiceTest
 	{
 		Teleport ring = new Teleport(TeleportType.FAIRY_RING,
 			new WorldPoint(2412, 4434, 0), new WorldPoint(3204, 3169, 0), 5,
-			"Fairy ring", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false);
+			"Fairy ring", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false,
+			null, false);
 		TeleportAvailabilityService s = service(ring);
 
 		s.refresh();
@@ -145,7 +147,8 @@ public class TeleportAvailabilityServiceTest
 	{
 		Teleport tree = new Teleport(TeleportType.SPIRIT_TREE,
 			new WorldPoint(2542, 3170, 0), new WorldPoint(2461, 3444, 0), 6,
-			"Spirit tree", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false);
+			"Spirit tree", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false,
+			null, false);
 		TeleportAvailabilityService s = service(tree);
 
 		s.refresh();
@@ -156,27 +159,100 @@ public class TeleportAvailabilityServiceTest
 		assertEquals(1, s.available().size());
 	}
 
-	@Test
-	public void pohTeleports_gatedBehindConfig()
+	private static Teleport houseTeleport()
 	{
-		Teleport pohPortal = new Teleport(TeleportType.POH_PORTAL,
+		// Teleport to House spell landing inside the POH instance block.
+		return new Teleport(TeleportType.SPELL, null, new WorldPoint(1923, 5709, 0), 4,
+			"Teleport to House", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false,
+			null, false);
+	}
+
+	private static Teleport ardougnePortal()
+	{
+		return new Teleport(TeleportType.POH_PORTAL,
 			new WorldPoint(1928, 5731, 0), new WorldPoint(2662, 3305, 0), 1,
-			"Ardougne Portal", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false);
-		TeleportAvailabilityService s = service(pohPortal);
+			"Ardougne Portal", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false,
+			"Enter Ardougne Portal 13619", false);
+	}
 
+	@Test
+	public void pohPortal_disabledByDefault_andHouseEntryAloneIsUseless()
+	{
+		TeleportAvailabilityService s = service(houseTeleport(), ardougnePortal());
 		s.refresh();
-		assertTrue("POH facilities off by default", s.available().isEmpty());
+		assertTrue("no portal ticked, and a bare house teleport reaches no patch",
+			s.available().isEmpty());
+	}
 
+	@Test
+	public void enabledPortal_composesWithHouseEntry_intoViaPohEdge()
+	{
 		config = new BetterFarmingConfig()
 		{
 			@Override
-			public boolean assumePohFacilities()
+			public boolean pohPortalArdougne()
 			{
 				return true;
 			}
 		};
-		TeleportAvailabilityService s2 = service(pohPortal);
-		s2.refresh();
-		assertEquals(1, s2.available().size());
+		TeleportAvailabilityService s = service(houseTeleport(), ardougnePortal());
+		s.refresh();
+
+		assertEquals(1, s.available().size());
+		Teleport chain = s.available().get(0);
+		assertTrue(chain.viaPoh());
+		assertEquals("outside-world destination", 2662, chain.destination().getX());
+		assertEquals("Teleport to House → Ardougne Portal", chain.displayInfo());
+		assertTrue("cost combines both hops + walk", chain.durationTicks() > 4 + 1);
+	}
+
+	@Test
+	public void enabledPortal_withoutAnyHouseEntry_staysUnavailable()
+	{
+		config = new BetterFarmingConfig()
+		{
+			@Override
+			public boolean pohPortalArdougne()
+			{
+				return true;
+			}
+		};
+		TeleportAvailabilityService s = service(ardougnePortal());
+		s.refresh();
+		assertTrue("no way into the house — portal unreachable", s.available().isEmpty());
+	}
+
+	@Test
+	public void jewelleryBox_gatedByTier()
+	{
+		Teleport fancyRow = new Teleport(TeleportType.JEWELLERY_BOX,
+			new WorldPoint(1960, 5750, 0), new WorldPoint(2611, 3390, 0), 4,
+			"E: Fishing Guild", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false,
+			"Teleport Menu Fancy Jewellery Box 37501", false);
+
+		config = new BetterFarmingConfig()
+		{
+			@Override
+			public com.betterfarming.JewelleryBoxTier pohJewelleryBox()
+			{
+				return com.betterfarming.JewelleryBoxTier.BASIC;
+			}
+		};
+		TeleportAvailabilityService basic = service(houseTeleport(), fancyRow);
+		basic.refresh();
+		assertTrue("basic box lacks fancy teleports", basic.available().isEmpty());
+
+		config = new BetterFarmingConfig()
+		{
+			@Override
+			public com.betterfarming.JewelleryBoxTier pohJewelleryBox()
+			{
+				return com.betterfarming.JewelleryBoxTier.ORNATE;
+			}
+		};
+		TeleportAvailabilityService ornate = service(houseTeleport(), fancyRow);
+		ornate.refresh();
+		assertEquals("ornate covers fancy", 1, ornate.available().size());
+		assertTrue(ornate.available().get(0).viaPoh());
 	}
 }

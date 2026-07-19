@@ -32,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -88,14 +90,14 @@ public class BetterFarmingPlugin extends Plugin
 		availabilityService = new SeedAvailabilityService(clientLevelSource, data);
 		accessibilityService = new PatchAccessibilityService(clientLevelSource, data, evaluator);
 		runItemsService = new RunItemsService(
-			data, selectionService, accessibilityService, itemTracker, playerUnlocks);
+			data, selectionService, accessibilityService, itemTracker, playerUnlocks, config);
 		runItemsService.wire();
 
 		List<Teleport> teleports = teleportLoader.loadAll();
 		teleportService = new TeleportAvailabilityService(teleports, clientLevelSource, itemTracker, config);
 		runOrderService = new RunOrderService(
 			data, selectionService, accessibilityService, teleportService, clientLevelSource,
-			clientThread::invokeLater);
+			config, clientThread::invokeLater);
 		runOrderService.wire();
 
 		// Services with @Subscribe methods register on the bus.
@@ -181,6 +183,33 @@ public class BetterFarmingPlugin extends Plugin
 		}
 		selectionService = null;
 		log.info("Better Farming: stopped");
+	}
+
+	/**
+	 * Config toggles (POH facilities, leprechaun, POH preference) feed the
+	 * teleport/run-item computations. ConfigChanged can arrive on the EDT
+	 * (config panel writes), so the teleport refresh — which reads varbits —
+	 * is marshalled to the client thread; the others marshal themselves.
+	 */
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (!BetterFarmingConfig.GROUP.equals(event.getGroup()))
+		{
+			return;
+		}
+		if (teleportService != null)
+		{
+			clientThread.invokeLater(teleportService::refresh);
+		}
+		if (runItemsService != null)
+		{
+			runItemsService.recompute();
+		}
+		if (runOrderService != null)
+		{
+			runOrderService.recompute();
+		}
 	}
 
 	@Provides

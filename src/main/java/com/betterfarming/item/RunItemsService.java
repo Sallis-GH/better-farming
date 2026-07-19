@@ -1,5 +1,6 @@
 package com.betterfarming.item;
 
+import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.Patch;
 import com.betterfarming.data.PatchGroup;
@@ -41,6 +42,7 @@ public class RunItemsService
 	private final PatchAccessibilityService accessibilityService;
 	private final ItemTracker itemTracker;
 	private final PlayerUnlocks playerUnlocks;
+	private final BetterFarmingConfig config;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
 	private List<RunItem> current = Collections.emptyList();
@@ -57,13 +59,15 @@ public class RunItemsService
 		PatchSelectionService selectionService,
 		PatchAccessibilityService accessibilityService,
 		ItemTracker itemTracker,
-		PlayerUnlocks playerUnlocks)
+		PlayerUnlocks playerUnlocks,
+		BetterFarmingConfig config)
 	{
 		this.data = data;
 		this.selectionService = selectionService;
 		this.accessibilityService = accessibilityService;
 		this.itemTracker = itemTracker;
 		this.playerUnlocks = playerUnlocks;
+		this.config = config;
 		for (Seed s : data.seeds())
 		{
 			seedsById.put(s.id(), s);
@@ -166,15 +170,19 @@ public class RunItemsService
 			}
 		}
 
-		// 3. Build rows: tools, then plantables, then payments.
+		// 3. Build rows: tools, then plantables, then payments. With the
+		// leprechaun option every tool is optional (shared tool storage at
+		// each patch). The rake is always merely recommended: patches with a
+		// living crop grow no weeds, and Tithe Farm's autoweed covers the rest.
+		boolean lep = config.relyOnToolLeprechauns();
 		List<RunItem> out = new ArrayList<>();
-		out.add(row("Rake", Set.of(FarmingTools.RAKE), 1, false, RunItemCategory.TOOL));
-		out.add(row("Spade", Set.of(FarmingTools.SPADE), 1, false, RunItemCategory.TOOL));
+		out.add(row("Rake", Set.of(FarmingTools.RAKE), 1, true, RunItemCategory.TOOL));
+		out.add(row("Spade", Set.of(FarmingTools.SPADE), 1, lep, RunItemCategory.TOOL));
 		// Barbarian Training's bare-handed planting replaces the seed dibber.
 		boolean anyGroundCrop = activeTypes.stream().anyMatch(t -> !t.isSapling());
 		if (anyGroundCrop && !playerUnlocks.bareHandedPlanting())
 		{
-			out.add(row("Seed dibber", Set.of(FarmingTools.SEED_DIBBER), 1, false, RunItemCategory.TOOL));
+			out.add(row("Seed dibber", Set.of(FarmingTools.SEED_DIBBER), 1, lep, RunItemCategory.TOOL));
 		}
 		out.add(row("Magic secateurs", Set.of(FarmingTools.MAGIC_SECATEURS), 1, true, RunItemCategory.TOOL));
 		out.add(row("Bottomless compost bucket", FarmingTools.ANY_BOTTOMLESS_BUCKET, 1, true, RunItemCategory.TOOL));

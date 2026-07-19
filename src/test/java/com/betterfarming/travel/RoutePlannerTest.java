@@ -17,7 +17,13 @@ public class RoutePlannerTest
 	private static Teleport anywhereTeleport(String name, WorldPoint dest, int ticks)
 	{
 		return new Teleport(TeleportType.SPELL, null, dest, ticks, name,
-			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false);
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, false);
+	}
+
+	private static Teleport pohTeleport(String name, WorldPoint dest, int ticks)
+	{
+		return new Teleport(TeleportType.POH_PORTAL, null, dest, ticks, name,
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, true);
 	}
 
 	private static RoutePlanner.Stop stop(String key, int x, int y)
@@ -88,7 +94,8 @@ public class RoutePlannerTest
 		RoutePlanner.Stop target = stop("target", 2461, 3444);
 		Teleport network = new Teleport(TeleportType.SPIRIT_TREE,
 			new WorldPoint(3205, 3205, 0), new WorldPoint(2461, 3443, 0), 6,
-			"Spirit tree", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false);
+			"Spirit tree", Map.of(), Set.of(), Set.of(), Collections.emptyList(), false,
+			null, false);
 		Teleport badTele = anywhereTeleport("Bad Teleport", new WorldPoint(2461, 3344, 0), 4);
 
 		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
@@ -114,6 +121,38 @@ public class RoutePlannerTest
 
 		assertEquals(16, legs.size());
 		assertEquals(16, legs.stream().map(l -> l.stop().groupKey()).distinct().count());
+	}
+
+	@Test
+	public void preferPoh_choosesHouseChainWithinTolerance()
+	{
+		RoutePlanner.Stop target = stop("target", 2805, 3400);
+		Teleport direct = anywhereTeleport("Direct Teleport", new WorldPoint(2805, 3401, 0), 4);
+		// House chain lands 20 tiles off → 10 ticks walking + 12 duration = 22
+		// vs direct 4.5; within a 20-tick bias it should still win.
+		Teleport viaHouse = pohTeleport("Teleport to House → Portal",
+			new WorldPoint(2805, 3421, 0), 12);
+
+		List<RoutePlanner.Leg> unbiased = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(target), List.of(direct, viaHouse));
+		assertEquals("Direct Teleport", unbiased.get(0).teleport().displayInfo());
+
+		List<RoutePlanner.Leg> biased = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(target), List.of(direct, viaHouse), 20);
+		assertEquals("Teleport to House → Portal", biased.get(0).teleport().displayInfo());
+	}
+
+	@Test
+	public void preferPoh_stillRejectsHouseChainBeyondTolerance()
+	{
+		RoutePlanner.Stop target = stop("target", 2805, 3400);
+		Teleport direct = anywhereTeleport("Direct Teleport", new WorldPoint(2805, 3401, 0), 4);
+		Teleport viaHouse = pohTeleport("Teleport to House → Portal",
+			new WorldPoint(2805, 3521, 0), 12); // 120 tiles off → way past tolerance
+
+		List<RoutePlanner.Leg> biased = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(target), List.of(direct, viaHouse), 20);
+		assertEquals("Direct Teleport", biased.get(0).teleport().displayInfo());
 	}
 
 	@Test
