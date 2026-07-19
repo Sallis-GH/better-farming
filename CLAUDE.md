@@ -35,8 +35,43 @@ planned order mid-run (crop filter applies at plan time only; planFixedOrder rec
 teleports along the pinned sequence); GuidanceService completes legs by crop state
 (proximity only for UNKNOWN); PlantingGuide drives patch-object outlines + inventory
 highlights (seed/rake at the patch, teleport items while travelling).
-NEXT: **Phase 6 — polish** (compost/protection tracking, player-grown spirit trees as
-teleport origins, agility shortcuts, diary cheaper teleports; UI/design pass).
+NEXT: **feedback backlog from 2026-07-19 in-game testing** (tackle in order; each item has
+diagnosis notes from the session):
+
+1. **Walk-beats-teleport for the current leg.** Screenshot evidence: player standing near
+   Catherby bay, leg still says "Camelot Teleport (~19s)" although running is shorter.
+   Cause: planFixedOrder prices leg N from stop N-1's tile, never from the live player
+   position, and movement deliberately doesn't trigger recompute. Fix direction: per-tick
+   in GuidanceService, price walk-from-player vs the leg's teleport-from-player; when
+   walking wins, hint "Walk" + suppress spell/item highlight (don't touch the pinned
+   route). Careful: legsEqual ignores estimatedTicks.
+2. **Warn when a planned leg's teleport items aren't on the player.** Player reaches a
+   stop, next leg says "Break X tablet", tablet was never withdrawn. Per-leg check of
+   leg.teleport().items() vs ItemTracker on-player; warning line in TravelHintOverlay
+   (+ red row in RunOrderSection). RunItemsService statuses already computed — reuse.
+3. **Start/stop/skip run controls.** Plugin currently guides whenever groups are active —
+   annoying during other activities. Add explicit run lifecycle (sidebar button in
+   RunOrderSection + overlay right-click): stopped = no arrows/hints/shortest-path/
+   deviation replans; skip = mark current leg visited (the 50-tile walk-away skip exists
+   in GuidanceService, make it a button too).
+4. **Jewellery charges, not item count.** Two skills-necklace legs currently show
+   "Skills necklace ×2"; correct is ONE necklace with ≥2 charges, displayed like
+   "Skills necklace(2)+". Charge variants are separate item ids (ItemVariations names
+   encode charges); classify charge-jewellery requirements, sum charges needed, satisfy
+   by any carried variant with ≥N charges.
+5. **Run completion must track harvesting.** Visiting a HARVESTABLE patch without
+   harvesting marked the run complete — that should only happen via the UNKNOWN-proximity
+   path, so likely a value-table gap (snape grass allotment values?) or a live-read gate
+   miss. Investigate the actual varbit value at the reported patch; consider timetracking's
+   harvest-stage modelling (patch varbit steps down per pick). Completion should demand an
+   observed EMPTY/planted state when a varbit mapping exists, never proximity.
+6. **Bill Teach is multi-located.** Only highlight the ferry NPC after boarding (post-
+   gangplank), not whichever namesake stands nearest: stage the ship boarding as
+   gangplank-object first, NPC only once aboard (detect via tiny distance / same-tile
+   plane after crossing).
+
+THEN: **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
+origins, agility shortcuts, diary cheaper teleports; UI/design pass).
 
 ## Architecture map
 
