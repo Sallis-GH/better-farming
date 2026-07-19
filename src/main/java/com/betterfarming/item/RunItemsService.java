@@ -294,17 +294,32 @@ public class RunItemsService
 		{
 			TeleportItemRequirement req = byKey.get(e.getKey());
 			Set<Integer> ids = boxSet(req.itemIds());
+			int needed = e.getValue();
 			RunItemStatus status;
 			if (itemTracker.countOnPlayer(boxSet(req.staffIds())) > 0
 				|| itemTracker.countOnPlayer(boxSet(req.offhandIds())) > 0)
 			{
 				status = RunItemStatus.ON_PLAYER;
 			}
+			else if (com.betterfarming.travel.JewelleryCharges.isChargeJewellery(req))
+			{
+				// The summed quantity means CHARGES, not items: two legs on a
+				// skills necklace want ONE necklace at tier ≥2, shown as
+				// "Skills necklace(2)+" with no ×N (row quantity 1).
+				status = TeleportItemCheck.carriedVariantWithCharges(req, itemTracker, needed)
+					? RunItemStatus.ON_PLAYER
+					: TeleportItemCheck.bankedVariantWithCharges(req, itemTracker, needed)
+						? RunItemStatus.IN_BANK
+						: RunItemStatus.MISSING;
+				out.add(new RunItem(labels.get(e.getKey()) + "(" + needed + ")+", ids, 1,
+					false, RunItemCategory.TELEPORT, status, null));
+				continue;
+			}
 			else
 			{
-				status = statusFor(ids, e.getValue());
+				status = statusFor(ids, needed);
 			}
-			out.add(new RunItem(labels.get(e.getKey()), ids, e.getValue(), false,
+			out.add(new RunItem(labels.get(e.getKey()), ids, needed, false,
 				RunItemCategory.TELEPORT, status, null));
 		}
 		return out;

@@ -225,6 +225,64 @@ public class RunItemsServiceTest
 	}
 
 	@Test
+	public void chargeJewellery_sumsChargesNotItems()
+	{
+		int[] variants = {
+			net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_1,
+			net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_2,
+			net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_3,
+			net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_4,
+			net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_5,
+			net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_6};
+		com.betterfarming.travel.TeleportItemRequirement necklace =
+			new com.betterfarming.travel.TeleportItemRequirement(variants, new int[0],
+				new int[0], 1, "Item " + variants[0]);
+		// One necklace teleport landing at each patch: both legs ride it.
+		com.betterfarming.travel.Teleport toHerb = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.ITEM, null,
+			new WorldPoint(3059, 3308, 0), 4, "Skills necklace: Falador",
+			java.util.Map.of(), Set.of(), Set.of(), List.of(necklace), true, null, false);
+		com.betterfarming.travel.Teleport toTree = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.ITEM, null,
+			new WorldPoint(3194, 3232, 0), 4, "Skills necklace: Lumbridge",
+			java.util.Map.of(), Set.of(), Set.of(), List.of(necklace), true, null, false);
+		// A charged necklace in the bank keeps the teleports available.
+		tracker.updateContainer(ItemTracker.CONTAINER_BANK, new Item[]{
+			new Item(net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_4, 1)});
+		com.betterfarming.travel.TeleportAvailabilityService teleports =
+			new com.betterfarming.travel.TeleportAvailabilityService(
+				List.of(toHerb, toTree), client, tracker, config);
+		client.setPlayerPosition(new WorldPoint(2700, 3000, 0));
+		teleports.refresh();
+		com.betterfarming.travel.RunOrderService runOrder =
+			new com.betterfarming.travel.RunOrderService(data, selection, accessibility,
+				teleports, client, config, Runnable::run);
+		service.setRunOrderService(runOrder);
+
+		selection.setGroupActive("HERB|Falador", true);
+		selection.setGroupActive("TREE|Lumbridge", true);
+		runOrder.recompute();
+		service.recompute();
+
+		// Two legs → 2 charges on ONE item, not "×2".
+		RunItem row = find("Skills necklace(2)+").orElseThrow();
+		assertEquals(1, row.quantity());
+		assertEquals("necklace(4) banked covers 2 charges", RunItemStatus.IN_BANK, row.status());
+
+		// A carried tier-1 is not enough — the banked (4) still answers.
+		tracker.updateContainer(ItemTracker.CONTAINER_INVENTORY, new Item[]{
+			new Item(net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_1, 1)});
+		service.recompute();
+		assertEquals(RunItemStatus.IN_BANK, find("Skills necklace(2)+").orElseThrow().status());
+
+		// Wearing the (4) satisfies the whole run.
+		tracker.updateContainer(ItemTracker.CONTAINER_EQUIPMENT, new Item[]{
+			new Item(net.runelite.api.gameval.ItemID.JEWL_NECKLACE_OF_SKILLS_4, 1)});
+		service.recompute();
+		assertEquals(RunItemStatus.ON_PLAYER, find("Skills necklace(2)+").orElseThrow().status());
+	}
+
+	@Test
 	public void teleportItems_fromPlannedLegs_appearAsRows()
 	{
 		com.betterfarming.travel.Teleport falador = new com.betterfarming.travel.Teleport(

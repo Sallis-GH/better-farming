@@ -1,5 +1,6 @@
 package com.betterfarming.item;
 
+import com.betterfarming.travel.JewelleryCharges;
 import com.betterfarming.travel.Teleport;
 import com.betterfarming.travel.TeleportItemRequirement;
 import java.util.ArrayList;
@@ -46,6 +47,12 @@ public final class TeleportItemCheck
 				continue;
 			}
 			String name = displayName(req, owningUnit(teleport, req));
+			if (JewelleryCharges.isChargeJewellery(req) && req.quantity() > 1)
+			{
+				// Charge shortfalls read as the tier needed, not a count:
+				// "Skills necklace(2)+", matching the run-items row.
+				name += "(" + req.quantity() + ")+";
+			}
 			if (!missing.contains(name))
 			{
 				missing.add(name);
@@ -56,7 +63,11 @@ public final class TeleportItemCheck
 
 	/**
 	 * A requirement is on the player when a staff/offhand substitute is
-	 * carried (rune requirements) or the item count meets the quantity.
+	 * carried (rune requirements) or the item count meets the quantity. For
+	 * charge jewellery the quantity means CHARGES: each use steps the item
+	 * one tier down, so the need is one item at a high-enough tier — two
+	 * skills-necklace legs are satisfied by one necklace(2)+, never by two
+	 * separate necklaces.
 	 */
 	public static boolean satisfiedOnPlayer(TeleportItemRequirement req, ItemTracker tracker)
 	{
@@ -65,7 +76,39 @@ public final class TeleportItemCheck
 		{
 			return true;
 		}
+		if (JewelleryCharges.isChargeJewellery(req))
+		{
+			return carriedVariantWithCharges(req, tracker, req.quantity());
+		}
 		return tracker.countOnPlayer(boxSet(req.itemIds())) >= req.quantity();
+	}
+
+	/** Any inventory/equipment variant at or above the needed charge tier. */
+	public static boolean carriedVariantWithCharges(TeleportItemRequirement req,
+		ItemTracker tracker, int neededCharges)
+	{
+		for (int id : req.itemIds())
+		{
+			if (JewelleryCharges.chargesOf(id) >= neededCharges && tracker.countOnPlayer(id) > 0)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Any last-known-banked variant at or above the needed charge tier. */
+	public static boolean bankedVariantWithCharges(TeleportItemRequirement req,
+		ItemTracker tracker, int neededCharges)
+	{
+		for (int id : req.itemIds())
+		{
+			if (JewelleryCharges.chargesOf(id) >= neededCharges && tracker.countBanked(id) > 0)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
