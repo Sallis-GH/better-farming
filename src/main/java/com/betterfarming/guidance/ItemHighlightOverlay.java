@@ -8,10 +8,12 @@ import net.runelite.api.widgets.WidgetItem;
 import net.runelite.client.ui.overlay.WidgetItemOverlay;
 
 /**
- * Highlights inventory items the guidance flow wants clicked next: the
- * selected seed/sapling (and rake) while planting at a patch, the teleport
- * item while travelling a leg. Which ids glow is decided per tick by
- * PlantingGuide; this overlay just paints them.
+ * Highlights items the guidance flow wants clicked next: the selected
+ * seed/sapling (and rake) while planting at a patch, the teleport item while
+ * travelling a leg. Which ids glow is decided per tick by PlantingGuide;
+ * this overlay just paints them. Shown in the inventory and the worn
+ * equipment tab — jewellery teleports (skills necklace, glory) are usually
+ * equipped and cast from the equipment interface.
  */
 public class ItemHighlightOverlay extends WidgetItemOverlay
 {
@@ -25,6 +27,7 @@ public class ItemHighlightOverlay extends WidgetItemOverlay
 		this.config = config;
 		this.guide = guide;
 		showOnInventory();
+		showOnEquipment();
 	}
 
 	@Override
