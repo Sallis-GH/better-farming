@@ -32,6 +32,13 @@ public final class RoutePlanner
 	static final double IMPOSSIBLE = 1e9;
 	private static final int EXACT_LIMIT = 13;
 
+	/**
+	 * Teleports within this many ticks of each other count as a tie, decided
+	 * by inventory footprint instead: a teleport tab (one stackable slot)
+	 * beats a spell needing three rune stacks.
+	 */
+	private static final double TIE_EPSILON_TICKS = 2;
+
 	private RoutePlanner()
 	{
 	}
@@ -130,12 +137,12 @@ public final class RoutePlanner
 			{
 				c += walkTicks(from, t.origin());
 			}
-			if (c < best.cost)
+			if (isBetter(c, t, best))
 			{
 				best.cost = c;
 				best.teleport = t;
 			}
-			if (t.viaPoh() && c < bestPoh.cost)
+			if (t.viaPoh() && isBetter(c, t, bestPoh))
 			{
 				bestPoh.cost = c;
 				bestPoh.teleport = t;
@@ -147,6 +154,29 @@ public final class RoutePlanner
 			return bestPoh;
 		}
 		return best;
+	}
+
+	private static boolean isBetter(double cost, Teleport candidate, BestLeg incumbent)
+	{
+		if (cost < incumbent.cost - TIE_EPSILON_TICKS)
+		{
+			return true;
+		}
+		if (cost <= incumbent.cost + TIE_EPSILON_TICKS)
+		{
+			return slotEstimate(candidate) < slotEstimate(incumbent.teleport);
+		}
+		return false;
+	}
+
+	/** Rough inventory slots a teleport occupies: one per AND-term item need. */
+	private static int slotEstimate(Teleport t)
+	{
+		if (t == null)
+		{
+			return 0; // plain walking carries nothing
+		}
+		return t.items().size();
 	}
 
 	static double walkTicks(WorldPoint a, WorldPoint b)
