@@ -140,8 +140,9 @@ public class PatchStateService
 		}
 	}
 
+	// EventBus enforces on<EventName> naming at register time.
 	@Subscribe
-	public void onProfileChanged(net.runelite.client.events.RuneScapeProfileChanged event)
+	public void onRuneScapeProfileChanged(net.runelite.client.events.RuneScapeProfileChanged event)
 	{
 		remoteCache.clear();
 	}
