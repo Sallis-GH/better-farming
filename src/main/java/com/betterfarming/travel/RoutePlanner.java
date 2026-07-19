@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.ToIntFunction;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import net.runelite.api.coords.WorldPoint;
@@ -33,11 +34,24 @@ public final class RoutePlanner
 	private static final int EXACT_LIMIT = 13;
 
 	/**
-	 * Teleports within this many ticks of each other count as a tie, decided
-	 * by inventory footprint instead: a teleport tab (one stackable slot)
-	 * beats a spell needing three rune stacks.
+	 * Soft cost per inventory slot a teleport's items occupy, folded into leg
+	 * selection (not into the reported tick estimate): an equipped skills
+	 * necklace (0 slots) beats a teleport tab (1 slot) within 2.5 ticks, and a
+	 * three-rune spell within 7.5 — "prefer slot-free options at similar
+	 * distances" without ever overriding a clearly faster teleport.
 	 */
-	private static final double TIE_EPSILON_TICKS = 2;
+	static final double SLOT_PENALTY_TICKS = 2.5;
+
+	/**
+	 * Single-hop legs cheaper than this skip the multi-hop search: farm legs
+	 * are normally one teleport + a short walk, and the full graph search is
+	 * only worth its cost when no single hop covers the leg (islands like
+	 * Harmony: teleport → ship → ship).
+	 */
+	static final double CHAIN_SEARCH_THRESHOLD_TICKS = 50;
+
+	/** Default slot estimate: one inventory slot per AND-term item need. */
+	public static final ToIntFunction<Teleport> DEFAULT_SLOT_COST = t -> t.items().size();
 
 	private RoutePlanner()
 	{
@@ -64,7 +78,13 @@ public final class RoutePlanner
 
 	public static List<Leg> plan(WorldPoint start, List<Stop> stops, List<Teleport> teleports)
 	{
-		return plan(start, stops, teleports, 0);
+		return plan(start, stops, teleports, 0, DEFAULT_SLOT_COST);
+	}
+
+	public static List<Leg> plan(WorldPoint start, List<Stop> stops, List<Teleport> teleports,
+		int pohBiasTicks)
+	{
+		return plan(start, stops, teleports, pohBiasTicks, DEFAULT_SLOT_COST);
 	}
 
 	/**
@@ -72,15 +92,18 @@ public final class RoutePlanner
 	 *     cost is within this many ticks of the overall best — players who run
 	 *     everything through their house save inventory space at a small time
 	 *     cost.
+	 * @param slotCost inventory slots a teleport's items occupy; live-aware in
+	 *     production (currently-equipped jewellery costs nothing).
 	 */
 	public static List<Leg> plan(WorldPoint start, List<Stop> stops, List<Teleport> teleports,
-		int pohBiasTicks)
+		int pohBiasTicks, ToIntFunction<Teleport> slotCost)
 	{
 		if (stops.isEmpty() || start == null)
 		{
 			return Collections.emptyList();
 		}
 		int n = stops.size();
+		PlanContext ctx = new PlanContext(teleports, slotCost);
 
 		// legCosts[i][j]: cost from point i to stop j, where index 0 is the
 		// start position and 1..n are stops (source side); target side is 0..n-1.
@@ -96,7 +119,7 @@ public final class RoutePlanner
 					cost[i][j] = IMPOSSIBLE;
 					continue;
 				}
-				BestLeg best = bestLeg(from, stops.get(j).point(), teleports, pohBiasTicks);
+				BestLeg best = bestLeg(from, stops.get(j).point(), ctx, pohBiasTicks);
 				cost[i][j] = best.cost;
 				via[i][j] = best.teleport;
 			}
@@ -108,12 +131,26 @@ public final class RoutePlanner
 		int prev = 0;
 		for (int index : order)
 		{
-			double legCost = cost[prev][index];
-			legs.add(new Leg(stops.get(index), via[prev][index],
-				(int) Math.min(Math.round(legCost), Integer.MAX_VALUE)));
+			legs.add(toLeg(stops.get(index), via[prev][index], cost[prev][index]));
 			prev = index + 1;
 		}
-		return legs;
+		return capOncePerRun(start, legs, ctx, pohBiasTicks, slotCost);
+	}
+
+	/** Unreachable legs get UNREACHABLE_TICKS instead of a 1e9 cast artefact. */
+	public static final int UNREACHABLE_TICKS = -1;
+
+	private static Leg toLeg(Stop stop, Teleport teleport, double cost)
+	{
+		int ticks = cost >= IMPOSSIBLE ? UNREACHABLE_TICKS
+			: (int) Math.min(Math.round(cost), Integer.MAX_VALUE);
+		return new Leg(stop, teleport, ticks);
+	}
+
+	public static List<Leg> planFixedOrder(WorldPoint start, List<Stop> stops,
+		List<Teleport> teleports, int pohBiasTicks)
+	{
+		return planFixedOrder(start, stops, teleports, pohBiasTicks, DEFAULT_SLOT_COST);
 	}
 
 	/**
@@ -122,85 +159,283 @@ public final class RoutePlanner
 	 * while teleport availability shifts underneath it.
 	 */
 	public static List<Leg> planFixedOrder(WorldPoint start, List<Stop> stops,
-		List<Teleport> teleports, int pohBiasTicks)
+		List<Teleport> teleports, int pohBiasTicks, ToIntFunction<Teleport> slotCost)
 	{
 		if (stops.isEmpty() || start == null)
 		{
 			return Collections.emptyList();
 		}
+		PlanContext ctx = new PlanContext(teleports, slotCost);
 		List<Leg> legs = new ArrayList<>(stops.size());
 		WorldPoint from = start;
 		for (Stop stop : stops)
 		{
-			BestLeg best = bestLeg(from, stop.point(), teleports, pohBiasTicks);
-			legs.add(new Leg(stop, best.teleport,
-				(int) Math.min(Math.round(best.cost), Integer.MAX_VALUE)));
+			BestLeg best = bestLeg(from, stop.point(), ctx, pohBiasTicks);
+			legs.add(toLeg(stop, best.teleport, best.cost));
 			from = stop.point();
 		}
-		return legs;
+		return capOncePerRun(start, legs, ctx, pohBiasTicks, slotCost);
+	}
+
+	/**
+	 * Once-per-run edges (free home teleport) may carry at most the first leg
+	 * that uses one; later such legs are re-priced without them, so tab/rune
+	 * alternatives (whose items then surface in the run-items list) or plain
+	 * walking take over.
+	 */
+	private static List<Leg> capOncePerRun(WorldPoint start, List<Leg> legs,
+		PlanContext ctx, int pohBiasTicks, ToIntFunction<Teleport> slotCost)
+	{
+		boolean used = false;
+		List<Leg> out = new ArrayList<>(legs.size());
+		WorldPoint from = start;
+		for (Leg leg : legs)
+		{
+			if (leg.teleport() != null && leg.teleport().oncePerRun() && used)
+			{
+				BestLeg best = bestLeg(from, leg.stop().point(),
+					ctx.withoutOncePerRun(slotCost), pohBiasTicks);
+				out.add(toLeg(leg.stop(), best.teleport, best.cost));
+			}
+			else
+			{
+				used |= leg.teleport() != null && leg.teleport().oncePerRun();
+				out.add(leg);
+			}
+			from = leg.stop().point();
+		}
+		return out;
 	}
 
 	// ── leg cost ──
 
 	private static final class BestLeg
 	{
+		/** Real ticks — slot penalties influence selection, not the estimate. */
 		double cost = IMPOSSIBLE;
+		/** Selection cost: real ticks + SLOT_PENALTY_TICKS per inventory slot. */
+		double penalized = IMPOSSIBLE;
+		/** Null = plain walk; a chainOf() composite for multi-hop paths. */
 		Teleport teleport;
 	}
 
-	private static BestLeg bestLeg(WorldPoint from, WorldPoint to, List<Teleport> teleports,
+	/**
+	 * Per-plan working state: slot penalties evaluated once per teleport (the
+	 * live slot-cost function scans equipment maps — hundreds of thousands of
+	 * evaluations per plan otherwise), and one cached multi-hop search per
+	 * source point (its result is target-independent).
+	 */
+	private static final class PlanContext
+	{
+		final List<Teleport> teleports;
+		final double[] penalty;
+		final java.util.Map<WorldPoint, ChainPaths> chainCache = new java.util.HashMap<>();
+		PlanContext filtered; // lazily built without once-per-run edges
+
+		PlanContext(List<Teleport> teleports, ToIntFunction<Teleport> slotCost)
+		{
+			this.teleports = teleports;
+			this.penalty = new double[teleports.size()];
+			for (int i = 0; i < teleports.size(); i++)
+			{
+				penalty[i] = SLOT_PENALTY_TICKS * slotCost.applyAsInt(teleports.get(i));
+			}
+		}
+
+		PlanContext withoutOncePerRun(ToIntFunction<Teleport> slotCost)
+		{
+			if (filtered == null)
+			{
+				List<Teleport> reusable = new ArrayList<>();
+				for (Teleport t : teleports)
+				{
+					if (!t.oncePerRun())
+					{
+						reusable.add(t);
+					}
+				}
+				filtered = new PlanContext(reusable, slotCost);
+			}
+			return filtered;
+		}
+	}
+
+	/**
+	 * Cheapest way from `from` to `to`. A single teleport + walking resolves
+	 * every normal farm leg; the multi-hop graph search only runs when no
+	 * single hop reaches the target at all (islands like Harmony: teleport →
+	 * ship → boat). Selection is by penalized cost (real ticks +
+	 * SLOT_PENALTY_TICKS per inventory slot); reported cost is real ticks.
+	 */
+	private static BestLeg bestLeg(WorldPoint from, WorldPoint to, PlanContext ctx,
 		int pohBiasTicks)
 	{
 		BestLeg best = new BestLeg();
 		best.cost = walkTicks(from, to);
+		best.penalized = best.cost;
 		BestLeg bestPoh = new BestLeg();
-		for (Teleport t : teleports)
+		List<Teleport> teleports = ctx.teleports;
+		for (int j = 0; j < teleports.size(); j++)
 		{
+			Teleport t = teleports.get(j);
 			double c = t.durationTicks() + walkTicks(t.destination(), to);
 			if (t.origin() != null)
 			{
 				c += walkTicks(from, t.origin());
 			}
-			if (isBetter(c, t, best))
+			double penalized = c + ctx.penalty[j];
+			if (penalized < best.penalized)
 			{
+				best.penalized = penalized;
 				best.cost = c;
 				best.teleport = t;
 			}
-			if (t.viaPoh() && isBetter(c, t, bestPoh))
+			if (t.viaPoh() && penalized < bestPoh.penalized)
 			{
+				bestPoh.penalized = penalized;
 				bestPoh.cost = c;
 				bestPoh.teleport = t;
 			}
 		}
+
+		if (best.penalized >= IMPOSSIBLE)
+		{
+			BestLeg chained = chainedLeg(from, to, ctx);
+			if (chained.penalized < best.penalized)
+			{
+				best = chained;
+			}
+		}
+
 		if (pohBiasTicks > 0 && bestPoh.teleport != null
-			&& bestPoh.cost <= best.cost + pohBiasTicks)
+			&& bestPoh.penalized <= best.penalized + pohBiasTicks)
 		{
 			return bestPoh;
 		}
 		return best;
 	}
 
-	private static boolean isBetter(double cost, Teleport candidate, BestLeg incumbent)
+	/**
+	 * Shortest-path state from one source over the deduplicated node graph:
+	 * nodes are distinct teleport destinations, dist is penalized, realDist
+	 * tracks plain ticks along the same tree, arriveEdge/prevNode rebuild the
+	 * hop chain. Target-independent, so one search serves a whole cost-matrix
+	 * row.
+	 */
+	private static final class ChainPaths
 	{
-		if (cost < incumbent.cost - TIE_EPSILON_TICKS)
-		{
-			return true;
-		}
-		if (cost <= incumbent.cost + TIE_EPSILON_TICKS)
-		{
-			return slotEstimate(candidate) < slotEstimate(incumbent.teleport);
-		}
-		return false;
+		WorldPoint[] nodePoint;
+		double[] dist;
+		double[] realDist;
+		int[] arriveEdge;
+		int[] prevNode;
 	}
 
-	/** Rough inventory slots a teleport occupies: one per AND-term item need. */
-	private static int slotEstimate(Teleport t)
+	private static ChainPaths chainFrom(WorldPoint from, PlanContext ctx)
 	{
-		if (t == null)
+		ChainPaths cached = ctx.chainCache.get(from);
+		if (cached != null)
 		{
-			return 0; // plain walking carries nothing
+			return cached;
 		}
-		return t.items().size();
+		List<Teleport> teleports = ctx.teleports;
+		java.util.Map<WorldPoint, Integer> nodeIds = new java.util.HashMap<>();
+		for (Teleport t : teleports)
+		{
+			nodeIds.putIfAbsent(t.destination(), nodeIds.size());
+		}
+		int v = nodeIds.size();
+		ChainPaths paths = new ChainPaths();
+		paths.nodePoint = new WorldPoint[v + 1];
+		nodeIds.forEach((p, id) -> paths.nodePoint[id] = p);
+		paths.nodePoint[v] = from; // start node
+		paths.dist = new double[v + 1];
+		paths.realDist = new double[v + 1];
+		paths.arriveEdge = new int[v + 1];
+		paths.prevNode = new int[v + 1];
+		Arrays.fill(paths.dist, IMPOSSIBLE);
+		Arrays.fill(paths.arriveEdge, -1);
+		paths.dist[v] = 0;
+		paths.realDist[v] = 0;
+		boolean[] done = new boolean[v + 1];
+
+		// O(V² + V·E) with V = distinct destinations: fairy rings et al expand
+		// to thousands of edges but only ~hundreds of points.
+		for (int iter = 0; iter <= v; iter++)
+		{
+			int u = -1;
+			for (int i = 0; i <= v; i++)
+			{
+				if (!done[i] && paths.dist[i] < IMPOSSIBLE && (u == -1 || paths.dist[i] < paths.dist[u]))
+				{
+					u = i;
+				}
+			}
+			if (u == -1)
+			{
+				break;
+			}
+			done[u] = true;
+			WorldPoint at = paths.nodePoint[u];
+			for (int j = 0; j < teleports.size(); j++)
+			{
+				Teleport t = teleports.get(j);
+				int target = nodeIds.get(t.destination());
+				if (done[target])
+				{
+					continue;
+				}
+				double walkIn = t.origin() == null ? 0 : walkTicks(at, t.origin());
+				double edgeReal = t.durationTicks() + walkIn;
+				double edge = edgeReal + ctx.penalty[j];
+				if (paths.dist[u] + edge < paths.dist[target])
+				{
+					paths.dist[target] = paths.dist[u] + edge;
+					paths.realDist[target] = paths.realDist[u] + edgeReal;
+					paths.arriveEdge[target] = j;
+					paths.prevNode[target] = u;
+				}
+			}
+		}
+		ctx.chainCache.put(from, paths);
+		return paths;
+	}
+
+	private static BestLeg chainedLeg(WorldPoint from, WorldPoint to, PlanContext ctx)
+	{
+		ChainPaths paths = chainFrom(from, ctx);
+		BestLeg best = new BestLeg();
+		int v = paths.nodePoint.length - 1;
+		int bestNode = -1;
+		for (int i = 0; i < v; i++)
+		{
+			if (paths.dist[i] >= IMPOSSIBLE)
+			{
+				continue;
+			}
+			double total = paths.dist[i] + walkTicks(paths.nodePoint[i], to);
+			if (total < best.penalized)
+			{
+				best.penalized = total;
+				bestNode = i;
+			}
+		}
+		if (bestNode == -1)
+		{
+			return best;
+		}
+		List<Teleport> hops = new ArrayList<>();
+		for (int node = bestNode; node != v; node = paths.prevNode[node])
+		{
+			hops.add(0, ctx.teleports.get(paths.arriveEdge[node]));
+		}
+		double finalWalk = walkTicks(paths.nodePoint[bestNode], to);
+		best.cost = paths.realDist[bestNode] + finalWalk;
+		// Composite duration includes inter-hop walks (consistent with house
+		// chains); the final walk to the stop belongs to the leg estimate only.
+		best.teleport = Teleport.chainOf(hops,
+			(int) Math.min(Math.round(paths.realDist[bestNode]), Integer.MAX_VALUE));
+		return best;
 	}
 
 	static double walkTicks(WorldPoint a, WorldPoint b)

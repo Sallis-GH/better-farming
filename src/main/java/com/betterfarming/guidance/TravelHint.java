@@ -56,6 +56,13 @@ public final class TravelHint
 				return "Blow quetzal whistle: " + info;
 			case MUSHTREE:
 				return "Mushtree: " + info;
+			case SHIP:
+			case BOAT:
+				return "Sail: " + info;
+			case CHARTER_SHIP:
+				return "Charter ship: " + info;
+			case TRANSPORT:
+				return "Travel: " + info;
 			default:
 				return info;
 		}

@@ -106,7 +106,8 @@ public class RunOrderSection extends JPanel
 		row.add(title);
 
 		String how = leg.teleport() == null ? "walk" : leg.teleport().displayLabel();
-		JLabel detail = new JLabel("   " + how + "  (~" + formatTicks(leg.estimatedTicks()) + ")");
+		String eta = leg.estimatedTicks() < 0 ? "no route" : "~" + formatTicks(leg.estimatedTicks());
+		JLabel detail = new JLabel("   " + how + "  (" + eta + ")");
 		detail.setForeground(leg.teleport() == null ? COLOR_MUTED : COLOR_TELEPORT);
 		detail.setFont(detail.getFont().deriveFont(10f));
 		detail.setAlignmentX(Component.LEFT_ALIGNMENT);

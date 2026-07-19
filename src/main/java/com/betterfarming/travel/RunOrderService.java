@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
@@ -52,6 +53,7 @@ public class RunOrderService
 	private final BetterFarmingConfig config;
 	private final Consumer<Runnable> clientThreadExecutor;
 	private final Predicate<Patch> needsVisit;
+	private final ToIntFunction<Teleport> slotCost;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
 	// volatile: written on the client thread, read from the EDT (run items).
@@ -94,7 +96,7 @@ public class RunOrderService
 		Consumer<Runnable> clientThreadExecutor)
 	{
 		this(data, selectionService, accessibilityService, teleportService, client, config,
-			clientThreadExecutor, p -> true);
+			clientThreadExecutor, p -> true, RoutePlanner.DEFAULT_SLOT_COST);
 	}
 
 	/**
@@ -111,7 +113,8 @@ public class RunOrderService
 		ClientLevelSource client,
 		BetterFarmingConfig config,
 		Consumer<Runnable> clientThreadExecutor,
-		Predicate<Patch> needsVisit)
+		Predicate<Patch> needsVisit,
+		ToIntFunction<Teleport> slotCost)
 	{
 		this.data = data;
 		this.selectionService = selectionService;
@@ -121,6 +124,7 @@ public class RunOrderService
 		this.config = config;
 		this.clientThreadExecutor = clientThreadExecutor;
 		this.needsVisit = needsVisit;
+		this.slotCost = slotCost;
 		recompute();
 	}
 
@@ -257,12 +261,12 @@ public class RunOrderService
 					ordered.add(s);
 				}
 			}
-			return RoutePlanner.planFixedOrder(start, ordered, teleports, bias);
+			return RoutePlanner.planFixedOrder(start, ordered, teleports, bias, slotCost);
 		}
 
 		// New run plan: route only patches that are empty, harvestable, or of
 		// unknown state — confirmed-growing patches are not worth a stop.
-		List<RoutePlanner.Leg> legs = RoutePlanner.plan(start, worthVisiting, teleports, bias);
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(start, worthVisiting, teleports, bias, slotCost);
 		pinnedOrder = new ArrayList<>();
 		for (RoutePlanner.Leg leg : legs)
 		{

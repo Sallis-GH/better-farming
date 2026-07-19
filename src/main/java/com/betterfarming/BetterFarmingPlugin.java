@@ -95,6 +95,7 @@ public class BetterFarmingPlugin extends Plugin
 	private RunOrderService runOrderService;
 	private PatchStateService patchStateService;
 	private Runnable patchStateListener;
+	private Runnable itemTrackerRouteListener;
 	private PlantingGuide plantingGuide;
 	private GuidanceService guidanceService;
 	private GuidanceWorldMapMarker worldMapMarker;
@@ -135,11 +136,17 @@ public class BetterFarmingPlugin extends Plugin
 		teleportService = new TeleportAvailabilityService(teleports, clientLevelSource, itemTracker, config);
 		runOrderService = new RunOrderService(
 			data, selectionService, accessibilityService, teleportService, clientLevelSource,
-			config, clientThread::invokeLater, patchStateService::needsVisit);
+			config, clientThread::invokeLater, patchStateService::needsVisit,
+			com.betterfarming.travel.TeleportSlotCost.of(itemTracker));
 		runOrderService.wire();
 		// State changes re-plan the route (pinned order keeps it stable).
 		patchStateListener = runOrderService::recompute;
 		patchStateService.addListener(patchStateListener);
+		// Equipping/unequipping changes teleport slot costs even when the
+		// available set is identical, so item changes re-price the legs too
+		// (coalesced; the pin keeps the order stable).
+		itemTrackerRouteListener = runOrderService::recompute;
+		itemTracker.addListener(itemTrackerRouteListener);
 		// The planned legs feed teleport-item rows into the run-items list.
 		runItemsService.setRunOrderService(runOrderService);
 
@@ -304,6 +311,11 @@ public class BetterFarmingPlugin extends Plugin
 			ShortestPathBridge bridge = shortestPathBridge;
 			clientThread.invokeLater(bridge::clear);
 			shortestPathBridge = null;
+		}
+		if (itemTrackerRouteListener != null)
+		{
+			itemTracker.removeListener(itemTrackerRouteListener);
+			itemTrackerRouteListener = null;
 		}
 		if (runOrderService != null)
 		{

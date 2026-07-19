@@ -1,0 +1,6 @@
+# Origin	Destination	menuOption menuTarget objectID	Skills	Items	Quests	Varbits	VarPlayers	Duration	Display info
+# Rows copied verbatim from Skretzo/shortest-path transports.tsv (BSD-2, see LICENSE-shortest-path).
+# Only true travel legs are curated here; transports.tsv itself is door/stair data for tile pathfinding and is not vendored.
+# Mos Le'Harmless <-> Harmony Island (Brother Tranquility)
+3680 2963 0	3786 2824 0	Transport Brother Tranquility 550						2	Harmony Island
+3786 2824 0	3680 2963 0	Transport Brother Tranquility 550						2	Mos Le'Harmless

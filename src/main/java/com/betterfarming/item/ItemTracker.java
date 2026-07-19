@@ -65,6 +65,19 @@ public class ItemTracker
 		return count(bank, itemIds);
 	}
 
+	/** True when any of the given item ids is currently worn. */
+	public boolean anyEquipped(int[] itemIds)
+	{
+		for (int id : itemIds)
+		{
+			if (equipment.getOrDefault(id, 0) > 0)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** True once the bank has been opened this session (bank counts are real). */
 	public boolean bankKnown()
 	{

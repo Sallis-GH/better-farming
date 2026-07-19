@@ -255,4 +255,26 @@ public class TeleportAvailabilityServiceTest
 		assertEquals("ornate covers fancy", 1, ornate.available().size());
 		assertTrue(ornate.available().get(0).viaPoh());
 	}
+
+	@Test
+	public void homeTeleportOnCooldownIsUnavailable()
+	{
+		Teleport homeSpell = new Teleport(TeleportType.HOME_SPELL, null,
+			new WorldPoint(3222, 3218, 0), 17, "Lumbridge Home Teleport",
+			Map.of(), Set.of(), Set.of(), List.of(), false, null, false, true);
+
+		// Just cast: VarPlayer.LAST_HOME_TELEPORT holds minutes-since-epoch.
+		client.setVarp(net.runelite.api.VarPlayer.LAST_HOME_TELEPORT,
+			(int) (System.currentTimeMillis() / 60_000L));
+		TeleportAvailabilityService cooling = service(homeSpell);
+		cooling.refresh();
+		assertTrue("cooldown running: not plannable", cooling.available().isEmpty());
+
+		// Cast over half an hour ago: available again.
+		client.setVarp(net.runelite.api.VarPlayer.LAST_HOME_TELEPORT,
+			(int) (System.currentTimeMillis() / 60_000L) - 31);
+		TeleportAvailabilityService ready = service(homeSpell);
+		ready.refresh();
+		assertEquals(1, ready.available().size());
+	}
 }

@@ -62,7 +62,8 @@ public class RunOrderServicePinningTest
 		selection.setGroupActive("HERB|B", true);
 		selection.setGroupActive("HERB|C", true);
 		service = new RunOrderService(data, selection, accessibility, teleports,
-			client, config, Runnable::run, p -> !growing.contains(p.id()));
+			client, config, Runnable::run, p -> !growing.contains(p.id()),
+			RoutePlanner.DEFAULT_SLOT_COST);
 	}
 
 	private List<String> order()
