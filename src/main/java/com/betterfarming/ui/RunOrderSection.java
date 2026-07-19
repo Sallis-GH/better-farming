@@ -105,11 +105,7 @@ public class RunOrderSection extends JPanel
 		title.setAlignmentX(Component.LEFT_ALIGNMENT);
 		row.add(title);
 
-		String how = leg.teleport() == null
-			? "walk"
-			: (leg.teleport().displayInfo() != null
-				? leg.teleport().displayInfo()
-				: humanize(leg.teleport().type().name()));
+		String how = leg.teleport() == null ? "walk" : leg.teleport().displayLabel();
 		JLabel detail = new JLabel("   " + how + "  (~" + formatTicks(leg.estimatedTicks()) + ")");
 		detail.setForeground(leg.teleport() == null ? COLOR_MUTED : COLOR_TELEPORT);
 		detail.setFont(detail.getFont().deriveFont(10f));
@@ -122,19 +118,5 @@ public class RunOrderSection extends JPanel
 	{
 		int seconds = (int) Math.round(ticks * 0.6);
 		return seconds < 60 ? seconds + "s" : (seconds / 60) + "m" + (seconds % 60) + "s";
-	}
-
-	private static String humanize(String enumName)
-	{
-		StringBuilder sb = new StringBuilder();
-		for (String word : enumName.toLowerCase().split("_"))
-		{
-			if (sb.length() > 0)
-			{
-				sb.append(' ');
-			}
-			sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
-		}
-		return sb.toString();
 	}
 }

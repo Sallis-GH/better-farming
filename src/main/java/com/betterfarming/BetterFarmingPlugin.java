@@ -87,7 +87,7 @@ public class BetterFarmingPlugin extends Plugin
 	private GuidanceService guidanceService;
 	private GuidanceWorldMapMarker worldMapMarker;
 	private ShortestPathBridge shortestPathBridge;
-	private Runnable guidanceListener;
+	private final List<Runnable> guidanceListeners = new java.util.ArrayList<>();
 	private final List<Overlay> guidanceOverlays = new java.util.ArrayList<>();
 
 	@Override
@@ -143,11 +143,12 @@ public class BetterFarmingPlugin extends Plugin
 		guidanceService = new GuidanceService(runOrderService::legs, clientLevelSource);
 		worldMapMarker = new GuidanceWorldMapMarker(worldMapPointManager, config, guidanceService);
 		shortestPathBridge = new ShortestPathBridge(eventBus, config, guidanceService, clientLevelSource);
-		guidanceListener = () -> {
-			worldMapMarker.update();
-			shortestPathBridge.update();
-		};
-		guidanceService.addListener(guidanceListener);
+		// Separate listeners on purpose: the fanout isolates failures per
+		// listener, and bundling both updates into one Runnable would let a
+		// marker failure starve the shortest-path push (hard-won rule 2).
+		guidanceListeners.add(worldMapMarker::update);
+		guidanceListeners.add(shortestPathBridge::update);
+		guidanceListeners.forEach(guidanceService::addListener);
 		eventBus.register(guidanceService);
 		guidanceOverlays.add(new WorldArrowOverlay(client, config, guidanceService));
 		guidanceOverlays.add(new MinimapArrowOverlay(client, config, guidanceService));
@@ -208,15 +209,23 @@ public class BetterFarmingPlugin extends Plugin
 		if (guidanceService != null)
 		{
 			eventBus.unregister(guidanceService);
-			guidanceService.removeListener(guidanceListener);
-			guidanceListener = null;
-			guidanceOverlays.forEach(overlayManager::remove);
-			guidanceOverlays.clear();
+			guidanceListeners.forEach(guidanceService::removeListener);
+			guidanceService = null;
+		}
+		guidanceListeners.clear();
+		guidanceOverlays.forEach(overlayManager::remove);
+		guidanceOverlays.clear();
+		if (worldMapMarker != null)
+		{
 			worldMapMarker.remove();
 			worldMapMarker = null;
+		}
+		if (shortestPathBridge != null)
+		{
+			// No-op unless we posted a path; a user-set Shortest Path route
+			// must survive this plugin shutting down.
 			shortestPathBridge.clear();
 			shortestPathBridge = null;
-			guidanceService = null;
 		}
 		if (runOrderService != null)
 		{
@@ -243,11 +252,26 @@ public class BetterFarmingPlugin extends Plugin
 	 * (config panel writes), so the teleport refresh — which reads varbits —
 	 * is marshalled to the client thread; the others marshal themselves.
 	 */
+	/** Config keys that only affect guidance display, not planning inputs. */
+	private static final java.util.Set<String> GUIDANCE_DISPLAY_KEYS = java.util.Set.of(
+		"showWorldArrow", "showMinimapArrow", "showWorldMapMarker",
+		"showWorldMapRoute", "showTravelHint", "useShortestPath");
+
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
 		if (!BetterFarmingConfig.GROUP.equals(event.getGroup()))
 		{
+			return;
+		}
+		if (GUIDANCE_DISPLAY_KEYS.contains(event.getKey()))
+		{
+			// Overlay toggles don't change teleports, run items, or the route:
+			// skip the varbit re-scan and TSP replan those refreshes cost.
+			if (guidanceService != null)
+			{
+				clientThread.invokeLater(guidanceService::refresh);
+			}
 			return;
 		}
 		if (teleportService != null)

@@ -25,7 +25,7 @@ public final class TravelHint
 		{
 			return "Walk to " + leg.stop().displayName();
 		}
-		String info = t.displayInfo() != null ? t.displayInfo() : humanize(t.type().name());
+		String info = t.displayLabel();
 		if (t.viaPoh())
 		{
 			// House-chain display already reads "<house teleport> → <facility>".
@@ -59,19 +59,5 @@ public final class TravelHint
 			default:
 				return info;
 		}
-	}
-
-	private static String humanize(String enumName)
-	{
-		StringBuilder sb = new StringBuilder();
-		for (String word : enumName.toLowerCase().split("_"))
-		{
-			if (sb.length() > 0)
-			{
-				sb.append(' ');
-			}
-			sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
-		}
-		return sb.toString();
 	}
 }

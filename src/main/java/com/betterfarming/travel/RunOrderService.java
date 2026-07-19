@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
@@ -177,8 +178,11 @@ public class RunOrderService
 		{
 			RoutePlanner.Leg x = a.get(i);
 			RoutePlanner.Leg y = b.get(i);
+			// Structural teleport equality: composed house-chain edges are
+			// freshly allocated per teleport refresh; identity comparison
+			// would repaint (and re-fan-out) on every refresh.
 			if (!x.stop().groupKey().equals(y.stop().groupKey())
-				|| x.teleport() != y.teleport())
+				|| !Objects.equals(x.teleport(), y.teleport()))
 			{
 				return false;
 			}

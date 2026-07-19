@@ -35,6 +35,28 @@ public class Teleport
 	/** True for synthesized house-chain edges (house teleport → POH facility). */
 	boolean viaPoh;
 
+	/**
+	 * Human-readable label: the TSV display info when present, otherwise the
+	 * humanized type name. Single source for the sidebar and guidance hints.
+	 */
+	public String displayLabel()
+	{
+		if (displayInfo != null)
+		{
+			return displayInfo;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (String word : type.name().toLowerCase().split("_"))
+		{
+			if (sb.length() > 0)
+			{
+				sb.append(' ');
+			}
+			sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+		}
+		return sb.toString();
+	}
+
 	public boolean originInPoh()
 	{
 		return isInPoh(origin);

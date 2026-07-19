@@ -154,7 +154,7 @@ public class GuidancePerspective
 	public static Point mapWorldPointToGraphicsPoint(Client client, WorldPoint worldPoint)
 	{
 		var worldMap = client.getWorldMap();
-		if (worldPoint == null)
+		if (worldPoint == null || worldMap == null || worldMap.getWorldMapData() == null)
 		{
 			return null;
 		}

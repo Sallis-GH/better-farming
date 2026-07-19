@@ -23,7 +23,6 @@ public class GuidanceWorldMapMarker
 	private final BufferedImage icon = buildIcon();
 
 	private WorldMapPoint point;
-	private WorldPoint shown;
 
 	public GuidanceWorldMapMarker(WorldMapPointManager manager, BetterFarmingConfig config,
 		GuidanceService guidance)
@@ -42,7 +41,7 @@ public class GuidanceWorldMapMarker
 			remove();
 			return;
 		}
-		if (target.equals(shown))
+		if (point != null && target.equals(point.getWorldPoint()))
 		{
 			return;
 		}
@@ -52,7 +51,6 @@ public class GuidanceWorldMapMarker
 		point.setSnapToEdge(true);
 		point.setJumpOnClick(true);
 		manager.add(point);
-		shown = target;
 	}
 
 	public void remove()
@@ -61,7 +59,6 @@ public class GuidanceWorldMapMarker
 		{
 			manager.remove(point);
 			point = null;
-			shown = null;
 		}
 	}
 

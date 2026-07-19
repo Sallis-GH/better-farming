@@ -63,7 +63,12 @@ public class WorldArrowOverlay extends Overlay
 		LocalPoint lp = GuidancePerspective.resolveLocalPointForWorldPoint(runeliteClient, target);
 		if (lp != null)
 		{
-			Point canvas = Perspective.localToCanvas(runeliteClient, lp, target.getPlane(), TILE_Z_OFFSET);
+			// Current scene plane, not the target's world plane: in an
+			// instance the template copy can sit on a different plane, and
+			// tile-height lookup runs in scene space (same convention as the
+			// ported WorldLines.getWorldLines).
+			Point canvas = Perspective.localToCanvas(runeliteClient, lp,
+				runeliteClient.getPlane(), TILE_Z_OFFSET);
 			if (canvas != null)
 			{
 				DirectionArrow.drawWorldArrow(graphics, ARROW_COLOR, canvas.getX(), canvas.getY());

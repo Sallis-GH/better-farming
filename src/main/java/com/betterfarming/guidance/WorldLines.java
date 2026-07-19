@@ -54,7 +54,7 @@ public class WorldLines
 		}
 
 		Line2D.Double line = new Line2D.Double(startPoint.getX(), startPoint.getY(), endPoint.getX(), endPoint.getY());
-		DirectionArrow.drawLine(graphics, line, color, GuidancePerspective.getWorldMapClipArea(client));
+		DirectionArrow.drawLine(graphics, line, color, mapViewArea);
 	}
 
 	public static Line2D.Double getWorldLines(Client client, LocalPoint startLocation, LocalPoint endLocation)

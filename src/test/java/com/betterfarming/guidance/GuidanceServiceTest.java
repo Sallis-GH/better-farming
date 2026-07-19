@@ -130,6 +130,48 @@ public class GuidanceServiceTest
 	}
 
 	@Test
+	public void resetWhileStandingAtPatchStillGuidesToIt()
+	{
+		service.update();
+		client.setPlayerPosition(FALADOR);
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+
+		// Reset taken at the Falador patch: it must not instantly re-check
+		// itself off — the new run needs to revisit it.
+		service.reset();
+		assertEquals("falador", service.currentLeg().stop().groupKey());
+		service.update();
+		assertEquals("falador", service.currentLeg().stop().groupKey());
+
+		// Leaving and returning counts as a fresh arrival again.
+		client.setPlayerPosition(new WorldPoint(3100, 3300, 0));
+		service.update();
+		client.setPlayerPosition(FALADOR);
+		service.update();
+		assertEquals("catherby", service.currentLeg().stop().groupKey());
+	}
+
+	@Test
+	public void reorderedRouteWithSameStopsAndTeleportsIsNotAChange()
+	{
+		service.update();
+		AtomicInteger notified = new AtomicInteger();
+		service.addListener(notified::incrementAndGet);
+
+		// Equal-but-not-identical legs (fresh Leg/Stop instances, same data),
+		// as produced by a route recompute: no fanout.
+		List<RoutePlanner.Leg> rebuilt = Arrays.asList(
+			leg("falador", "Falador herb patch", FALADOR),
+			leg("catherby", "Catherby herb patch", CATHERBY),
+			leg("ardougne", "Ardougne herb patch", ARDOUGNE));
+		legs.clear();
+		legs.addAll(rebuilt);
+		service.update();
+		assertEquals(0, notified.get());
+	}
+
+	@Test
 	public void logoutResetsProgressViaGameState()
 	{
 		service.update();

@@ -5,9 +5,10 @@ import com.betterfarming.ui.ClientLevelSource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
@@ -42,7 +43,15 @@ public class GuidanceService
 	private final ClientLevelSource client;
 
 	private final Set<String> visitedKeys = new HashSet<>();
-	private final Set<Runnable> listeners = new LinkedHashSet<>();
+	/**
+	 * Stops the player was already standing at when reset() ran: they only
+	 * count as visited again after the player leaves and comes back, so a
+	 * reset taken at a patch still guides the new run to that patch.
+	 */
+	private final Set<String> requireExit = new HashSet<>();
+	// Copy-on-write: add/removeListener run on the EDT (plugin lifecycle),
+	// the fanout iterates on the client thread.
+	private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
 
 	private volatile RoutePlanner.Leg currentLeg;
 	private volatile int currentIndex = -1;
@@ -106,10 +115,22 @@ public class GuidanceService
 		}
 	}
 
-	/** Clears run progress; the next tick starts guiding from leg 1 again. */
+	/** Clears run progress; guidance starts over from leg 1. */
 	public void reset()
 	{
 		visitedKeys.clear();
+		requireExit.clear();
+		WorldPoint player = client.getPlayerPosition();
+		if (player != null)
+		{
+			for (RoutePlanner.Leg leg : legsSupplier.get())
+			{
+				if (player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES)
+				{
+					requireExit.add(leg.stop().groupKey());
+				}
+			}
+		}
 		refresh();
 	}
 
@@ -154,9 +175,18 @@ public class GuidanceService
 		{
 			// Plane ignored: arriving on a bridge or rooftop above the
 			// patch tile still counts as being there.
-			if (player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES)
+			String key = leg.stop().groupKey();
+			boolean near = player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES;
+			if (requireExit.contains(key))
 			{
-				visitedKeys.add(leg.stop().groupKey());
+				if (!near)
+				{
+					requireExit.remove(key);
+				}
+			}
+			else if (near)
+			{
+				visitedKeys.add(key);
 			}
 		}
 
@@ -191,7 +221,11 @@ public class GuidanceService
 		{
 			return a == b;
 		}
-		return a.stop().groupKey().equals(b.stop().groupKey()) && a.teleport() == b.teleport();
+		// Structural teleport equality: composed house-chain edges are freshly
+		// allocated on every teleport refresh, so identity would report a
+		// change (and fan out) on every route recompute.
+		return a.stop().groupKey().equals(b.stop().groupKey())
+			&& Objects.equals(a.teleport(), b.teleport());
 	}
 
 	private void notifyListeners()

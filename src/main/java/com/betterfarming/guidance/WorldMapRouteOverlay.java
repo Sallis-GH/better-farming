@@ -42,6 +42,11 @@ public class WorldMapRouteOverlay extends Overlay
 		{
 			return null;
 		}
+		// Map closed (the common case): skip all coordinate work up front.
+		if (GuidancePerspective.getWorldMapClipArea(runeliteClient) == null)
+		{
+			return null;
+		}
 		List<WorldPoint> remaining = guidance.remainingTargets();
 		if (remaining.isEmpty())
 		{

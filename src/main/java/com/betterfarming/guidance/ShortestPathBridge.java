@@ -18,7 +18,9 @@ import net.runelite.client.events.PluginMessage;
  *
  * update() runs from the guidance listener fanout (client thread) and only
  * re-posts when the destination actually changed; Shortest Path itself
- * recalculates as the player walks.
+ * recalculates as the player walks. "clear" is only ever posted when this
+ * bridge previously posted a path — a path the user set themselves in
+ * Shortest Path must never be erased by us.
  */
 public class ShortestPathBridge
 {
@@ -27,7 +29,8 @@ public class ShortestPathBridge
 	private final GuidanceService guidance;
 	private final ClientLevelSource client;
 
-	private WorldPoint lastTarget;
+	/** Target of the path we last posted; null = nothing of ours outstanding. */
+	private WorldPoint lastPosted;
 
 	public ShortestPathBridge(EventBus eventBus, BetterFarmingConfig config,
 		GuidanceService guidance, ClientLevelSource client)
@@ -42,31 +45,37 @@ public class ShortestPathBridge
 	{
 		RoutePlanner.Leg leg = guidance.currentLeg();
 		WorldPoint target = config.useShortestPath() && leg != null ? leg.stop().point() : null;
-		if (Objects.equals(target, lastTarget))
-		{
-			return;
-		}
-		lastTarget = target;
-		if (target == null)
-		{
-			clear();
-			return;
-		}
 		WorldPoint start = client.getPlayerPosition();
 		if (start == null)
 		{
-			lastTarget = null;
+			// No origin to path from; retract our path (if any) and re-post
+			// once the player is back.
+			target = null;
+		}
+		if (Objects.equals(target, lastPosted))
+		{
+			return;
+		}
+		if (target == null)
+		{
+			clear();
 			return;
 		}
 		Map<String, Object> data = new HashMap<>();
 		data.put("start", start);
 		data.put("target", target);
 		eventBus.post(new PluginMessage("shortestpath", "path", data));
+		lastPosted = target;
 	}
 
+	/** Retracts our posted path; no-op when we never posted one. */
 	public void clear()
 	{
-		lastTarget = null;
+		if (lastPosted == null)
+		{
+			return;
+		}
+		lastPosted = null;
 		eventBus.post(new PluginMessage("shortestpath", "clear"));
 	}
 }
