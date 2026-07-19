@@ -29,15 +29,20 @@ import net.runelite.client.eventbus.Subscribe;
  * growing is COMPLETE (checked off wherever the player is — planting stop 5
  * before stop 2 checks off stop 5); a stop with known remaining work is
  * INCOMPLETE and stays current even while the player stands on it, until the
- * crops are actually in the ground. Two escapes keep INCOMPLETE stops from
- * trapping the run: walking {@link #SKIP_DISTANCE_TILES} away from a stop
- * the player already reached counts as deliberately skipping it (no seeds,
- * no cure — move on), and a checked-off stop that regresses to needing work
- * (harvested in passing, disease) is un-checked. Only when state is UNKNOWN
- * does the proximity rule apply: visited the moment the player comes within
- * {@link #ARRIVAL_RADIUS_TILES} — unless the stop was first sighted with the
- * player already standing there (fresh reset/login at a patch), which
- * requires leaving and returning.
+ * crops are actually in the ground. A checked-off stop that regresses to
+ * needing work (harvested in passing, disease) is un-checked. Only when
+ * state is UNKNOWN does the proximity rule apply: visited the moment the
+ * player comes within {@link #ARRIVAL_RADIUS_TILES} — unless the stop was
+ * first sighted with the player already standing there (fresh reset/login at
+ * a patch), which requires leaving and returning.
+ *
+ * Skipping never completes: walking {@link #SKIP_DISTANCE_TILES} away from a
+ * reached-but-unfinished stop, or pressing Skip, DEFERS the stop — guidance
+ * moves on so the arrow stops pointing backwards, but the stop stays in the
+ * remaining route, comes back as current once everything else is done, and
+ * blocks run completion (a patch is only done once observed harvested and
+ * replanted; end the run early with Stop instead). Deferrals are dropped
+ * whenever the run is stopped, so resuming re-offers every skipped stop.
  *
  * Visited stops survive route recomputes on purpose: consuming a teleport tab
  * mid-run changes teleport availability, which re-plans the remaining route,
@@ -53,7 +58,7 @@ public class GuidanceService
 {
 	public static final int ARRIVAL_RADIUS_TILES = 10;
 
-	/** Leaving a reached-but-unfinished stop this far behind skips it. */
+	/** Leaving a reached-but-unfinished stop this far behind defers it. */
 	public static final int SKIP_DISTANCE_TILES = 50;
 
 	private final Supplier<List<RoutePlanner.Leg>> legsSupplier;
@@ -69,10 +74,16 @@ public class GuidanceService
 	private final Set<String> requireExit = new HashSet<>();
 	/** Stops observed at least once since the last reset. */
 	private final Set<String> seenKeys = new HashSet<>();
-	/** INCOMPLETE stops the player has reached — walking far away skips them. */
+	/** INCOMPLETE stops the player has reached — walking far away defers them. */
 	private final Set<String> workStarted = new HashSet<>();
 	/** Stops checked off by crop state, so a regression can un-check them. */
 	private final Set<String> stateCompleted = new HashSet<>();
+	/**
+	 * Stops set aside by Skip or the walk-away rule: not selected as current
+	 * while other work remains, never counted as done. Cleared while the run
+	 * is stopped, so resuming re-offers them. Client thread only.
+	 */
+	private final Set<String> deferred = new HashSet<>();
 	// Copy-on-write: add/removeListener run on the EDT (plugin lifecycle),
 	// the fanout iterates on the client thread.
 	private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
@@ -204,9 +215,11 @@ public class GuidanceService
 	}
 
 	/**
-	 * Marks the current leg visited on the next recompute — the on-demand
-	 * counterpart of the {@link #SKIP_DISTANCE_TILES} walk-away skip (no
-	 * seeds, patch inaccessible, don't care). Callable from any thread.
+	 * Defers the current leg on the next recompute — the on-demand
+	 * counterpart of the {@link #SKIP_DISTANCE_TILES} walk-away rule (no
+	 * seeds, patch inaccessible right now). The stop is set aside, not
+	 * completed: it returns once the rest of the run is done, and always on
+	 * resume after a stop. Callable from any thread.
 	 */
 	public void requestSkipCurrentLeg()
 	{
@@ -252,6 +265,7 @@ public class GuidanceService
 		seenKeys.clear();
 		workStarted.clear();
 		stateCompleted.clear();
+		deferred.clear();
 		refresh();
 	}
 
@@ -285,7 +299,9 @@ public class GuidanceService
 		{
 			// Stopped: idle everywhere, progress retained. A skip queued just
 			// before stopping is dropped — it referred to a leg no longer shown.
+			// Deferrals drop too: resuming must re-offer every skipped stop.
 			skipRequested = false;
+			deferred.clear();
 			currentLeg = null;
 			currentIndex = -1;
 			totalLegs = 0;
@@ -306,7 +322,7 @@ public class GuidanceService
 			skipRequested = false;
 			if (previousCurrentKey != null)
 			{
-				visitedKeys.add(previousCurrentKey);
+				deferred.add(previousCurrentKey);
 				workStarted.remove(previousCurrentKey);
 			}
 		}
@@ -348,11 +364,14 @@ public class GuidanceService
 
 			if (progress == StopProgress.COMPLETE)
 			{
-				// Crops confirmed in the ground: done regardless of position.
+				// Crops confirmed in the ground: done regardless of position —
+				// this is also how a deferred stop the player returns to on
+				// their own gets checked off (state, never proximity).
 				visitedKeys.add(key);
 				stateCompleted.add(key);
 				requireExit.remove(key);
 				workStarted.remove(key);
+				deferred.remove(key);
 				continue;
 			}
 			if (progress == StopProgress.INCOMPLETE)
@@ -369,10 +388,12 @@ public class GuidanceService
 				}
 				else if (workStarted.contains(key) && distance > SKIP_DISTANCE_TILES)
 				{
-					// Reached it, left it far behind unfinished: a deliberate
-					// skip (no seeds, no cure) — stop pointing backwards.
+					// Reached it, left it far behind unfinished: defer — stop
+					// pointing backwards, but the stop is NOT done (a patch
+					// completes only on an observed harvest/replant) and comes
+					// back once the rest of the run is.
 					workStarted.remove(key);
-					visitedKeys.add(key);
+					deferred.add(key);
 				}
 				continue;
 			}
@@ -404,33 +425,54 @@ public class GuidanceService
 
 		RoutePlanner.Leg next = null;
 		int index = -1;
+		RoutePlanner.Leg nextDeferred = null;
+		int indexDeferred = -1;
 		List<WorldPoint> remaining = new ArrayList<>();
 		for (int i = 0; i < legs.size(); i++)
 		{
 			RoutePlanner.Leg leg = legs.get(i);
-			if (visitedKeys.contains(leg.stop().groupKey()))
+			String key = leg.stop().groupKey();
+			if (visitedKeys.contains(key))
 			{
 				continue;
 			}
-			if (next == null)
+			if (deferred.contains(key))
+			{
+				if (nextDeferred == null)
+				{
+					nextDeferred = leg;
+					indexDeferred = i + 1;
+				}
+			}
+			else if (next == null)
 			{
 				next = leg;
 				index = i + 1;
 			}
 			remaining.add(leg.stop().point());
 		}
+		// Deferred stops come back once everything else is done: they are
+		// remaining work, never silently completed. Ending the run without
+		// them is what Stop is for.
+		if (next == null && nextDeferred != null)
+		{
+			next = nextDeferred;
+			index = indexDeferred;
+		}
 
 		// Deviation: the player turned up at a different unvisited stop (own
 		// teleport, changed mind). Guide the stop they are actually at, and
 		// fire the replan hook once so the remaining order re-solves from
-		// here instead of pointing backwards.
+		// here instead of pointing backwards. Deferred stops are excluded —
+		// standing next to a stop just skipped must not re-current it (its
+		// state completion still registers if the player works it anyway).
 		String deviationKey = newlyVisitedOffPlan;
 		for (int i = 0; i < legs.size(); i++)
 		{
 			RoutePlanner.Leg leg = legs.get(i);
 			String key = leg.stop().groupKey();
 			if (next != null && !key.equals(next.stop().groupKey())
-				&& !visitedKeys.contains(key)
+				&& !visitedKeys.contains(key) && !deferred.contains(key)
 				&& player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES)
 			{
 				deviationKey = key;
