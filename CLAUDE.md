@@ -62,7 +62,9 @@ origins, agility shortcuts, diary cheaper teleports; UI/design pass).
   new kinds = one class + one entry in `RequirementDeserializer.TYPES`.
 - `state/PatchSelectionService` — seed choice + group-active persistence (versioned JSON
   blob in config) + listener fanout.
-- `item/` — `ItemTracker` (inv/equip live, bank last-known, clears on LOGIN_SCREEN),
+- `item/` — `ItemTracker` (inv/equip live, bank last-known, clears on LOGIN_SCREEN;
+  rune-pouch contents folded into countOnPlayer while a pouch is carried, pushed by
+  `RunePouchReader` from the RUNE_POUCH_TYPE/QUANTITY varbits via EnumID.RUNEPOUCH_RUNE),
   `PlayerUnlocks` (barbarian bare-handed planting = varbit 9609 == 3), `RunItemsService`
   (tools/plantables/payments/teleport-items/gear rows), `Outfits` (generated, wiki-verified
   ids incl. worn/inventory variants — regenerate, don't hand-edit).
@@ -140,7 +142,7 @@ in resources/):
 
 ## Known limitations (documented, not bugs)
 
-Rune pouch contents not counted; player-grown spirit trees not modeled as teleports
+Player-grown spirit trees not modeled as teleports
 (Phase 6); walking legs are straight-line estimates (no collision map); POH facilities are
 config-declared (house layout unreadable); remote crop state needs the Time Tracking
 plugin's stored observations (absent → patches treated as worth visiting); run-items/bank

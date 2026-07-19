@@ -97,6 +97,7 @@ public class BetterFarmingPlugin extends Plugin
 	private Runnable patchStateListener;
 	private Runnable itemTrackerRouteListener;
 	private PlantingGuide plantingGuide;
+	private com.betterfarming.item.RunePouchReader runePouchReader;
 	private GuidanceService guidanceService;
 	private GuidanceWorldMapMarker worldMapMarker;
 	private ShortestPathBridge shortestPathBridge;
@@ -150,10 +151,14 @@ public class BetterFarmingPlugin extends Plugin
 		// The planned legs feed teleport-item rows into the run-items list.
 		runItemsService.setRunOrderService(runOrderService);
 
+		// Rune pouch contents count toward spell requirements.
+		runePouchReader = new com.betterfarming.item.RunePouchReader(clientLevelSource, itemTracker);
+
 		// Services with @Subscribe methods register on the bus.
 		eventBus.register(availabilityService);
 		eventBus.register(accessibilityService);
 		eventBus.register(itemTracker);
+		eventBus.register(runePouchReader);
 		eventBus.register(playerUnlocks);
 		eventBus.register(teleportService);
 		eventBus.register(patchStateService);
@@ -252,10 +257,14 @@ public class BetterFarmingPlugin extends Plugin
 		// queued refresh may run after a quick toggle-off.
 		PatchAccessibilityService accessibility = accessibilityService;
 		TeleportAvailabilityService teleportAvailability = teleportService;
+		com.betterfarming.item.RunePouchReader pouchReader = runePouchReader;
 		clientThread.invokeLater(() -> {
 			accessibility.refresh();
 			playerUnlocks.refresh();
 			teleportAvailability.refresh();
+			// Pouch varbits were sent before this plugin started; read them
+			// once now, then VarbitChanged keeps the snapshot fresh.
+			pouchReader.refresh();
 		});
 
 		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icons/sidebar.png");
@@ -292,6 +301,11 @@ public class BetterFarmingPlugin extends Plugin
 			accessibilityService = null;
 		}
 		eventBus.unregister(itemTracker);
+		if (runePouchReader != null)
+		{
+			eventBus.unregister(runePouchReader);
+			runePouchReader = null;
+		}
 		eventBus.unregister(playerUnlocks);
 		eventBus.unregister(bankTab);
 		bankTab.shutDown();

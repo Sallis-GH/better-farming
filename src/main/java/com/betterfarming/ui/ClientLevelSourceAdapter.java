@@ -58,6 +58,13 @@ public class ClientLevelSourceAdapter implements ClientLevelSource
 	}
 
 	@Override
+	public int getEnumValue(int enumId, int key)
+	{
+		net.runelite.api.EnumComposition composition = client.getEnum(enumId);
+		return composition == null ? -1 : composition.getIntValue(key);
+	}
+
+	@Override
 	public WorldPoint getPlayerPosition()
 	{
 		Player local = client.getLocalPlayer();
