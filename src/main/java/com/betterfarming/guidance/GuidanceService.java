@@ -85,6 +85,15 @@ public class GuidanceService
 	private volatile WorldPoint travelTarget;
 	private volatile Teleport travelHop;
 
+	/**
+	 * Fired (client thread) when the player turns up at an unvisited stop
+	 * other than the current leg — they went their own way, so the remaining
+	 * route should re-plan from where they actually are. Wired to
+	 * RunOrderService::replan by the plugin. Throttled to once per stop.
+	 */
+	private volatile Runnable deviationListener;
+	private String lastDeviationKey;
+
 	/** Convenience: no crop-state input — pure proximity-based completion. */
 	public GuidanceService(Supplier<List<RoutePlanner.Leg>> legsSupplier, ClientLevelSource client)
 	{
@@ -156,6 +165,11 @@ public class GuidanceService
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
 
+	public void setOnDeviation(Runnable listener)
+	{
+		this.deviationListener = listener;
+	}
+
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
@@ -214,6 +228,8 @@ public class GuidanceService
 	{
 		List<RoutePlanner.Leg> legs = legsSupplier.get();
 		WorldPoint player = client.getPlayerPosition();
+		String previousCurrentKey = currentLeg != null ? currentLeg.stop().groupKey() : null;
+		String newlyVisitedOffPlan = null;
 
 		if (player == null)
 		{
@@ -297,7 +313,12 @@ public class GuidanceService
 			}
 			else if (near)
 			{
-				visitedKeys.add(key);
+				if (visitedKeys.add(key) && !key.equals(previousCurrentKey))
+				{
+					// Checked off a stop we weren't guiding to — the player
+					// went their own way; the rest should re-plan from here.
+					newlyVisitedOffPlan = key;
+				}
 			}
 		}
 
@@ -317,6 +338,46 @@ public class GuidanceService
 				index = i + 1;
 			}
 			remaining.add(leg.stop().point());
+		}
+
+		// Deviation: the player turned up at a different unvisited stop (own
+		// teleport, changed mind). Guide the stop they are actually at, and
+		// fire the replan hook once so the remaining order re-solves from
+		// here instead of pointing backwards.
+		String deviationKey = newlyVisitedOffPlan;
+		for (int i = 0; i < legs.size(); i++)
+		{
+			RoutePlanner.Leg leg = legs.get(i);
+			String key = leg.stop().groupKey();
+			if (next != null && !key.equals(next.stop().groupKey())
+				&& !visitedKeys.contains(key)
+				&& player.distanceTo2D(leg.stop().point()) <= ARRIVAL_RADIUS_TILES)
+			{
+				deviationKey = key;
+				next = leg;
+				index = i + 1;
+				break;
+			}
+		}
+		if (deviationKey != null && !deviationKey.equals(lastDeviationKey))
+		{
+			lastDeviationKey = deviationKey;
+			Runnable listener = deviationListener;
+			if (listener != null)
+			{
+				try
+				{
+					listener.run();
+				}
+				catch (Exception | AssertionError ex)
+				{
+					log.warn("Better Farming: deviation listener threw", ex);
+				}
+			}
+		}
+		else if (deviationKey == null)
+		{
+			lastDeviationKey = null;
 		}
 
 		currentLeg = next;

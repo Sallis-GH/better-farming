@@ -175,6 +175,29 @@ public class Teleport
 		return sb.toString();
 	}
 
+	/**
+	 * Whether using this teleport uses up its items: tablets and charge
+	 * jewellery are marked consumable in the data; spell casts consume runes;
+	 * house chains consume their entry (runes or a tab). Reusable items — the
+	 * refillable ectophial, capes, the quetzal whistle — return false, so
+	 * planning several legs on one never demands several of it.
+	 */
+	public boolean consumesItems()
+	{
+		if (chainHops != null)
+		{
+			for (Teleport hop : chainHops)
+			{
+				if (hop.consumesItems())
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		return consumable || type == TeleportType.SPELL || viaPoh;
+	}
+
 	public boolean originInPoh()
 	{
 		return isInPoh(origin);

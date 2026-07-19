@@ -246,8 +246,12 @@ public class RunItemsService
 		// the same tablet used standalone on one leg and inside a multi-hop
 		// chain on another must merge into one row with a summed quantity.
 		// The shortest label seen wins (a chain's joined display is longest).
+		// Consuming uses (runes, tablets, fares) sum across legs; reusable
+		// items (the refillable ectophial, capes) count once however many
+		// legs ride them.
 		Map<String, TeleportItemRequirement> byKey = new LinkedHashMap<>();
-		Map<String, Integer> totals = new LinkedHashMap<>();
+		Map<String, Integer> consumedTotals = new LinkedHashMap<>();
+		Map<String, Integer> reusableMax = new LinkedHashMap<>();
 		Map<String, String> labels = new LinkedHashMap<>();
 		for (RoutePlanner.Leg leg : runOrderService.legs())
 		{
@@ -255,16 +259,27 @@ public class RunItemsService
 			{
 				continue;
 			}
+			boolean consumes = leg.teleport().consumesItems();
 			for (TeleportItemRequirement req : leg.teleport().items())
 			{
 				String key = java.util.Arrays.toString(req.itemIds())
 					+ "|" + java.util.Arrays.toString(req.staffIds());
 				byKey.putIfAbsent(key, req);
-				totals.merge(key, req.quantity(), Integer::sum);
+				if (consumes)
+				{
+					consumedTotals.merge(key, req.quantity(), Integer::sum);
+				}
+				else
+				{
+					reusableMax.merge(key, req.quantity(), Integer::max);
+				}
 				labels.merge(key, displayNameFor(req, leg.teleport()),
 					(a, b) -> a.length() <= b.length() ? a : b);
 			}
 		}
+		Map<String, Integer> totals = new LinkedHashMap<>();
+		byKey.keySet().forEach(key -> totals.put(key,
+			consumedTotals.getOrDefault(key, 0) + reusableMax.getOrDefault(key, 0)));
 		for (Map.Entry<String, Integer> e : totals.entrySet())
 		{
 			TeleportItemRequirement req = byKey.get(e.getKey());

@@ -178,6 +178,9 @@ public class BetterFarmingPlugin extends Plugin
 				PatchGroup g = groupsByKey.get(stop.groupKey());
 				return g == null ? StopProgress.UNKNOWN : patchStateService.groupProgress(g.patches());
 			});
+		// Going off-plan (own teleport to a later stop) re-plans the rest of
+		// the route from wherever the player actually is.
+		guidanceService.setOnDeviation(runOrderService::replan);
 		plantingGuide = new PlantingGuide(groups, data.seeds(), selectionService,
 			patchStateService, guidanceService, clientLevelSource);
 		// PlantingGuide polls per GameTick, but EventBus delivery order vs

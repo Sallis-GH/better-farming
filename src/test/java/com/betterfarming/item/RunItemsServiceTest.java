@@ -317,6 +317,80 @@ public class RunItemsServiceTest
 	}
 
 	@Test
+	public void reusableTeleportItemCountsOnceAcrossLegs()
+	{
+		// Two island stops, each reachable only by a chain that starts with
+		// the refillable ectophial: the run needs ONE ectophial, not two.
+		com.betterfarming.data.FarmingData islands = new com.betterfarming.data.FarmingData(
+			List.of(
+				new com.betterfarming.data.Patch("island_a", "Island A herb", PatchType.HERB,
+					"Island A", null, new WorldPoint(2000, 2000, 0), List.of()),
+				new com.betterfarming.data.Patch("island_b", "Island B herb", PatchType.HERB,
+					"Island B", null, new WorldPoint(2600, 2000, 0), List.of())),
+			List.of());
+		WorldPoint port = new WorldPoint(3660, 3522, 0);
+		com.betterfarming.travel.Teleport ecto = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.ITEM, null, port, 4, "Ectophial",
+			java.util.Map.of(), Set.of(), Set.of(),
+			List.of(new com.betterfarming.travel.TeleportItemRequirement(
+				new int[]{4251, 4252}, new int[0], new int[0], 1, "Ectophial")),
+			false, null, false);
+		com.betterfarming.travel.Teleport shipA = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SHIP,
+			new WorldPoint(3662, 3524, 0), new WorldPoint(2002, 2002, 0), 6, "Ship to A",
+			java.util.Map.of(), Set.of(), Set.of(), java.util.Collections.emptyList(),
+			false, null, false);
+		com.betterfarming.travel.Teleport shipB = new com.betterfarming.travel.Teleport(
+			com.betterfarming.travel.TeleportType.SHIP,
+			new WorldPoint(3664, 3520, 0), new WorldPoint(2602, 2002, 0), 6, "Ship to B",
+			java.util.Map.of(), Set.of(), Set.of(), java.util.Collections.emptyList(),
+			false, null, false);
+
+		com.betterfarming.state.PatchSelectionService islandSelection =
+			new com.betterfarming.state.PatchSelectionService(
+				new com.betterfarming.testsupport.FakeConfigStore(), islands);
+		com.betterfarming.ui.PatchAccessibilityService islandAccess =
+			new com.betterfarming.ui.PatchAccessibilityService(client, islands,
+				new com.betterfarming.data.requirement.RequirementEvaluator());
+		islandAccess.refresh();
+		tracker.updateContainer(ItemTracker.CONTAINER_BANK, new Item[]{new Item(4251, 1)});
+		com.betterfarming.travel.TeleportAvailabilityService teleports =
+			new com.betterfarming.travel.TeleportAvailabilityService(
+				List.of(ecto, shipA, shipB), client, tracker, config);
+		client.setPlayerPosition(new WorldPoint(3222, 3218, 0));
+		teleports.refresh();
+		com.betterfarming.travel.RunOrderService runOrder =
+			new com.betterfarming.travel.RunOrderService(islands, islandSelection, islandAccess,
+				teleports, client, config, Runnable::run);
+		RunItemsService islandItems = new RunItemsService(islands, islandSelection, islandAccess,
+			tracker, new PlayerUnlocks(client), config);
+		islandItems.wire();
+		islandItems.setRunOrderService(runOrder);
+
+		islandSelection.setGroupActive("HERB|Island A", true);
+		islandSelection.setGroupActive("HERB|Island B", true);
+		runOrder.recompute();
+		islandItems.recompute();
+
+		// Both legs chain through the ectophial.
+		int ectoLegs = 0;
+		for (com.betterfarming.travel.RoutePlanner.Leg leg : runOrder.legs())
+		{
+			assertTrue(leg.teleport() != null);
+			if (leg.teleport().displayLabel().contains("Ectophial"))
+			{
+				ectoLegs++;
+			}
+		}
+		assertEquals(2, ectoLegs);
+
+		RunItem ectoRow = islandItems.items().stream()
+			.filter(i -> i.displayName().contains("Ectophial"))
+			.findFirst().orElseThrow();
+		assertEquals("refillable: one is enough for the whole run", 1, ectoRow.quantity());
+	}
+
+	@Test
 	public void deactivatingGroup_dropsItsRows()
 	{
 		selection.setGroupActive("HERB|Falador", true);

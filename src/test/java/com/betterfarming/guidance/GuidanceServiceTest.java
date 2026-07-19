@@ -374,6 +374,40 @@ public class GuidanceServiceTest
 	}
 
 	@Test
+	public void arrivingAtALaterUnknownStopChecksItOffAndFiresReplan()
+	{
+		AtomicInteger replans = new AtomicInteger();
+		service.setOnDeviation(replans::incrementAndGet);
+		service.update();
+
+		// Player uses their own teleport straight to Ardougne (leg 3).
+		client.setPlayerPosition(ARDOUGNE);
+		service.update();
+		assertEquals(Arrays.asList(FALADOR, CATHERBY), service.remainingTargets());
+		assertEquals("route re-plans from where the player actually is", 1, replans.get());
+
+		service.update();
+		assertEquals("throttled to once per stop", 1, replans.get());
+	}
+
+	@Test
+	public void arrivingAtALaterIncompleteStopMakesItCurrent()
+	{
+		GuidanceService s = stateAwareService();
+		AtomicInteger replans = new AtomicInteger();
+		s.setOnDeviation(replans::incrementAndGet);
+		progress.put("ardougne", StopProgress.INCOMPLETE);
+		s.update();
+		assertEquals("falador", s.currentLeg().stop().groupKey());
+
+		// Player turns up at Ardougne with work to do there: guide it now.
+		client.setPlayerPosition(ARDOUGNE);
+		s.update();
+		assertEquals("ardougne", s.currentLeg().stop().groupKey());
+		assertEquals(1, replans.get());
+	}
+
+	@Test
 	public void remoteCompletionChecksOffOutOfOrderStops()
 	{
 		GuidanceService s = stateAwareService();
