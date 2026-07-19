@@ -156,6 +156,55 @@ public class RoutePlannerTest
 	}
 
 	@Test
+	public void equalCostTeleports_preferFewerInventorySlots()
+	{
+		WorldPoint dest = new WorldPoint(3213, 3424, 0);
+		RoutePlanner.Stop target = stop("varrock", 3210, 3420);
+		// Spell: three rune stacks. Tab: one stackable slot. Same destination
+		// and duration → the tab must win regardless of list order.
+		Teleport spell = new Teleport(TeleportType.SPELL, null, dest, 4,
+			"Varrock Teleport", Map.of(), Set.of(), Set.of(),
+			List.of(
+				new TeleportItemRequirement(new int[]{556}, new int[0], new int[0], 3, "Air rune"),
+				new TeleportItemRequirement(new int[]{554}, new int[0], new int[0], 1, "Fire rune"),
+				new TeleportItemRequirement(new int[]{563}, new int[0], new int[0], 1, "Law rune")),
+			false, null, false);
+		Teleport tab = new Teleport(TeleportType.ITEM, null, dest, 4,
+			"Varrock tablet", Map.of(), Set.of(), Set.of(),
+			List.of(new TeleportItemRequirement(new int[]{8007}, new int[0], new int[0], 1, "Item 8007")),
+			true, null, false);
+
+		List<RoutePlanner.Leg> spellFirst = RoutePlanner.plan(
+			new WorldPoint(3000, 3000, 0), List.of(target), List.of(spell, tab));
+		assertEquals("Varrock tablet", spellFirst.get(0).teleport().displayInfo());
+
+		List<RoutePlanner.Leg> tabFirst = RoutePlanner.plan(
+			new WorldPoint(3000, 3000, 0), List.of(target), List.of(tab, spell));
+		assertEquals("Varrock tablet", tabFirst.get(0).teleport().displayInfo());
+	}
+
+	@Test
+	public void clearlyFasterTeleport_beatsSmallerFootprint()
+	{
+		RoutePlanner.Stop target = stop("target", 2800, 3400);
+		Teleport fastSpell = new Teleport(TeleportType.SPELL, null,
+			new WorldPoint(2801, 3400, 0), 4, "On-target Spell", Map.of(), Set.of(), Set.of(),
+			List.of(
+				new TeleportItemRequirement(new int[]{556}, new int[0], new int[0], 3, "Air rune"),
+				new TeleportItemRequirement(new int[]{563}, new int[0], new int[0], 1, "Law rune")),
+			false, null, false);
+		Teleport farTab = new Teleport(TeleportType.ITEM, null,
+			new WorldPoint(2801, 3440, 0), 4, "Far tablet", Map.of(), Set.of(), Set.of(),
+			List.of(new TeleportItemRequirement(new int[]{8007}, new int[0], new int[0], 1, "Item 8007")),
+			true, null, false);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3000, 3000, 0), List.of(target), List.of(farTab, fastSpell));
+		assertEquals("40 tiles of extra walking is no tie", "On-target Spell",
+			legs.get(0).teleport().displayInfo());
+	}
+
+	@Test
 	public void walkTicks_impossibleBeyondCap()
 	{
 		assertTrue(RoutePlanner.walkTicks(
