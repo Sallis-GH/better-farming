@@ -105,13 +105,15 @@ public interface BetterFarmingConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "showWorldMapRoute",
-		name = "World map route lines",
-		description = "Lines on the world map connecting the remaining stops in run order.",
+		keyName = "showPlantingHighlights",
+		name = "Planting highlights",
+		description = "At the patch: outline the patch to work on and highlight the seed or<br>"
+			+ "sapling (and rake) in your inventory; while travelling, highlight the<br>"
+			+ "teleport item for the current leg.",
 		section = guidanceSection,
 		position = 4
 	)
-	default boolean showWorldMapRoute()
+	default boolean showPlantingHighlights()
 	{
 		return true;
 	}

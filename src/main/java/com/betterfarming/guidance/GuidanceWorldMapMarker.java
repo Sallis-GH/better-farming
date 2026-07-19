@@ -2,34 +2,37 @@ package com.betterfarming.guidance;
 
 import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.travel.RoutePlanner;
-import java.awt.BasicStroke;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.ItemID;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.worldmap.WorldMapPoint;
 import net.runelite.client.ui.overlay.worldmap.WorldMapPointManager;
 
 /**
- * Owns the world-map destination marker for the current leg: a snap-to-edge,
- * jump-on-click WorldMapPoint that follows guidance state. update() is called
- * from the guidance listener fanout (client thread).
+ * Owns the world-map destination marker for the current leg: a watering-can
+ * icon (item sprite via ItemManager, ~36x32 px so it reads at a glance) that
+ * snaps to the map edge when off-view and jumps the map to the patch when
+ * clicked. update() is called from the guidance listener fanout (client
+ * thread).
  */
 public class GuidanceWorldMapMarker
 {
 	private final WorldMapPointManager manager;
 	private final BetterFarmingConfig config;
 	private final GuidanceService guidance;
-	private final BufferedImage icon = buildIcon();
+	private final ItemManager itemManager;
 
 	private WorldMapPoint point;
+	private BufferedImage icon;
 
 	public GuidanceWorldMapMarker(WorldMapPointManager manager, BetterFarmingConfig config,
-		GuidanceService guidance)
+		GuidanceService guidance, ItemManager itemManager)
 	{
 		this.manager = manager;
 		this.config = config;
 		this.guidance = guidance;
+		this.itemManager = itemManager;
 	}
 
 	public void update()
@@ -46,6 +49,12 @@ public class GuidanceWorldMapMarker
 			return;
 		}
 		remove();
+		if (icon == null)
+		{
+			// AsyncBufferedImage: may paint a frame or two late while the
+			// sprite loads; the WorldMapPoint keeps the reference and fills in.
+			icon = itemManager.getImage(ItemID.WATERING_CAN_8);
+		}
 		point = new WorldMapPoint(target, icon);
 		point.setName("Better Farming: next patch");
 		point.setSnapToEdge(true);
@@ -60,20 +69,5 @@ public class GuidanceWorldMapMarker
 			manager.remove(point);
 			point = null;
 		}
-	}
-
-	/** Simple dot marker so no image resource is needed. */
-	private static BufferedImage buildIcon()
-	{
-		BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = img.createGraphics();
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setColor(java.awt.Color.BLACK);
-		g.fillOval(2, 2, 12, 12);
-		g.setColor(WorldArrowOverlay.ARROW_COLOR);
-		g.setStroke(new BasicStroke(1));
-		g.fillOval(4, 4, 8, 8);
-		g.dispose();
-		return img;
 	}
 }

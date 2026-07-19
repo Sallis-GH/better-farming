@@ -8,13 +8,18 @@ import com.betterfarming.state.PatchSelectionService;
 import com.betterfarming.ui.ClientLevelSource;
 import com.betterfarming.ui.PatchAccessibilityEvent;
 import com.betterfarming.ui.PatchAccessibilityService;
+import com.betterfarming.data.Patch;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
 
@@ -47,20 +52,29 @@ public class RunOrderService
 	private final ClientLevelSource client;
 	private final BetterFarmingConfig config;
 	private final Consumer<Runnable> clientThreadExecutor;
+	private final Predicate<Patch> needsVisit;
 
 	private final Set<Runnable> listeners = new LinkedHashSet<>();
 	// volatile: written on the client thread, read from the EDT (run items).
 	private volatile List<RoutePlanner.Leg> current = Collections.emptyList();
 	private boolean recomputeQueued = false;
 
+	/**
+	 * Group keys in planned order, pinned for the duration of a run: once a
+	 * route is planned, recomputes that merely shrink the stop set (a stop
+	 * completed, a patch turned out to be growing) keep the remaining stops
+	 * in their planned sequence instead of re-solving the TSP from wherever
+	 * the player happens to stand — a mid-run reshuffle makes "next stop"
+	 * impossible to follow. A grown stop set (selection change) or replan()
+	 * re-plans from scratch. Client thread only.
+	 */
+	private List<String> pinnedOrder;
+
 	private final Consumer<GroupActiveEvent> groupListener = e -> recompute();
 	private final Consumer<PatchAccessibilityEvent> accessibilityListener = e -> recompute();
 	private final Runnable teleportListener = this::recompute;
 
-	/**
-	 * @param clientThreadExecutor marshals work onto the client thread
-	 *     (ClientThread::invokeLater in production, Runnable::run in tests).
-	 */
+	/** Convenience: no crop-state filtering — every active group is routed. */
 	public RunOrderService(FarmingData data,
 		PatchSelectionService selectionService,
 		PatchAccessibilityService accessibilityService,
@@ -69,6 +83,26 @@ public class RunOrderService
 		BetterFarmingConfig config,
 		Consumer<Runnable> clientThreadExecutor)
 	{
+		this(data, selectionService, accessibilityService, teleportService, client, config,
+			clientThreadExecutor, p -> true);
+	}
+
+	/**
+	 * @param clientThreadExecutor marshals work onto the client thread
+	 *     (ClientThread::invokeLater in production, Runnable::run in tests).
+	 * @param needsVisit filters patches worth routing to (crop-state based in
+	 *     production: skip patches confirmed still growing; p -&gt; true keeps
+	 *     everything).
+	 */
+	public RunOrderService(FarmingData data,
+		PatchSelectionService selectionService,
+		PatchAccessibilityService accessibilityService,
+		TeleportAvailabilityService teleportService,
+		ClientLevelSource client,
+		BetterFarmingConfig config,
+		Consumer<Runnable> clientThreadExecutor,
+		Predicate<Patch> needsVisit)
+	{
 		this.data = data;
 		this.selectionService = selectionService;
 		this.accessibilityService = accessibilityService;
@@ -76,6 +110,7 @@ public class RunOrderService
 		this.client = client;
 		this.config = config;
 		this.clientThreadExecutor = clientThreadExecutor;
+		this.needsVisit = needsVisit;
 		recompute();
 	}
 
@@ -100,6 +135,13 @@ public class RunOrderService
 
 	public void addListener(Runnable l)    { listeners.add(l); }
 	public void removeListener(Runnable l) { listeners.remove(l); }
+
+	/** Drops the pinned order and re-plans from the player's position. */
+	public void replan()
+	{
+		clientThreadExecutor.accept(() -> pinnedOrder = null);
+		recompute();
+	}
 
 	/** Schedule a re-plan on the client thread; back-to-back calls coalesce. */
 	public void recompute()
@@ -149,19 +191,57 @@ public class RunOrderService
 		{
 			return Collections.emptyList();
 		}
-		List<RoutePlanner.Stop> stops = new ArrayList<>();
+		List<RoutePlanner.Stop> activeStops = new ArrayList<>();
+		List<RoutePlanner.Stop> worthVisiting = new ArrayList<>();
 		for (PatchGroup g : PatchGroup.groupAll(data.patches()))
 		{
-			if (accessibilityService.effectiveActive(g.key(), selectionService))
+			if (!accessibilityService.effectiveActive(g.key(), selectionService))
 			{
-				// Group members share a location; the first patch's tile stands
-				// in for the whole group.
-				stops.add(new RoutePlanner.Stop(g.key(),
-					g.location(), g.patches().get(0).worldPoint()));
+				continue;
+			}
+			// Group members share a location; the first patch's tile stands
+			// in for the whole group.
+			RoutePlanner.Stop stop = new RoutePlanner.Stop(g.key(),
+				g.location(), g.patches().get(0).worldPoint());
+			activeStops.add(stop);
+			if (g.patches().stream().anyMatch(needsVisit))
+			{
+				worthVisiting.add(stop);
 			}
 		}
-		return RoutePlanner.plan(start, stops, teleportService.available(),
-			config.preferPohTeleports() ? POH_PREFERENCE_TICKS : 0);
+		List<Teleport> teleports = teleportService.available();
+		int bias = config.preferPohTeleports() ? POH_PREFERENCE_TICKS : 0;
+
+		Set<String> activeKeys = activeStops.stream().map(RoutePlanner.Stop::groupKey)
+			.collect(Collectors.toSet());
+		if (pinnedOrder != null && new HashSet<>(pinnedOrder).containsAll(activeKeys))
+		{
+			// Mid-run: keep the planned sequence, and keep stops that became
+			// complete — guidance checks them off and the run counter stays
+			// honest. The crop-state filter applies at plan time only.
+			Map<String, RoutePlanner.Stop> byKey = activeStops.stream()
+				.collect(Collectors.toMap(RoutePlanner.Stop::groupKey, s -> s));
+			List<RoutePlanner.Stop> ordered = new ArrayList<>();
+			for (String key : pinnedOrder)
+			{
+				RoutePlanner.Stop s = byKey.get(key);
+				if (s != null)
+				{
+					ordered.add(s);
+				}
+			}
+			return RoutePlanner.planFixedOrder(start, ordered, teleports, bias);
+		}
+
+		// New run plan: route only patches that are empty, harvestable, or of
+		// unknown state — confirmed-growing patches are not worth a stop.
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(start, worthVisiting, teleports, bias);
+		pinnedOrder = new ArrayList<>();
+		for (RoutePlanner.Leg leg : legs)
+		{
+			pinnedOrder.add(leg.stop().groupKey());
+		}
+		return legs;
 	}
 
 	/**

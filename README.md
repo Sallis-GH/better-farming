@@ -14,9 +14,9 @@ This is a work-in-progress hobby project.
 | 2 | Equipment manager: run-items list (tools, seeds/saplings, payments) with on-player / in-bank / missing states | done |
 | 2.5 | Farming bank tab: withdraw run items from a dedicated bank side-tab | done |
 | 3 | Optimal run routing from unlocked teleports (transport data + availability checks) | done |
-| 4 | Guidance between patches: world/minimap arrows, world-map marker + route, travel hints, Shortest Path integration | done |
-| 5 | Per-patch step guidance (rake → plant → harvest state machine) & click highlights at patches | planned |
-| 6+ | Polish: compost/protection tracking, agility shortcuts, diary boosts | planned |
+| 4 | Guidance between patches: world/minimap arrows, world-map marker, travel hints, Shortest Path integration | done |
+| 5 | Per-patch crop state (farming varbits + Time Tracking data): plant/harvest highlights, state-based leg completion, growing patches skipped at plan time, pinned run order | done |
+| 6+ | Polish: compost/protection tracking, player-grown spirit trees as teleports, agility shortcuts, diary boosts | planned |
 
 ## Sideload (development)
 

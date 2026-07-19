@@ -33,6 +33,13 @@ public class WorldArrowOverlay extends Overlay
 	/** Distance from the viewport border for the off-screen direction hint. */
 	private static final int EDGE_MARGIN = 60;
 
+	/**
+	 * Beyond this distance the edge-clamped hint is suppressed: pointing "that
+	 * way" across half the map reads as noise — the minimap arrow, world map
+	 * marker and travel hint carry the leg until the player is close.
+	 */
+	private static final int EDGE_HINT_MAX_TILES = 100;
+
 	private final Client runeliteClient;
 	private final BetterFarmingConfig config;
 	private final GuidanceService guidance;
@@ -103,6 +110,10 @@ public class WorldArrowOverlay extends Overlay
 		int dx = target.getX() - playerWp.getX();
 		int dy = target.getY() - playerWp.getY();
 		if (dx == 0 && dy == 0)
+		{
+			return;
+		}
+		if (Math.max(Math.abs(dx), Math.abs(dy)) > EDGE_HINT_MAX_TILES)
 		{
 			return;
 		}

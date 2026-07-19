@@ -5,8 +5,20 @@
     "type": "ALLOTMENT",
     "location": "South of Falador",
     "subPatchLabel": "NW",
-    "worldPoint": { "x": 3054, "y": 3310, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3054,
+      "y": 3310,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12083,
+    "stateRegionIds": [
+      12083
+    ],
+    "stateBounds": {
+      "minY": 3272
+    }
   },
   {
     "id": "falador_allotment_south_east",
@@ -14,8 +26,20 @@
     "type": "ALLOTMENT",
     "location": "South of Falador",
     "subPatchLabel": "SE",
-    "worldPoint": { "x": 3058, "y": 3305, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3058,
+      "y": 3305,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 12083,
+    "stateRegionIds": [
+      12083
+    ],
+    "stateBounds": {
+      "minY": 3272
+    }
   },
   {
     "id": "morytania_allotment_north_west",
@@ -23,8 +47,18 @@
     "type": "ALLOTMENT",
     "location": "West of Port Phasmatys",
     "subPatchLabel": "NW",
-    "worldPoint": { "x": 3599, "y": 3528, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3599,
+      "y": 3528,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 14391,
+    "stateRegionIds": [
+      14391,
+      14390
+    ]
   },
   {
     "id": "morytania_allotment_south_east",
@@ -32,8 +66,18 @@
     "type": "ALLOTMENT",
     "location": "West of Port Phasmatys",
     "subPatchLabel": "SE",
-    "worldPoint": { "x": 3604, "y": 3523, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3604,
+      "y": 3523,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 14391,
+    "stateRegionIds": [
+      14391,
+      14390
+    ]
   },
   {
     "id": "catherby_allotment_north",
@@ -41,8 +85,25 @@
     "type": "ALLOTMENT",
     "location": "Catherby",
     "subPatchLabel": "N",
-    "worldPoint": { "x": 2808, "y": 3467, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2808,
+      "y": 3467,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11062,
+    "stateRegionIds": [
+      11062,
+      11061,
+      11318,
+      11317
+    ],
+    "stateBounds": {
+      "maxX": 2839,
+      "minY": 3440,
+      "plane": 0
+    }
   },
   {
     "id": "catherby_allotment_south",
@@ -50,8 +111,25 @@
     "type": "ALLOTMENT",
     "location": "Catherby",
     "subPatchLabel": "S",
-    "worldPoint": { "x": 2812, "y": 3461, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2812,
+      "y": 3461,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 11062,
+    "stateRegionIds": [
+      11062,
+      11061,
+      11318,
+      11317
+    ],
+    "stateBounds": {
+      "maxX": 2839,
+      "minY": 3440,
+      "plane": 0
+    }
   },
   {
     "id": "ardougne_allotment_north",
@@ -59,8 +137,17 @@
     "type": "ALLOTMENT",
     "location": "North of Ardougne",
     "subPatchLabel": "N",
-    "worldPoint": { "x": 2664, "y": 3378, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2664,
+      "y": 3378,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 10548,
+    "stateRegionIds": [
+      10548
+    ]
   },
   {
     "id": "ardougne_allotment_south",
@@ -68,8 +155,17 @@
     "type": "ALLOTMENT",
     "location": "North of Ardougne",
     "subPatchLabel": "S",
-    "worldPoint": { "x": 2669, "y": 3372, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2669,
+      "y": 3372,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 10548,
+    "stateRegionIds": [
+      10548
+    ]
   },
   {
     "id": "hosidius_allotment_north_east",
@@ -77,8 +173,18 @@
     "type": "ALLOTMENT",
     "location": "South-west Hosidius",
     "subPatchLabel": "NE",
-    "worldPoint": { "x": 1737, "y": 3558, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1737,
+      "y": 3558,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 6967,
+    "stateRegionIds": [
+      6967,
+      6711
+    ]
   },
   {
     "id": "hosidius_allotment_south_west",
@@ -86,16 +192,35 @@
     "type": "ALLOTMENT",
     "location": "South-west Hosidius",
     "subPatchLabel": "SW",
-    "worldPoint": { "x": 1732, "y": 3553, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1732,
+      "y": 3553,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 6967,
+    "stateRegionIds": [
+      6967,
+      6711
+    ]
   },
   {
     "id": "harmony_allotment",
     "displayName": "Harmony Island allotment patch",
     "type": "ALLOTMENT",
     "location": "Harmony Island",
-    "worldPoint": { "x": 3794, "y": 2836, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3794,
+      "y": 2836,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 15148,
+    "stateRegionIds": [
+      15148
+    ]
   },
   {
     "id": "farming_guild_allotment_north",
@@ -103,9 +228,30 @@
     "type": "ALLOTMENT",
     "location": "Farming Guild",
     "subPatchLabel": "N",
-    "worldPoint": { "x": 1268, "y": 3731, "plane": 0 },
+    "worldPoint": {
+      "x": 1268,
+      "y": 3731,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 45 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 45
+      }
+    ],
+    "stateVarbitId": 4773,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -114,9 +260,30 @@
     "type": "ALLOTMENT",
     "location": "Farming Guild",
     "subPatchLabel": "S",
-    "worldPoint": { "x": 1262, "y": 3726, "plane": 0 },
+    "worldPoint": {
+      "x": 1262,
+      "y": 3726,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 45 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 45
+      }
+    ],
+    "stateVarbitId": 4774,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -125,9 +292,32 @@
     "type": "ALLOTMENT",
     "location": "Prifddinas",
     "subPatchLabel": "N",
-    "worldPoint": { "x": 3291, "y": 6103, "plane": 0 },
+    "worldPoint": {
+      "x": 3291,
+      "y": 6103,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "SONG_OF_THE_ELVES", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "SONG_OF_THE_ELVES",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 13151,
+    "stateRegionIds": [
+      13151,
+      12895,
+      12894,
+      13150,
+      12994,
+      12993,
+      12737,
+      12738,
+      12126,
+      12127,
+      13250
     ]
   },
   {
@@ -136,9 +326,32 @@
     "type": "ALLOTMENT",
     "location": "Prifddinas",
     "subPatchLabel": "S",
-    "worldPoint": { "x": 3291, "y": 6097, "plane": 0 },
+    "worldPoint": {
+      "x": 3291,
+      "y": 6097,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "SONG_OF_THE_ELVES", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "SONG_OF_THE_ELVES",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4772,
+    "stateRegionId": 13151,
+    "stateRegionIds": [
+      13151,
+      12895,
+      12894,
+      13150,
+      12994,
+      12993,
+      12737,
+      12738,
+      12126,
+      12127,
+      13250
     ]
   },
   {
@@ -147,8 +360,22 @@
     "type": "ALLOTMENT",
     "location": "West of Civitas illa Fortis",
     "subPatchLabel": "N",
-    "worldPoint": { "x": 1586, "y": 3102, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1586,
+      "y": 3102,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 6192,
+    "stateRegionIds": [
+      6192,
+      6447,
+      6448,
+      6449,
+      6191,
+      6193
+    ]
   },
   {
     "id": "civitas_allotment_south",
@@ -156,57 +383,150 @@
     "type": "ALLOTMENT",
     "location": "West of Civitas illa Fortis",
     "subPatchLabel": "S",
-    "worldPoint": { "x": 1586, "y": 3096, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1586,
+      "y": 3096,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 6192,
+    "stateRegionIds": [
+      6192,
+      6447,
+      6448,
+      6449,
+      6191,
+      6193
+    ]
   },
   {
     "id": "falador_flower",
     "displayName": "Falador flower patch",
     "type": "FLOWER",
     "location": "South of Falador",
-    "worldPoint": { "x": 3062, "y": 3309, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3062,
+      "y": 3309,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 12083,
+    "stateRegionIds": [
+      12083
+    ],
+    "stateBounds": {
+      "minY": 3272
+    }
   },
   {
     "id": "morytania_flower",
     "displayName": "Morytania flower patch",
     "type": "FLOWER",
     "location": "West of Port Phasmatys",
-    "worldPoint": { "x": 3609, "y": 3525, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3609,
+      "y": 3525,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 14391,
+    "stateRegionIds": [
+      14391,
+      14390
+    ]
   },
   {
     "id": "catherby_flower",
     "displayName": "Catherby flower patch",
     "type": "FLOWER",
     "location": "Catherby",
-    "worldPoint": { "x": 2816, "y": 3464, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2816,
+      "y": 3464,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 11062,
+    "stateRegionIds": [
+      11062,
+      11061,
+      11318,
+      11317
+    ],
+    "stateBounds": {
+      "maxX": 2839,
+      "minY": 3440,
+      "plane": 0
+    }
   },
   {
     "id": "ardougne_flower",
     "displayName": "Ardougne flower patch",
     "type": "FLOWER",
     "location": "North of Ardougne",
-    "worldPoint": { "x": 2674, "y": 3375, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2674,
+      "y": 3375,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 10548,
+    "stateRegionIds": [
+      10548
+    ]
   },
   {
     "id": "hosidius_flower",
     "displayName": "Hosidius flower patch",
     "type": "FLOWER",
     "location": "South-west Hosidius",
-    "worldPoint": { "x": 1742, "y": 3555, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1742,
+      "y": 3555,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 6967,
+    "stateRegionIds": [
+      6967,
+      6711
+    ]
   },
   {
     "id": "farming_guild_flower",
     "displayName": "Farming Guild flower patch",
     "type": "FLOWER",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1275, "y": 3731, "plane": 0 },
+    "worldPoint": {
+      "x": 1275,
+      "y": 3731,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 45 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 45
+      }
+    ],
+    "stateVarbitId": 7906,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -214,9 +534,32 @@
     "displayName": "Prifddinas flower patch",
     "type": "FLOWER",
     "location": "Prifddinas",
-    "worldPoint": { "x": 3298, "y": 6100, "plane": 0 },
+    "worldPoint": {
+      "x": 3298,
+      "y": 6100,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "SONG_OF_THE_ELVES", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "SONG_OF_THE_ELVES",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4773,
+    "stateRegionId": 13151,
+    "stateRegionIds": [
+      13151,
+      12895,
+      12894,
+      13150,
+      12994,
+      12993,
+      12737,
+      12738,
+      12126,
+      12127,
+      13250
     ]
   },
   {
@@ -224,65 +567,161 @@
     "displayName": "Civitas illa Fortis flower patch",
     "type": "FLOWER",
     "location": "West of Civitas illa Fortis",
-    "worldPoint": { "x": 1593, "y": 3099, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1593,
+      "y": 3099,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 6192,
+    "stateRegionIds": [
+      6192,
+      6447,
+      6448,
+      6449,
+      6191,
+      6193
+    ]
   },
   {
     "id": "kastori_flower",
     "displayName": "Kastori flower patch",
     "type": "FLOWER",
     "location": "Kastori, Varlamore",
-    "worldPoint": { "x": 1353, "y": 3023, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1353,
+      "y": 3023,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 5423,
+    "stateRegionIds": [
+      5423,
+      5167,
+      5424
+    ]
   },
   {
     "id": "falador_herb",
     "displayName": "Falador herb patch",
     "type": "HERB",
     "location": "South of Falador",
-    "worldPoint": { "x": 3058, "y": 3311, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3058,
+      "y": 3311,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4774,
+    "stateRegionId": 12083,
+    "stateRegionIds": [
+      12083
+    ],
+    "stateBounds": {
+      "minY": 3272
+    }
   },
   {
     "id": "morytania_herb",
     "displayName": "Morytania herb patch",
     "type": "HERB",
     "location": "West of Port Phasmatys",
-    "worldPoint": { "x": 3605, "y": 3528, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3605,
+      "y": 3528,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4774,
+    "stateRegionId": 14391,
+    "stateRegionIds": [
+      14391,
+      14390
+    ]
   },
   {
     "id": "catherby_herb",
     "displayName": "Catherby herb patch",
     "type": "HERB",
     "location": "Catherby",
-    "worldPoint": { "x": 2813, "y": 3464, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2813,
+      "y": 3464,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4774,
+    "stateRegionId": 11062,
+    "stateRegionIds": [
+      11062,
+      11061,
+      11318,
+      11317
+    ],
+    "stateBounds": {
+      "maxX": 2839,
+      "minY": 3440,
+      "plane": 0
+    }
   },
   {
     "id": "ardougne_herb",
     "displayName": "Ardougne herb patch",
     "type": "HERB",
     "location": "North of Ardougne",
-    "worldPoint": { "x": 2670, "y": 3378, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2670,
+      "y": 3378,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4774,
+    "stateRegionId": 10548,
+    "stateRegionIds": [
+      10548
+    ]
   },
   {
     "id": "hosidius_herb",
     "displayName": "Hosidius herb patch",
     "type": "HERB",
     "location": "South-west Hosidius",
-    "worldPoint": { "x": 1737, "y": 3555, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1737,
+      "y": 3555,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4774,
+    "stateRegionId": 6967,
+    "stateRegionIds": [
+      6967,
+      6711
+    ]
   },
   {
     "id": "troll_stronghold_herb",
     "displayName": "Troll Stronghold herb patch",
     "type": "HERB",
     "location": "Troll Stronghold rooftop",
-    "worldPoint": { "x": 2828, "y": 3696, "plane": 0 },
+    "worldPoint": {
+      "x": 2828,
+      "y": 3696,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "MY_ARMS_BIG_ADVENTURE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "MY_ARMS_BIG_ADVENTURE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11321,
+    "stateRegionIds": [
+      11321
     ]
   },
   {
@@ -290,17 +729,39 @@
     "displayName": "Harmony Island herb patch",
     "type": "HERB",
     "location": "Harmony Island",
-    "worldPoint": { "x": 3790, "y": 2838, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3790,
+      "y": 2838,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 15148,
+    "stateRegionIds": [
+      15148
+    ]
   },
   {
     "id": "weiss_herb",
     "displayName": "Weiss herb patch",
     "type": "HERB",
     "location": "Weiss",
-    "worldPoint": { "x": 2847, "y": 3933, "plane": 0 },
+    "worldPoint": {
+      "x": 2847,
+      "y": 3933,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "MAKING_FRIENDS_WITH_MY_ARM", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "MAKING_FRIENDS_WITH_MY_ARM",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11325,
+    "stateRegionIds": [
+      11325
     ]
   },
   {
@@ -308,9 +769,30 @@
     "displayName": "Farming Guild herb patch",
     "type": "HERB",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1239, "y": 3727, "plane": 0 },
+    "worldPoint": {
+      "x": 1239,
+      "y": 3727,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 65 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 65
+      }
+    ],
+    "stateVarbitId": 4775,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -318,81 +800,189 @@
     "displayName": "Civitas illa Fortis herb patch",
     "type": "HERB",
     "location": "West of Civitas illa Fortis",
-    "worldPoint": { "x": 1586, "y": 3099, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1586,
+      "y": 3099,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4774,
+    "stateRegionId": 6192,
+    "stateRegionIds": [
+      6192,
+      6447,
+      6448,
+      6449,
+      6191,
+      6193
+    ]
   },
   {
     "id": "lumbridge_hops",
     "displayName": "Lumbridge hops patch",
     "type": "HOPS",
     "location": "North of Lumbridge farm",
-    "worldPoint": { "x": 3229, "y": 3315, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3229,
+      "y": 3315,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12851,
+    "stateRegionIds": [
+      12851
+    ]
   },
   {
     "id": "mcgrubors_hops",
     "displayName": "McGrubor's Wood hops patch",
     "type": "HOPS",
     "location": "North of McGrubor's Wood",
-    "worldPoint": { "x": 2667, "y": 3526, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2667,
+      "y": 3526,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 10551,
+    "stateRegionIds": [
+      10551,
+      10550
+    ]
   },
   {
     "id": "yanille_hops",
     "displayName": "Yanille hops patch",
     "type": "HOPS",
     "location": "Yanille",
-    "worldPoint": { "x": 2576, "y": 3105, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2576,
+      "y": 3105,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 10288,
+    "stateRegionIds": [
+      10288
+    ]
   },
   {
     "id": "entrana_hops",
     "displayName": "Entrana hops patch",
     "type": "HOPS",
     "location": "Entrana",
-    "worldPoint": { "x": 2811, "y": 3337, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2811,
+      "y": 3337,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11060,
+    "stateRegionIds": [
+      11060,
+      11316
+    ]
   },
   {
     "id": "aldarin_hops",
     "displayName": "Aldarin hops patch",
     "type": "HOPS",
     "location": "Aldarin, Varlamore",
-    "worldPoint": { "x": 1365, "y": 2939, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1365,
+      "y": 2939,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 5421,
+    "stateRegionIds": [
+      5421,
+      5165,
+      5166,
+      5422,
+      5677,
+      5678
+    ]
   },
   {
     "id": "champions_guild_bush",
     "displayName": "Champions' Guild bush patch",
     "type": "BUSH",
     "location": "West of Champions' Guild",
-    "worldPoint": { "x": 3182, "y": 3358, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3182,
+      "y": 3358,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12596,
+    "stateRegionIds": [
+      12596
+    ]
   },
   {
     "id": "rimmington_bush",
     "displayName": "Rimmington bush patch",
     "type": "BUSH",
     "location": "Rimmington",
-    "worldPoint": { "x": 2941, "y": 3222, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2941,
+      "y": 3222,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11570,
+    "stateRegionIds": [
+      11570,
+      11826
+    ]
   },
   {
     "id": "ardougne_bush",
     "displayName": "Ardougne bush patch",
     "type": "BUSH",
     "location": "South of Ardougne",
-    "worldPoint": { "x": 2618, "y": 3226, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2618,
+      "y": 3226,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 10290,
+    "stateRegionIds": [
+      10290,
+      10546
+    ]
   },
   {
     "id": "etceteria_bush",
     "displayName": "Etceteria bush patch",
     "type": "BUSH",
     "location": "South-west Etceteria",
-    "worldPoint": { "x": 2592, "y": 3864, "plane": 0 },
+    "worldPoint": {
+      "x": 2592,
+      "y": 3864,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "THRONE_OF_MISCELLANIA", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "THRONE_OF_MISCELLANIA",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 10300,
+    "stateRegionIds": [
+      10300
     ]
   },
   {
@@ -400,9 +990,30 @@
     "displayName": "Farming Guild bush patch",
     "type": "BUSH",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1261, "y": 3734, "plane": 0 },
+    "worldPoint": {
+      "x": 1261,
+      "y": 3734,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 45 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 45
+      }
+    ],
+    "stateVarbitId": 4772,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -410,49 +1021,122 @@
     "displayName": "Lumbridge tree patch",
     "type": "TREE",
     "location": "West of Lumbridge Castle",
-    "worldPoint": { "x": 3193, "y": 3231, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3193,
+      "y": 3231,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12594,
+    "stateRegionIds": [
+      12594,
+      12850
+    ]
   },
   {
     "id": "varrock_tree",
     "displayName": "Varrock tree patch",
     "type": "TREE",
     "location": "Varrock Castle courtyard",
-    "worldPoint": { "x": 3229, "y": 3459, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3229,
+      "y": 3459,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12854,
+    "stateRegionIds": [
+      12854,
+      12853
+    ]
   },
   {
     "id": "falador_tree",
     "displayName": "Falador tree patch",
     "type": "TREE",
     "location": "Falador Park",
-    "worldPoint": { "x": 3004, "y": 3373, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3004,
+      "y": 3373,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11828,
+    "stateRegionIds": [
+      11828,
+      12084
+    ]
   },
   {
     "id": "taverley_tree",
     "displayName": "Taverley tree patch",
     "type": "TREE",
     "location": "Taverley",
-    "worldPoint": { "x": 2936, "y": 3438, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2936,
+      "y": 3438,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11573,
+    "stateRegionIds": [
+      11573,
+      11829
+    ]
   },
   {
     "id": "gnome_stronghold_tree",
     "displayName": "Gnome Stronghold tree patch",
     "type": "TREE",
     "location": "Tree Gnome Stronghold",
-    "worldPoint": { "x": 2436, "y": 3415, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2436,
+      "y": 3415,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 9781,
+    "stateRegionIds": [
+      9781,
+      9782,
+      9526,
+      9525
+    ]
   },
   {
     "id": "farming_guild_tree",
     "displayName": "Farming Guild tree patch",
     "type": "TREE",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1232, "y": 3736, "plane": 0 },
+    "worldPoint": {
+      "x": 1232,
+      "y": 3736,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 65 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 65
+      }
+    ],
+    "stateVarbitId": 7905,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -460,33 +1144,82 @@
     "displayName": "Nemus Retreat tree patch",
     "type": "TREE",
     "location": "Nemus Retreat, Varlamore",
-    "worldPoint": { "x": 1366, "y": 3321, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1366,
+      "y": 3321,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 5427,
+    "stateRegionIds": [
+      5427,
+      5428,
+      5684
+    ]
   },
   {
     "id": "gnome_stronghold_fruit_tree",
     "displayName": "Tree Gnome Stronghold fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "Tree Gnome Stronghold",
-    "worldPoint": { "x": 2476, "y": 3446, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2476,
+      "y": 3446,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 9781,
+    "stateRegionIds": [
+      9781,
+      9782,
+      9526,
+      9525
+    ]
   },
   {
     "id": "catherby_fruit_tree",
     "displayName": "Catherby fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "East of Catherby",
-    "worldPoint": { "x": 2861, "y": 3434, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2861,
+      "y": 3434,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11317,
+    "stateRegionIds": [
+      11317
+    ],
+    "stateBounds": {
+      "minX": 2840
+    }
   },
   {
     "id": "tree_gnome_village_fruit_tree",
     "displayName": "Tree Gnome Village fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "West of Tree Gnome maze",
-    "worldPoint": { "x": 2490, "y": 3180, "plane": 0 },
+    "worldPoint": {
+      "x": 2490,
+      "y": 3180,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "TREE_GNOME_VILLAGE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "TREE_GNOME_VILLAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 9777,
+    "stateRegionIds": [
+      9777,
+      10033
     ]
   },
   {
@@ -494,17 +1227,41 @@
     "displayName": "Brimhaven fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "North of Brimhaven",
-    "worldPoint": { "x": 2765, "y": 3213, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 2765,
+      "y": 3213,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11058,
+    "stateRegionIds": [
+      11058,
+      11057
+    ]
   },
   {
     "id": "lletya_fruit_tree",
     "displayName": "Lletya fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "Lletya",
-    "worldPoint": { "x": 2347, "y": 3162, "plane": 0 },
+    "worldPoint": {
+      "x": 2347,
+      "y": 3162,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "MOURNINGS_END_PART_I", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "MOURNINGS_END_PART_I",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 9265,
+    "stateRegionIds": [
+      9265,
+      11103
     ]
   },
   {
@@ -512,9 +1269,30 @@
     "displayName": "Farming Guild fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1243, "y": 3759, "plane": 0 },
+    "worldPoint": {
+      "x": 1243,
+      "y": 3759,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 85 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 85
+      }
+    ],
+    "stateVarbitId": 7909,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -522,8 +1300,19 @@
     "displayName": "Kastori fruit tree patch",
     "type": "FRUIT_TREE",
     "location": "Kastori, Varlamore",
-    "worldPoint": { "x": 1350, "y": 3057, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1350,
+      "y": 3057,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 5423,
+    "stateRegionIds": [
+      5423,
+      5167,
+      5424
+    ]
   },
   {
     "id": "fossil_island_hardwood_east",
@@ -531,10 +1320,34 @@
     "type": "HARDWOOD_TREE",
     "location": "Fossil Island mushroom forest",
     "subPatchLabel": "E",
-    "worldPoint": { "x": 3714, "y": 3837, "plane": 0 },
+    "worldPoint": {
+      "x": 3714,
+      "y": 3837,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
-    ]
+      {
+        "type": "QUEST",
+        "quest": "BONE_VOYAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 14651,
+    "stateRegionIds": [
+      14651,
+      14907,
+      14908,
+      15164,
+      14652,
+      14906,
+      14650,
+      15162,
+      15163
+    ],
+    "stateBounds": {
+      "plane": 0
+    }
   },
   {
     "id": "fossil_island_hardwood_middle",
@@ -542,10 +1355,34 @@
     "type": "HARDWOOD_TREE",
     "location": "Fossil Island mushroom forest",
     "subPatchLabel": "MID",
-    "worldPoint": { "x": 3707, "y": 3837, "plane": 0 },
+    "worldPoint": {
+      "x": 3707,
+      "y": 3837,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
-    ]
+      {
+        "type": "QUEST",
+        "quest": "BONE_VOYAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4772,
+    "stateRegionId": 14651,
+    "stateRegionIds": [
+      14651,
+      14907,
+      14908,
+      15164,
+      14652,
+      14906,
+      14650,
+      15162,
+      15163
+    ],
+    "stateBounds": {
+      "plane": 0
+    }
   },
   {
     "id": "fossil_island_hardwood_west",
@@ -553,19 +1390,57 @@
     "type": "HARDWOOD_TREE",
     "location": "Fossil Island mushroom forest",
     "subPatchLabel": "W",
-    "worldPoint": { "x": 3700, "y": 3837, "plane": 0 },
+    "worldPoint": {
+      "x": 3700,
+      "y": 3837,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
-    ]
+      {
+        "type": "QUEST",
+        "quest": "BONE_VOYAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4773,
+    "stateRegionId": 14651,
+    "stateRegionIds": [
+      14651,
+      14907,
+      14908,
+      15164,
+      14652,
+      14906,
+      14650,
+      15162,
+      15163
+    ],
+    "stateBounds": {
+      "plane": 0
+    }
   },
   {
     "id": "locus_oasis_hardwood",
     "displayName": "Locus Oasis hardwood tree patch",
     "type": "HARDWOOD_TREE",
     "location": "Locus Oasis, Varlamore",
-    "worldPoint": { "x": 1687, "y": 2972, "plane": 0 },
+    "worldPoint": {
+      "x": 1687,
+      "y": 2972,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "THE_RIBBITING_TALE_OF_A_LILY_PAD_LABOUR_DISPUTE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "THE_RIBBITING_TALE_OF_A_LILY_PAD_LABOUR_DISPUTE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 6702,
+    "stateRegionIds": [
+      6702,
+      6446
     ]
   },
   {
@@ -573,9 +1448,22 @@
     "displayName": "Anglers' Retreat hardwood tree patch",
     "type": "HARDWOOD_TREE",
     "location": "Anglers' Retreat",
-    "worldPoint": { "x": 2471, "y": 2703, "plane": 0 },
+    "worldPoint": {
+      "x": 2471,
+      "y": 2703,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 35 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 35
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 9770,
+    "stateRegionIds": [
+      9770
     ]
   },
   {
@@ -583,9 +1471,22 @@
     "displayName": "Etceteria spirit tree patch",
     "type": "SPIRIT_TREE",
     "location": "South-east Etceteria",
-    "worldPoint": { "x": 2613, "y": 3858, "plane": 0 },
+    "worldPoint": {
+      "x": 2613,
+      "y": 3858,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "TREE_GNOME_VILLAGE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "TREE_GNOME_VILLAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4772,
+    "stateRegionId": 10300,
+    "stateRegionIds": [
+      10300
     ]
   },
   {
@@ -593,19 +1494,50 @@
     "displayName": "Port Sarim spirit tree patch",
     "type": "SPIRIT_TREE",
     "location": "East of Port Sarim",
-    "worldPoint": { "x": 3060, "y": 3258, "plane": 0 },
+    "worldPoint": {
+      "x": 3060,
+      "y": 3258,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "TREE_GNOME_VILLAGE", "state": "FINISHED" }
-    ]
+      {
+        "type": "QUEST",
+        "quest": "TREE_GNOME_VILLAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12082,
+    "stateRegionIds": [
+      12082,
+      12083
+    ],
+    "stateBounds": {
+      "maxY": 3271
+    }
   },
   {
     "id": "brimhaven_spirit_tree",
     "displayName": "Brimhaven spirit tree patch",
     "type": "SPIRIT_TREE",
     "location": "North of Brimhaven",
-    "worldPoint": { "x": 2802, "y": 3203, "plane": 0 },
+    "worldPoint": {
+      "x": 2802,
+      "y": 3203,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "TREE_GNOME_VILLAGE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "TREE_GNOME_VILLAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4772,
+    "stateRegionId": 11058,
+    "stateRegionIds": [
+      11058,
+      11057
     ]
   },
   {
@@ -613,9 +1545,23 @@
     "displayName": "Hosidius spirit tree patch",
     "type": "SPIRIT_TREE",
     "location": "South-west of Hosidius",
-    "worldPoint": { "x": 1693, "y": 3542, "plane": 0 },
+    "worldPoint": {
+      "x": 1693,
+      "y": 3542,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "TREE_GNOME_VILLAGE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "TREE_GNOME_VILLAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 7904,
+    "stateRegionId": 6967,
+    "stateRegionIds": [
+      6967,
+      6711
     ]
   },
   {
@@ -623,10 +1569,35 @@
     "displayName": "Farming Guild spirit tree patch",
     "type": "SPIRIT_TREE",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1253, "y": 3750, "plane": 0 },
+    "worldPoint": {
+      "x": 1253,
+      "y": 3750,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "TREE_GNOME_VILLAGE", "state": "FINISHED" },
-      { "type": "SKILL", "skill": "FARMING", "level": 85 }
+      {
+        "type": "QUEST",
+        "quest": "TREE_GNOME_VILLAGE",
+        "state": "FINISHED"
+      },
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 85
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -634,9 +1605,22 @@
     "displayName": "Tai Bwo Wannai calquat tree patch",
     "type": "CALQUAT",
     "location": "North of Tai Bwo Wannai",
-    "worldPoint": { "x": 2796, "y": 3101, "plane": 0 },
+    "worldPoint": {
+      "x": 2796,
+      "y": 3101,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "JUNGLE_POTION", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "JUNGLE_POTION",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 11056,
+    "stateRegionIds": [
+      11056
     ]
   },
   {
@@ -644,25 +1628,79 @@
     "displayName": "The Summer Shore calquat tree patch",
     "type": "CALQUAT",
     "location": "The Summer Shore",
-    "worldPoint": { "x": 3128, "y": 2405, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3128,
+      "y": 2405,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4773,
+    "stateRegionId": 12581,
+    "stateRegionIds": [
+      12581,
+      12325,
+      12326,
+      12327,
+      12580,
+      12582,
+      12583,
+      12836,
+      12837,
+      12838,
+      12839,
+      13092,
+      13093,
+      13194
+    ]
   },
   {
     "id": "kastori_calquat",
     "displayName": "Kastori calquat tree patch",
     "type": "CALQUAT",
     "location": "Kastori, Varlamore",
-    "worldPoint": { "x": 1367, "y": 3032, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1367,
+      "y": 3032,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 5423,
+    "stateRegionIds": [
+      5423,
+      5167,
+      5424
+    ]
   },
   {
     "id": "farming_guild_celastrus",
     "displayName": "Farming Guild celastrus patch",
     "type": "CELASTRUS",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1244, "y": 3750, "plane": 0 },
+    "worldPoint": {
+      "x": 1244,
+      "y": 3750,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 85 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 85
+      }
+    ],
+    "stateVarbitId": 7910,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -670,9 +1708,30 @@
     "displayName": "Farming Guild redwood tree patch",
     "type": "REDWOOD",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1229, "y": 3755, "plane": 0 },
+    "worldPoint": {
+      "x": 1229,
+      "y": 3755,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 90 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 90
+      }
+    ],
+    "stateVarbitId": 7907,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -680,9 +1739,32 @@
     "displayName": "Prifddinas crystal tree patch",
     "type": "CRYSTAL_TREE",
     "location": "Prifddinas",
-    "worldPoint": { "x": 3292, "y": 6119, "plane": 0 },
+    "worldPoint": {
+      "x": 3292,
+      "y": 6119,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "SONG_OF_THE_ELVES", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "SONG_OF_THE_ELVES",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4775,
+    "stateRegionId": 13151,
+    "stateRegionIds": [
+      13151,
+      12895,
+      12894,
+      13150,
+      12994,
+      12993,
+      12737,
+      12738,
+      12126,
+      12127,
+      13250
     ]
   },
   {
@@ -690,9 +1772,30 @@
     "displayName": "Farming Guild anima patch",
     "type": "ANIMA",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1232, "y": 3723, "plane": 0 },
+    "worldPoint": {
+      "x": 1232,
+      "y": 3723,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 76 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 76
+      }
+    ],
+    "stateVarbitId": 7911,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -700,9 +1803,22 @@
     "displayName": "Farming Guild Hespori patch",
     "type": "HESPORI",
     "location": "Farming Guild (cave)",
-    "worldPoint": { "x": 1183, "y": 10071, "plane": 0 },
+    "worldPoint": {
+      "x": 1183,
+      "y": 10071,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 65 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 65
+      }
+    ],
+    "stateVarbitId": 7908,
+    "stateRegionId": 5021,
+    "stateRegionIds": [
+      5021
     ]
   },
   {
@@ -710,17 +1826,49 @@
     "displayName": "Al Kharid cactus patch",
     "type": "CACTUS",
     "location": "Al Kharid",
-    "worldPoint": { "x": 3316, "y": 3203, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3316,
+      "y": 3203,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 13106,
+    "stateRegionIds": [
+      13106,
+      13362,
+      13105
+    ]
   },
   {
     "id": "farming_guild_cactus",
     "displayName": "Farming Guild cactus patch",
     "type": "CACTUS",
     "location": "Farming Guild",
-    "worldPoint": { "x": 1265, "y": 3748, "plane": 0 },
+    "worldPoint": {
+      "x": 1265,
+      "y": 3748,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "SKILL", "skill": "FARMING", "level": 45 }
+      {
+        "type": "SKILL",
+        "skill": "FARMING",
+        "level": 45
+      }
+    ],
+    "stateVarbitId": 7904,
+    "stateRegionId": 4922,
+    "stateRegionIds": [
+      4922,
+      5177,
+      5178,
+      5179,
+      4921,
+      4923,
+      4665,
+      4666,
+      4667
     ]
   },
   {
@@ -728,24 +1876,54 @@
     "displayName": "Canifis mushroom patch",
     "type": "MUSHROOM",
     "location": "West of Canifis",
-    "worldPoint": { "x": 3452, "y": 3473, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3452,
+      "y": 3473,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 13622,
+    "stateRegionIds": [
+      13622,
+      13878
+    ]
   },
   {
     "id": "draynor_manor_belladonna",
     "displayName": "Draynor Manor belladonna patch",
     "type": "BELLADONNA",
     "location": "Draynor Manor",
-    "worldPoint": { "x": 3087, "y": 3355, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 3087,
+      "y": 3355,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4771,
+    "stateRegionId": 12340,
+    "stateRegionIds": [
+      12340
+    ]
   },
   {
     "id": "auburnvale_belladonna",
     "displayName": "Auburnvale belladonna patch",
     "type": "BELLADONNA",
     "location": "Auburnvale, Varlamore",
-    "worldPoint": { "x": 1450, "y": 3354, "plane": 0 },
-    "requirements": []
+    "worldPoint": {
+      "x": 1450,
+      "y": 3354,
+      "plane": 0
+    },
+    "requirements": [],
+    "stateVarbitId": 4772,
+    "stateRegionId": 5427,
+    "stateRegionIds": [
+      5427,
+      5428,
+      5684
+    ]
   },
   {
     "id": "fossil_island_seaweed_north",
@@ -753,9 +1931,22 @@
     "type": "SEAWEED",
     "location": "Fossil Island (underwater)",
     "subPatchLabel": "N",
-    "worldPoint": { "x": 3731, "y": 10272, "plane": 0 },
+    "worldPoint": {
+      "x": 3731,
+      "y": 10272,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "BONE_VOYAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4771,
+    "stateRegionId": 15008,
+    "stateRegionIds": [
+      15008
     ]
   },
   {
@@ -764,9 +1955,22 @@
     "type": "SEAWEED",
     "location": "Fossil Island (underwater)",
     "subPatchLabel": "S",
-    "worldPoint": { "x": 3734, "y": 10267, "plane": 0 },
+    "worldPoint": {
+      "x": 3734,
+      "y": 10267,
+      "plane": 0
+    },
     "requirements": [
-      { "type": "QUEST", "quest": "BONE_VOYAGE", "state": "FINISHED" }
+      {
+        "type": "QUEST",
+        "quest": "BONE_VOYAGE",
+        "state": "FINISHED"
+      }
+    ],
+    "stateVarbitId": 4772,
+    "stateRegionId": 15008,
+    "stateRegionIds": [
+      15008
     ]
   }
 ]

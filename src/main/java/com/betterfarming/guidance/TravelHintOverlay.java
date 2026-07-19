@@ -12,10 +12,11 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 
 /**
- * On-screen "what to do next" panel: current leg number, destination, and the
- * travel instruction ("Cast Camelot Teleport", "Break Falador teleport
- * tablet"). Right-click (alt) the panel for "Reset farming run progress" —
- * useful when starting a second run in the same session.
+ * On-screen "what to do next" panel: current leg number, destination, and
+ * either the travel instruction ("Cast Camelot Teleport", "Break Falador
+ * teleport tablet") or — once at the patch — the work instruction ("Plant:
+ * Falador herb patch"). Right-click (alt) the panel for "Reset farming run
+ * progress" — useful when starting a second run in the same session.
  */
 public class TravelHintOverlay extends OverlayPanel
 {
@@ -23,14 +24,21 @@ public class TravelHintOverlay extends OverlayPanel
 
 	private final BetterFarmingConfig config;
 	private final GuidanceService guidance;
+	private final PlantingGuide plantingGuide;
 
-	public TravelHintOverlay(BetterFarmingConfig config, GuidanceService guidance)
+	/**
+	 * @param resetAction full run reset (replan + progress clear), invoked
+	 *     from the overlay's right-click menu on the client thread.
+	 */
+	public TravelHintOverlay(BetterFarmingConfig config, GuidanceService guidance,
+		PlantingGuide plantingGuide, Runnable resetAction)
 	{
 		this.config = config;
 		this.guidance = guidance;
+		this.plantingGuide = plantingGuide;
 		setPosition(OverlayPosition.TOP_LEFT);
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", "Farming run progress",
-			e -> guidance.reset());
+			e -> resetAction.run());
 	}
 
 	@Override
@@ -60,11 +68,23 @@ public class TravelHintOverlay extends OverlayPanel
 			.left("Next:")
 			.right(leg.stop().displayName())
 			.build());
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Travel:")
-			.right(TravelHint.text(leg))
-			.rightColor(WorldArrowOverlay.ARROW_COLOR)
-			.build());
+		String action = plantingGuide.actionText();
+		if (action != null && plantingGuide.targetPatch() != null)
+		{
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left(action + ":")
+				.right(plantingGuide.targetPatch().displayName())
+				.rightColor(WorldArrowOverlay.ARROW_COLOR)
+				.build());
+		}
+		else
+		{
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left("Travel:")
+				.right(TravelHint.text(leg))
+				.rightColor(WorldArrowOverlay.ARROW_COLOR)
+				.build());
+		}
 		return super.render(graphics);
 	}
 }
