@@ -176,7 +176,28 @@ public class BetterFarmingPlugin extends Plugin
 		guidanceService = new GuidanceService(runOrderService::legs, clientLevelSource,
 			stop -> {
 				PatchGroup g = groupsByKey.get(stop.groupKey());
-				return g == null ? StopProgress.UNKNOWN : patchStateService.groupProgress(g.patches());
+				if (g == null)
+				{
+					return StopProgress.UNKNOWN;
+				}
+				StopProgress progress = patchStateService.groupProgress(g.patches());
+				// Composting is its own step: a fully-planted stop holds
+				// while a watched-planted patch awaits treatment AND the
+				// player actually carries compost (the walk-away skip still
+				// escapes a missed chat detection).
+				if (progress == StopProgress.COMPLETE
+					&& itemTracker.countOnPlayer(
+						com.betterfarming.item.FarmingTools.COMPOST_VARIANTS) > 0)
+				{
+					for (com.betterfarming.data.Patch p : g.patches())
+					{
+						if (patchStateService.compostPending(p))
+						{
+							return StopProgress.INCOMPLETE;
+						}
+					}
+				}
+				return progress;
 			});
 		// Going off-plan (own teleport to a later stop) re-plans the rest of
 		// the route from wherever the player actually is.

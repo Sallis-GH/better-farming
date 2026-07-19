@@ -70,6 +70,16 @@ public class PatchStateService
 
 	// Client thread only.
 	private final Map<String, Observation> liveObserved = new HashMap<>();
+
+	/**
+	 * Patches whose EMPTY→GROWING transition we watched live this session —
+	 * the only ones the compost step applies to (older crops may already be
+	 * treated; we cannot read compost state from the patch varbit).
+	 */
+	private final java.util.Set<String> plantedThisSession = new java.util.HashSet<>();
+
+	/** Patches treated with compost this session (chat-detected). */
+	private final java.util.Set<String> compostedThisSession = new java.util.HashSet<>();
 	/**
 	 * Parsed Time Tracking observations keyed by patch id; NO_OBSERVATION
 	 * marks confirmed-absent entries. Stored config barely ever changes for
@@ -126,6 +136,8 @@ public class PatchStateService
 			// profile whose patches differ.
 			liveObserved.clear();
 			remoteCache.clear();
+			plantedThisSession.clear();
+			compostedThisSession.clear();
 			refresh();
 		}
 	}
@@ -145,6 +157,59 @@ public class PatchStateService
 	public void onRuneScapeProfileChanged(net.runelite.client.events.RuneScapeProfileChanged event)
 	{
 		remoteCache.clear();
+	}
+
+	/**
+	 * Chat is the compost signal ("You treat the herb patch with…"), same as
+	 * RuneLite's own compost tracker: the message fires while standing at the
+	 * patch, so the nearest stateful patch is the treated one. Missed
+	 * detection is benign — the compost step lingers until the walk-away skip.
+	 */
+	@Subscribe
+	public void onChatMessage(net.runelite.api.events.ChatMessage event)
+	{
+		if (event.getType() != net.runelite.api.ChatMessageType.GAMEMESSAGE
+			&& event.getType() != net.runelite.api.ChatMessageType.SPAM)
+		{
+			return;
+		}
+		String message = event.getMessage();
+		if (!message.startsWith("You treat the") || !message.contains("compost"))
+		{
+			return;
+		}
+		WorldPoint player = client.getPlayerPosition();
+		if (player == null)
+		{
+			return;
+		}
+		Patch nearest = null;
+		int nearestDistance = 6;
+		for (Patch p : statefulPatches)
+		{
+			int d = player.distanceTo2D(p.worldPoint());
+			if (d < nearestDistance)
+			{
+				nearest = p;
+				nearestDistance = d;
+			}
+		}
+		if (nearest != null)
+		{
+			compostedThisSession.add(nearest.id());
+			refresh();
+		}
+	}
+
+	/**
+	 * True when this patch was planted in front of us this session and no
+	 * compost treatment has been seen since — the "now compost it" step.
+	 */
+	public boolean compostPending(Patch p)
+	{
+		return plantedThisSession.contains(p.id())
+			&& !compostedThisSession.contains(p.id())
+			&& state(p) == CropState.GROWING;
 	}
 
 	public CropState state(Patch p)
@@ -204,7 +269,15 @@ public class PatchStateService
 				CropState s = table.state(p.type(), client.getVarbitValue(p.stateVarbitId()));
 				if (s != CropState.UNKNOWN)
 				{
-					liveObserved.put(p.id(), new Observation(s, now));
+					Observation previous = liveObserved.put(p.id(), new Observation(s, now));
+					if (s == CropState.GROWING && previous != null
+						&& previous.state == CropState.EMPTY)
+					{
+						// Watched the planting happen: the compost step for
+						// this crop starts now.
+						plantedThisSession.add(p.id());
+						compostedThisSession.remove(p.id());
+					}
 				}
 			}
 		}

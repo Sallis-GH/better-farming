@@ -6,9 +6,14 @@ import java.util.Set;
  * Item ids for the standard farming-run tools. Ids are OSRS item ids
  * (stable protocol values, cross-checked against the wiki).
  */
-final class FarmingTools
+public final class FarmingTools
 {
 	static final int RAKE = 5341;
+
+	/** Applicable compost variants (filled bottomless, not the empty bucket). */
+	public static final Set<Integer> COMPOST_VARIANTS = Set.of(
+		6032 /* compost */, 6034 /* supercompost */, 21483 /* ultracompost */,
+		22997 /* bottomless (filled) */);
 	static final int SPADE = 952;
 	static final int SEED_DIBBER = 5343;
 	static final int SECATEURS = 5329;
