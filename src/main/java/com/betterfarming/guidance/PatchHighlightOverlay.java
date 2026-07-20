@@ -19,10 +19,16 @@ import net.runelite.client.ui.overlay.OverlayUtil;
 
 /**
  * Outlines the patch object the player should work on next (PlantingGuide's
- * target): the clickbox of the GameObject on or next to the patch tile, with
- * a tile-poly fallback when no object is resolvable. Farming patches are
- * multi-tile GameObjects whose ids vary per location, so the object is found
- * geometrically — the object covering the dataset tile — rather than by id.
+ * target): the clickbox of the GameObject on or next to the patch tile.
+ * Farming patches are multi-tile GameObjects whose ids vary per location, so
+ * the object is found geometrically — the object covering the dataset tile —
+ * rather than by id.
+ *
+ * The single-tile poly is only a first-resolve fallback: once the object has
+ * been seen for the current target, frames where it briefly can't be
+ * resolved (each pick swaps the multiloc, despawning it for a tick) draw
+ * NOTHING — falling back mid-harvest made the highlight hop between the
+ * patch and the dataset tile under the player's feet.
  */
 public class PatchHighlightOverlay extends Overlay
 {
@@ -31,6 +37,10 @@ public class PatchHighlightOverlay extends Overlay
 	private final Client runeliteClient;
 	private final BetterFarmingConfig config;
 	private final PlantingGuide guide;
+
+	// Render-thread only (client thread).
+	private Patch lastPatch;
+	private boolean objectSeenForPatch;
 
 	public PatchHighlightOverlay(Client client, BetterFarmingConfig config, PlantingGuide guide)
 	{
@@ -59,12 +69,28 @@ public class PatchHighlightOverlay extends Overlay
 			return null;
 		}
 
+		if (patch != lastPatch)
+		{
+			lastPatch = patch;
+			objectSeenForPatch = false;
+		}
+
 		// Search the patch's own plane: the player may stand on a rooftop or
 		// upper floor where unrelated objects cover the same scene coords.
 		GameObject object = GuidancePerspective.findObjectAt(runeliteClient, lp, patch.worldPoint().getPlane());
 		Shape clickbox = object != null ? object.getClickbox() : null;
+		if (object != null)
+		{
+			objectSeenForPatch = true;
+		}
 		if (clickbox == null)
 		{
+			if (objectSeenForPatch)
+			{
+				// Transient despawn (pick/plant swaps the multiloc): blink
+				// off rather than hop to the tile under the player.
+				return null;
+			}
 			clickbox = Perspective.getCanvasTilePoly(runeliteClient, lp);
 		}
 		if (clickbox != null)
