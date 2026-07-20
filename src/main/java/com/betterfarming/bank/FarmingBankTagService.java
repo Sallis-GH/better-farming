@@ -74,7 +74,7 @@ public class FarmingBankTagService
 						boolean satisfied = itemTracker.countOnPlayer(piece.ids())
 							+ itemTracker.countBanked(piece.ids()) > 0;
 						outfitSection.addItem(new BankTabItem(piece.name(),
-							new ArrayList<>(piece.ids()), 1, satisfied));
+							preferCarried(piece.ids()), 1, satisfied));
 					}
 					outfits.add(outfitSection);
 					break;
@@ -94,7 +94,33 @@ public class FarmingBankTagService
 	{
 		boolean satisfied = itemTracker.countOnPlayer(item.itemIds())
 			+ itemTracker.countBanked(item.itemIds()) >= item.quantity();
-		return new BankTabItem(item.displayName(), new ArrayList<>(item.itemIds()),
+		return new BankTabItem(item.displayName(), preferCarried(item.itemIds()),
 			item.quantity(), satisfied);
+	}
+
+	/**
+	 * Variant ids ordered for display: carried variants first (stable within
+	 * each half). The tab's ghost icons fall back to the first id when no
+	 * variant is banked, so the piece just withdrawn — now on the player —
+	 * keeps its own recolour/filled-state on screen instead of flipping to
+	 * an arbitrary sibling variant.
+	 */
+	private List<Integer> preferCarried(java.util.Collection<Integer> ids)
+	{
+		List<Integer> carried = new ArrayList<>();
+		List<Integer> rest = new ArrayList<>();
+		for (Integer id : ids)
+		{
+			if (itemTracker.countOnPlayer(id) > 0)
+			{
+				carried.add(id);
+			}
+			else
+			{
+				rest.add(id);
+			}
+		}
+		carried.addAll(rest);
+		return carried;
 	}
 }
