@@ -71,6 +71,14 @@ versioned runTemplates config blob; load applies via the normal setSeed/setGroup
 events so all UI/services update; stale ids dropped; TemplatesSection UI with
 JOptionPane save prompt).
 
+Routing fix (PR #40, in-game report): bestLeg gated the multi-hop chain search on
+outright unreachability instead of the declared CHAIN_SEARCH_THRESHOLD_TICKS (50) — any
+single hop "covering" a leg via a huge straight-line walk (which crosses water!)
+suppressed cheaper teleport→ship→boat chains (Lumbridge→Harmony suggested walk-to-Port-
+Sarim + charter over the ectophial chain). Also CHARTER_PENALTY_TICKS = 20 selection
+penalty (fare slot + real interaction overhead ≫ vendored 6-tick duration).
+HarmonyRouteRegressionTest runs the real TSVs end-to-end.
+
 NEXT: **in-game verification** (owner tests; expect feedback), then
 **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
 origins, agility shortcuts, diary cheaper teleports; UI/design pass).
