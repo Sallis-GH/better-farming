@@ -409,6 +409,41 @@ public class RoutePlannerTest
 	}
 
 	@Test
+	public void consumableItemWinsTheSlotTieOverAReusableOne()
+	{
+		// Same destination, duration, and one requirement each: the basalt
+		// (consumable — its slot frees mid-run) must beat the reusable item
+		// regardless of list order.
+		WorldPoint dest = new WorldPoint(2828, 3866, 0);
+		TeleportItemRequirement basaltReq = new TeleportItemRequirement(
+			new int[]{22599}, new int[0], new int[0], 1, "Icy basalt");
+		TeleportItemRequirement reusableReq = new TeleportItemRequirement(
+			new int[]{4251}, new int[0], new int[0], 1, "Ectophial");
+		Teleport basalt = new Teleport(TeleportType.ITEM, null, dest, 4,
+			"Icy basalt", Map.of(), Set.of(), Set.of(), List.of(basaltReq),
+			true, null, false);
+		Teleport reusable = new Teleport(TeleportType.ITEM, null, dest, 4,
+			"Reusable trinket", Map.of(), Set.of(), Set.of(), List.of(reusableReq),
+			false, null, false);
+		RoutePlanner.Stop weiss = stop("weiss", 2848, 3865);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(weiss), List.of(reusable, basalt));
+		assertEquals("Icy basalt", legs.get(0).teleport().displayInfo());
+		legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(weiss), List.of(basalt, reusable));
+		assertEquals("Icy basalt", legs.get(0).teleport().displayInfo());
+
+		// A clearly faster reusable option still wins.
+		Teleport fastReusable = new Teleport(TeleportType.ITEM, null,
+			new WorldPoint(2847, 3865, 0), 2, "Fast trinket", Map.of(), Set.of(),
+			Set.of(), List.of(reusableReq), false, null, false);
+		legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(weiss), List.of(basalt, fastReusable));
+		assertEquals("Fast trinket", legs.get(0).teleport().displayInfo());
+	}
+
+	@Test
 	public void charterShipsLoseNearTiesButWinWhenClearlyFastest()
 	{
 		// Same-cost charter vs ship to the same island: the charter's
