@@ -147,7 +147,8 @@ public class RunItemsSection extends JPanel
 		JLabel label = new JLabel(text);
 		label.setForeground(Color.WHITE);
 		label.setFont(label.getFont().deriveFont(ROW_FONT_SIZE));
-		String tooltip = statusText + (item.recommended() ? " — recommended, not required" : "");
+		// "Optional", not "recommended": a rake is pointless with auto-weed.
+		String tooltip = statusText + (item.recommended() ? " — optional" : "");
 		label.setToolTipText(tooltip);
 		row.add(label, BorderLayout.CENTER);
 

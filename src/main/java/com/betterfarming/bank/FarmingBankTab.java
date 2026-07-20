@@ -422,7 +422,7 @@ public class FarmingBankTab
 
 		if (!items.getRecommendedItems().isEmpty())
 		{
-			newHeight = addSubSectionHeader(itemContainer, "Recommended", newHeight);
+			newHeight = addSubSectionHeader(itemContainer, "Optional", newHeight);
 			newHeight = createPartialSection(items.getRecommendedItems(), newHeight, bankItemTexts);
 		}
 
