@@ -75,9 +75,13 @@ public class PatchGroupCard extends JPanel
 		JPanel header = new JPanel(new BorderLayout());
 		header.setOpaque(false);
 
-		titleLabel = new TruncatingLabel(group.location());
+		// Bare place name for display; the full navigational name ("West of
+		// Port Phasmatys") lives in the tooltip. Set after construction —
+		// TruncatingLabel's own setText would tooltip the stripped form.
+		titleLabel = new TruncatingLabel(Locations.display(group.location()));
+		titleLabel.setToolTipText(group.location());
 		titleLabel.setForeground(Color.WHITE);
-		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 12f));
+		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
 		header.add(titleLabel, BorderLayout.CENTER);
 
 		rightSlot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));

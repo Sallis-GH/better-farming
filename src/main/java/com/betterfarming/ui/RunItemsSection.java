@@ -27,7 +27,10 @@ public class RunItemsSection extends JPanel
 	private static final Color COLOR_ON_PLAYER = new Color(0x4C, 0xAF, 0x50);
 	private static final Color COLOR_IN_BANK = new Color(0xC8, 0xA0, 0x00);
 	private static final Color COLOR_MISSING = new Color(0xE5, 0x57, 0x51);
-	private static final Color COLOR_RECOMMENDED_NOTE = new Color(0x88, 0x88, 0x88);
+	private static final Color COLOR_MUTED = new Color(0x88, 0x88, 0x88);
+	private static final Color COLOR_RECOMMENDED = new Color(0xE8, 0x8A, 0x2E);
+
+	private static final float ROW_FONT_SIZE = 13f;
 
 	private final RunItemsService service;
 	private final JPanel rowsContainer;
@@ -44,7 +47,7 @@ public class RunItemsSection extends JPanel
 		JLabel header = new JLabel("Run items");
 		header.setName("section-header:RUN_ITEMS");
 		header.setForeground(Color.WHITE);
-		header.setFont(header.getFont().deriveFont(Font.BOLD, 14f));
+		header.setFont(header.getFont().deriveFont(Font.BOLD, 16f));
 		header.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 16));
 		header.setOpaque(true);
 		header.setBackground(new Color(0x26, 0x26, 0x26));
@@ -85,14 +88,26 @@ public class RunItemsSection extends JPanel
 		{
 			JLabel empty = new JLabel("No active patches");
 			empty.setName("runitems-empty");
-			empty.setForeground(COLOR_RECOMMENDED_NOTE);
-			empty.setFont(empty.getFont().deriveFont(11f));
+			empty.setForeground(COLOR_MUTED);
+			empty.setFont(empty.getFont().deriveFont(ROW_FONT_SIZE));
 			rowsContainer.add(empty);
 			return;
 		}
+		// Required first, recommended (optional) at the bottom; stable within
+		// each group so the service's category ordering is preserved.
 		for (RunItem item : items)
 		{
-			rowsContainer.add(buildRow(item));
+			if (!item.recommended())
+			{
+				rowsContainer.add(buildRow(item));
+			}
+		}
+		for (RunItem item : items)
+		{
+			if (item.recommended())
+			{
+				rowsContainer.add(buildRow(item));
+			}
 		}
 	}
 
@@ -123,7 +138,7 @@ public class RunItemsSection extends JPanel
 
 		JLabel dot = new JLabel("●");
 		dot.setForeground(color);
-		dot.setFont(dot.getFont().deriveFont(11f));
+		dot.setFont(dot.getFont().deriveFont(ROW_FONT_SIZE));
 		row.add(dot, BorderLayout.WEST);
 
 		// Outfit rows (pieces != null) read better without a ×N suffix.
@@ -131,16 +146,18 @@ public class RunItemsSection extends JPanel
 			+ (item.quantity() > 1 && item.pieces() == null ? " ×" + item.quantity() : "");
 		JLabel label = new JLabel(text);
 		label.setForeground(Color.WHITE);
-		label.setFont(label.getFont().deriveFont(11f));
+		label.setFont(label.getFont().deriveFont(ROW_FONT_SIZE));
 		String tooltip = statusText + (item.recommended() ? " — recommended, not required" : "");
 		label.setToolTipText(tooltip);
 		row.add(label, BorderLayout.CENTER);
 
 		if (item.recommended())
 		{
-			JLabel note = new JLabel("(rec)");
-			note.setForeground(COLOR_RECOMMENDED_NOTE);
-			note.setFont(note.getFont().deriveFont(10f));
+			// Orange marker instead of "(rec)" text; the tooltip explains it.
+			JLabel note = new JLabel("●");
+			note.setName("runitem-recommended:" + item.displayName());
+			note.setForeground(COLOR_RECOMMENDED);
+			note.setFont(note.getFont().deriveFont(ROW_FONT_SIZE));
 			note.setToolTipText(tooltip);
 			row.add(note, BorderLayout.EAST);
 		}

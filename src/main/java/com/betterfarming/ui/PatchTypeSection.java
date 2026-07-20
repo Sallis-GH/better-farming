@@ -35,7 +35,7 @@ public class PatchTypeSection extends JPanel
 		headerLabel = new JLabel();
 		headerLabel.setName("section-header:" + type.name());
 		headerLabel.setForeground(Color.WHITE);
-		headerLabel.setFont(headerLabel.getFont().deriveFont(Font.BOLD, 14f));
+		headerLabel.setFont(headerLabel.getFont().deriveFont(Font.BOLD, 16f));
 		headerLabel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 16));
 		headerLabel.setOpaque(true);
 		headerLabel.setBackground(new Color(0x26, 0x26, 0x26));
