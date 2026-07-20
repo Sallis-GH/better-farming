@@ -238,6 +238,47 @@ public class PatchStateServiceTest
 	}
 
 	@Test
+	public void compostBeforeSeedingCountsForTheNewCrop()
+	{
+		// Compost the EMPTY patch first, then plant: no compost step should
+		// linger — treating before seeding is valid and carries into the crop.
+		client.setPlayerPosition(PATCH_TILE);
+		client.setVarbit(VARBIT, 0); // empty
+		service.refresh();
+		service.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You treat the herb patch with supercompost.", null, 0));
+
+		client.setVarbit(VARBIT, 4); // now planted
+		service.refresh();
+		assertFalse("pre-plant compost already satisfied the step",
+			service.compostPending(herb));
+	}
+
+	@Test
+	public void harvestStartsAFreshCompostCycle()
+	{
+		// Plant + compost one crop...
+		client.setPlayerPosition(PATCH_TILE);
+		client.setVarbit(VARBIT, 0);
+		service.refresh();
+		client.setVarbit(VARBIT, 4);
+		service.refresh();
+		service.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You treat the herb patch with supercompost.", null, 0));
+		assertFalse(service.compostPending(herb));
+
+		// ...harvest to empty and replant: the flag reset with the cycle,
+		// so the new crop prompts for compost again.
+		client.setVarbit(VARBIT, 0);
+		service.refresh();
+		client.setVarbit(VARBIT, 4);
+		service.refresh();
+		assertTrue("new crop, new compost step", service.compostPending(herb));
+	}
+
+	@Test
 	public void cropsAlreadyGrowingAtFirstSightHaveNoCompostStep()
 	{
 		// First observation is GROWING: the planting wasn't watched, the crop
