@@ -133,6 +133,12 @@ origins, agility shortcuts, diary cheaper teleports; UI/design pass).
 6. Data files are wiki-verified by research agents writing JSON, merged by script —
    never hand-type OSRS item ids from memory. Graceful pieces have separate worn/inventory
    ids; farmer pieces have body-type ids; spirit trees take multi-item payments.
+7. **Every non-static default method on the config interface MUST carry @ConfigItem.**
+   RuneLite's ConfigInvocationHandler proxies all instance methods and returns null for
+   un-annotated ones — NPE on unboxing in the real client while headless tests (anonymous
+   class, no proxy) stay green (this shipped once: showType(PatchType) killed the sidebar
+   at startUp). Dispatch helpers go on the interface as STATIC methods;
+   ConfigProxyContractTest guards both the annotation rule and the dispatch.
 
 ## Conventions
 
