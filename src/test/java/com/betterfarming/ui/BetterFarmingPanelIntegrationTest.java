@@ -62,6 +62,7 @@ public class BetterFarmingPanelIntegrationTest
 	private RunItemsService runItemsService;
 	private RunOrderService runOrderService;
 	private GuidanceService guidanceService;
+	private BetterFarmingConfig testConfig;
 	private BetterFarmingPanel panel;
 
 	@Before
@@ -78,7 +79,16 @@ public class BetterFarmingPanelIntegrationTest
 			client, data, new com.betterfarming.data.requirement.RequirementEvaluator());
 		accessibilityService.refresh();
 		itemTracker = new ItemTracker();
-		BetterFarmingConfig testConfig = new BetterFarmingConfig() {};
+		// Most tests exercise the per-patch seed dropdowns; per-type (the
+		// simple-mode default) has its own tests below.
+		testConfig = new BetterFarmingConfig()
+		{
+			@Override
+			public SeedSelectionMode seedSelectionMode()
+			{
+				return SeedSelectionMode.PER_PATCH;
+			}
+		};
 		runItemsService = new RunItemsService(data, selectionService, accessibilityService,
 			itemTracker, new PlayerUnlocks(client), testConfig);
 		runOrderService = new RunOrderService(data, selectionService, accessibilityService,
@@ -86,7 +96,7 @@ public class BetterFarmingPanelIntegrationTest
 			client, testConfig, Runnable::run);
 		guidanceService = new GuidanceService(runOrderService::legs, client);
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 	}
 
 	@Test
@@ -116,6 +126,86 @@ public class BetterFarmingPanelIntegrationTest
 			if (name.equals(b.getName()))
 			{
 				return b;
+			}
+		}
+		return null;
+	}
+
+	@Test
+	public void perTypeMode_oneDropdownSetsSeedForEveryPatchOfTheType()
+	{
+		// Default config = simple mode (one seed per patch type).
+		BetterFarmingPanel simple = new BetterFarmingPanel(data, selectionService,
+			availabilityService, accessibilityService, runItemsService, runOrderService,
+			itemTracker, guidanceService, new BetterFarmingConfig() {});
+
+		assertTrue("no per-patch dropdowns in simple mode",
+			findAll(simple, PatchSubRow.class).isEmpty());
+
+		JComboBox<?> herbSeed = findComboByName(simple, "typeSeed:HERB");
+		assertNotNull(herbSeed);
+		herbSeed.setSelectedIndex(1); // item 0 is the placeholder
+
+		List<com.betterfarming.data.Patch> herbs = new ArrayList<>();
+		for (com.betterfarming.data.Patch p : data.patches())
+		{
+			if (p.type() == PatchType.HERB)
+			{
+				herbs.add(p);
+			}
+		}
+		assertFalse(herbs.isEmpty());
+		String seedId = ((com.betterfarming.data.Seed) herbSeed.getSelectedItem()).id();
+		for (com.betterfarming.data.Patch p : herbs)
+		{
+			assertEquals("every herb patch takes the type-level seed", seedId,
+				selectionService.get(p.id()).orElseThrow().seedId());
+		}
+	}
+
+	@Test
+	public void hiddenTypesAreOmittedFromTheSidebar()
+	{
+		BetterFarmingConfig hideHerb = new BetterFarmingConfig()
+		{
+			@Override
+			public boolean showTypeHerb()
+			{
+				return false;
+			}
+		};
+		BetterFarmingPanel trimmed = new BetterFarmingPanel(data, selectionService,
+			availabilityService, accessibilityService, runItemsService, runOrderService,
+			itemTracker, guidanceService, hideHerb);
+
+		boolean herbSectionPresent = false;
+		for (JLabel l : findAll(trimmed, JLabel.class))
+		{
+			if ("section-header:HERB".equals(l.getName()))
+			{
+				herbSectionPresent = true;
+			}
+		}
+		assertFalse("hidden type has no section", herbSectionPresent);
+		// A shown type is still there.
+		boolean treeSectionPresent = false;
+		for (JLabel l : findAll(trimmed, JLabel.class))
+		{
+			if ("section-header:TREE".equals(l.getName()))
+			{
+				treeSectionPresent = true;
+			}
+		}
+		assertTrue(treeSectionPresent);
+	}
+
+	private JComboBox<?> findComboByName(Container root, String name)
+	{
+		for (JComboBox<?> combo : findAll(root, JComboBox.class))
+		{
+			if (name.equals(combo.getName()))
+			{
+				return combo;
 			}
 		}
 		return null;
@@ -297,7 +387,7 @@ public class BetterFarmingPanelIntegrationTest
 
 		// Rebuild the panel so cards see the locked state on construction.
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertNotNull(card);
@@ -314,7 +404,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertTrue("locked at Farming 1", card.isLocked());
@@ -335,7 +425,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setQuestState(Quest.SONG_OF_THE_ELVES, QuestState.NOT_STARTED);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Prifddinas");
 		assertTrue("locked when Song of the Elves not finished", card.isLocked());
@@ -355,7 +445,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		JLabel info = findInfoIcon(card);
@@ -398,7 +488,8 @@ public class BetterFarmingPanelIntegrationTest
 				new TeleportAvailabilityService(List.of(), localClient, localTracker, localConfig),
 				localClient, localConfig, Runnable::run),
 			localTracker,
-			new GuidanceService(() -> List.of(), localClient));
+			new GuidanceService(() -> List.of(), localClient),
+			localConfig);
 
 		PatchGroupCard card = null;
 		for (PatchGroupCard c : findAll(localPanel, PatchGroupCard.class))
@@ -426,7 +517,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 99);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 
 		// User toggles a low-requirement group active (Farming Guild needs 45 — they have 99).
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
@@ -466,7 +557,7 @@ public class BetterFarmingPanelIntegrationTest
 		client.setLevel(Skill.FARMING, 1);
 		accessibilityService.refresh();
 		panel = new BetterFarmingPanel(data, selectionService, availabilityService,
-			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService);
+			accessibilityService, runItemsService, runOrderService, itemTracker, guidanceService, testConfig);
 
 		PatchGroupCard card = findCardForGroupKey("ALLOTMENT|Farming Guild");
 		assertTrue(card.isLocked());

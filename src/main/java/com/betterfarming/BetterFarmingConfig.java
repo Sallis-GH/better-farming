@@ -12,11 +12,223 @@ public interface BetterFarmingConfig extends Config
 	String PATCH_SELECTIONS_KEY = "patchSelections";
 
 	@ConfigSection(
+		name = "Sidebar",
+		description = "How the sidebar panel is laid out",
+		position = 2
+	)
+	String sidebarSection = "sidebar";
+
+	@ConfigSection(
+		name = "Sidebar patch types",
+		description = "Untick patch types to hide their sections from the sidebar",
+		position = 3,
+		closedByDefault = true
+	)
+	String sidebarTypesSection = "sidebarTypes";
+
+	@ConfigSection(
 		name = "Guidance",
 		description = "On-screen guidance along the planned run order",
 		position = 5
 	)
 	String guidanceSection = "guidance";
+
+	/** How seeds are chosen when setting up a run. */
+	enum SeedSelectionMode
+	{
+		PER_TYPE("One seed per patch type"),
+		PER_PATCH("A seed for every patch");
+
+		private final String label;
+
+		SeedSelectionMode(String label)
+		{
+			this.label = label;
+		}
+
+		@Override
+		public String toString()
+		{
+			return label;
+		}
+	}
+
+	@ConfigItem(
+		keyName = "seedSelectionMode",
+		name = "Seed selection",
+		description = "One seed per patch type: a single picker per section applies to every<br>"
+			+ "patch of that type — the simple way to set up a run.<br>"
+			+ "A seed for every patch: pick individually per patch.",
+		section = sidebarSection,
+		position = 1
+	)
+	default SeedSelectionMode seedSelectionMode()
+	{
+		return SeedSelectionMode.PER_TYPE;
+	}
+
+	// ── Sidebar patch types (one checkbox per type; dispatch via showType) ──
+
+	@ConfigItem(keyName = "showTypeAllotment", name = "Allotment",
+		description = "Show allotment patches in the sidebar", section = sidebarTypesSection, position = 1)
+	default boolean showTypeAllotment()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeFlower", name = "Flower",
+		description = "Show flower patches in the sidebar", section = sidebarTypesSection, position = 2)
+	default boolean showTypeFlower()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeHerb", name = "Herb",
+		description = "Show herb patches in the sidebar", section = sidebarTypesSection, position = 3)
+	default boolean showTypeHerb()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeTree", name = "Tree",
+		description = "Show tree patches in the sidebar", section = sidebarTypesSection, position = 4)
+	default boolean showTypeTree()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeFruitTree", name = "Fruit tree",
+		description = "Show fruit tree patches in the sidebar", section = sidebarTypesSection, position = 5)
+	default boolean showTypeFruitTree()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeBush", name = "Bush",
+		description = "Show bush patches in the sidebar", section = sidebarTypesSection, position = 6)
+	default boolean showTypeBush()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeHops", name = "Hops",
+		description = "Show hops patches in the sidebar", section = sidebarTypesSection, position = 7)
+	default boolean showTypeHops()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeHardwoodTree", name = "Hardwood tree",
+		description = "Show hardwood tree patches in the sidebar", section = sidebarTypesSection, position = 8)
+	default boolean showTypeHardwoodTree()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeSpiritTree", name = "Spirit tree",
+		description = "Show spirit tree patches in the sidebar", section = sidebarTypesSection, position = 9)
+	default boolean showTypeSpiritTree()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeCalquat", name = "Calquat",
+		description = "Show the calquat patch in the sidebar", section = sidebarTypesSection, position = 10)
+	default boolean showTypeCalquat()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeCactus", name = "Cactus",
+		description = "Show cactus patches in the sidebar", section = sidebarTypesSection, position = 11)
+	default boolean showTypeCactus()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeBelladonna", name = "Belladonna",
+		description = "Show the belladonna patch in the sidebar", section = sidebarTypesSection, position = 12)
+	default boolean showTypeBelladonna()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeMushroom", name = "Mushroom",
+		description = "Show the mushroom patch in the sidebar", section = sidebarTypesSection, position = 13)
+	default boolean showTypeMushroom()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeSeaweed", name = "Seaweed",
+		description = "Show seaweed patches in the sidebar", section = sidebarTypesSection, position = 14)
+	default boolean showTypeSeaweed()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeRedwood", name = "Redwood",
+		description = "Show the redwood patch in the sidebar", section = sidebarTypesSection, position = 15)
+	default boolean showTypeRedwood()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeCrystalTree", name = "Crystal tree",
+		description = "Show the crystal tree patch in the sidebar", section = sidebarTypesSection, position = 16)
+	default boolean showTypeCrystalTree()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeCelastrus", name = "Celastrus",
+		description = "Show the celastrus patch in the sidebar", section = sidebarTypesSection, position = 17)
+	default boolean showTypeCelastrus()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeAnima", name = "Anima",
+		description = "Show the anima patch in the sidebar", section = sidebarTypesSection, position = 18)
+	default boolean showTypeAnima()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "showTypeHespori", name = "Hespori",
+		description = "Show the Hespori patch in the sidebar", section = sidebarTypesSection, position = 19)
+	default boolean showTypeHespori()
+	{
+		return true;
+	}
+
+	/** Sidebar visibility for a patch type — dispatch over the checkboxes above. */
+	default boolean showType(com.betterfarming.data.PatchType type)
+	{
+		switch (type)
+		{
+			case ALLOTMENT: return showTypeAllotment();
+			case FLOWER: return showTypeFlower();
+			case HERB: return showTypeHerb();
+			case TREE: return showTypeTree();
+			case FRUIT_TREE: return showTypeFruitTree();
+			case BUSH: return showTypeBush();
+			case HOPS: return showTypeHops();
+			case HARDWOOD_TREE: return showTypeHardwoodTree();
+			case SPIRIT_TREE: return showTypeSpiritTree();
+			case CALQUAT: return showTypeCalquat();
+			case CACTUS: return showTypeCactus();
+			case BELLADONNA: return showTypeBelladonna();
+			case MUSHROOM: return showTypeMushroom();
+			case SEAWEED: return showTypeSeaweed();
+			case REDWOOD: return showTypeRedwood();
+			case CRYSTAL_TREE: return showTypeCrystalTree();
+			case CELASTRUS: return showTypeCelastrus();
+			case ANIMA: return showTypeAnima();
+			case HESPORI: return showTypeHespori();
+			default: return true;
+		}
+	}
 
 	@ConfigSection(
 		name = "Run items",
