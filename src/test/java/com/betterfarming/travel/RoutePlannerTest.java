@@ -384,6 +384,61 @@ public class RoutePlannerTest
 			>= RoutePlanner.IMPOSSIBLE);
 	}
 
+	@Test
+	public void expensiveSingleHopLosesToACheaperChain()
+	{
+		// A lone teleport "covers" the island leg only via a 200-tile
+		// straight-line walk (100 ticks); the two-hop chain totals ~25. The
+		// chain search must run for expensive-but-possible single hops too.
+		WorldPoint islandStop = new WorldPoint(3800, 2800, 0);
+		Teleport farLanding = anywhereTeleport("Distant scroll", new WorldPoint(3600, 2800, 0), 4);
+		Teleport port = anywhereTeleport("Port teleport", new WorldPoint(3300, 3200, 0), 4);
+		Teleport ship = originTeleport("Island ship", new WorldPoint(3302, 3202, 0),
+			new WorldPoint(3795, 2805, 0), 10);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(stop("island", 3800, 2800)),
+			List.of(farLanding, port, ship));
+
+		Teleport chosen = legs.get(0).teleport();
+		assertNotNull(chosen);
+		assertEquals("Port teleport → Island ship", chosen.displayInfo());
+		assertTrue(legs.get(0).estimatedTicks() < 30);
+		// islandStop only used for documentation of the geometry above.
+		assertEquals(islandStop, legs.get(0).stop().point());
+	}
+
+	@Test
+	public void charterShipsLoseNearTiesButWinWhenClearlyFastest()
+	{
+		// Same-cost charter vs ship to the same island: the charter's
+		// selection penalty (fare slot + interaction overhead) must lose it
+		// the near-tie regardless of list order.
+		WorldPoint dest = new WorldPoint(3795, 2805, 0);
+		Teleport charter = new Teleport(TeleportType.CHARTER_SHIP,
+			new WorldPoint(3205, 3200, 0), dest, 6, "Charter: Island",
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, false);
+		Teleport ship = new Teleport(TeleportType.SHIP,
+			new WorldPoint(3205, 3205, 0), dest, 6, "Sail: Island",
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, false);
+		RoutePlanner.Stop island = stop("island", 3800, 2800);
+
+		List<RoutePlanner.Leg> legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(island), List.of(charter, ship));
+		assertEquals("Sail: Island", legs.get(0).teleport().displayInfo());
+		legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(island), List.of(ship, charter));
+		assertEquals("Sail: Island", legs.get(0).teleport().displayInfo());
+
+		// A charter clearly faster than the alternative still wins.
+		Teleport slowShip = new Teleport(TeleportType.SHIP,
+			new WorldPoint(3205, 3205, 0), dest, 90, "Slow sail",
+			Map.of(), Set.of(), Set.of(), Collections.emptyList(), false, null, false);
+		legs = RoutePlanner.plan(
+			new WorldPoint(3200, 3200, 0), List.of(island), List.of(slowShip, charter));
+		assertEquals("Charter: Island", legs.get(0).teleport().displayInfo());
+	}
+
 	// ── walk-beats-teleport (live-position pricing for guidance) ──
 
 	@Test

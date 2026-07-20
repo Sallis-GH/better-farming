@@ -44,11 +44,23 @@ public final class RoutePlanner
 
 	/**
 	 * Single-hop legs cheaper than this skip the multi-hop search: farm legs
-	 * are normally one teleport + a short walk, and the full graph search is
-	 * only worth its cost when no single hop covers the leg (islands like
-	 * Harmony: teleport → ship → ship).
+	 * are normally one teleport + a short walk. Above it, the graph search
+	 * runs and may replace an expensive single hop — a leg can look "covered"
+	 * by one teleport plus a huge straight-line walk (which happily crosses
+	 * water) while a teleport → ship → boat chain is far faster; gating the
+	 * search on outright unreachability shipped once and sent players walking
+	 * from Lumbridge to Port Sarim for a charter instead of casting the
+	 * ectophial (HarmonyRouteRegressionTest).
 	 */
 	static final double CHAIN_SEARCH_THRESHOLD_TICKS = 50;
+
+	/**
+	 * Selection penalty on charter ships: the fare occupies a coin stack and
+	 * the real interaction (dialogue, confirm, fade) far exceeds the vendored
+	 * duration, so any similarly-priced alternative should win. Selection
+	 * only — the reported estimate stays data-driven.
+	 */
+	static final double CHARTER_PENALTY_TICKS = 20;
 
 	/** Default slot estimate: one inventory slot per AND-term item need. */
 	public static final ToIntFunction<Teleport> DEFAULT_SLOT_COST = t -> t.items().size();
@@ -238,7 +250,9 @@ public final class RoutePlanner
 			this.penalty = new double[teleports.size()];
 			for (int i = 0; i < teleports.size(); i++)
 			{
-				penalty[i] = SLOT_PENALTY_TICKS * slotCost.applyAsInt(teleports.get(i));
+				Teleport t = teleports.get(i);
+				penalty[i] = SLOT_PENALTY_TICKS * slotCost.applyAsInt(t)
+					+ (t.type() == TeleportType.CHARTER_SHIP ? CHARTER_PENALTY_TICKS : 0);
 			}
 		}
 
@@ -262,10 +276,13 @@ public final class RoutePlanner
 
 	/**
 	 * Cheapest way from `from` to `to`. A single teleport + walking resolves
-	 * every normal farm leg; the multi-hop graph search only runs when no
-	 * single hop reaches the target at all (islands like Harmony: teleport →
-	 * ship → boat). Selection is by penalized cost (real ticks +
-	 * SLOT_PENALTY_TICKS per inventory slot); reported cost is real ticks.
+	 * every normal farm leg; when the best single hop costs
+	 * {@link #CHAIN_SEARCH_THRESHOLD_TICKS} or more, the multi-hop graph
+	 * search runs too and wins if cheaper (islands like Harmony: teleport →
+	 * ship → boat beats one teleport plus a sea-crossing straight-line walk).
+	 * Selection is by penalized cost (real ticks + SLOT_PENALTY_TICKS per
+	 * inventory slot + CHARTER_PENALTY_TICKS for charters); reported cost is
+	 * real ticks.
 	 */
 	private static BestLeg bestLeg(WorldPoint from, WorldPoint to, PlanContext ctx,
 		int pohBiasTicks)
@@ -298,7 +315,7 @@ public final class RoutePlanner
 			}
 		}
 
-		if (best.penalized >= IMPOSSIBLE)
+		if (best.penalized >= CHAIN_SEARCH_THRESHOLD_TICKS)
 		{
 			BestLeg chained = chainedLeg(from, to, ctx);
 			if (chained.penalized < best.penalized)
