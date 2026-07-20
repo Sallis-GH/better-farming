@@ -10,6 +10,7 @@ public interface BetterFarmingConfig extends Config
 {
 	String GROUP = "betterfarming";
 	String PATCH_SELECTIONS_KEY = "patchSelections";
+	String RUN_TEMPLATES_KEY = "runTemplates";
 
 	@ConfigSection(
 		name = "Sidebar",
@@ -259,6 +260,17 @@ public interface BetterFarmingConfig extends Config
 		hidden = true
 	)
 	default String patchSelections()
+	{
+		return "";
+	}
+
+	@ConfigItem(
+		keyName = RUN_TEMPLATES_KEY,
+		name = "Run templates (internal)",
+		description = "Serialized saved run templates. Edit at your own risk.",
+		hidden = true
+	)
+	default String runTemplates()
 	{
 		return "";
 	}

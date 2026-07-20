@@ -57,6 +57,20 @@ remains, returns as current once the rest is done and always on resume-after-sto
 runComplete — a stop completes only on observed harvested/replanted state; Stop ends a run
 early).
 
+Layout round (2026-07-20, PRs #36–#38, owner's 7-item list): #36 single-stop run order
+(one detailed current-stop block advancing per leg; stopped = "N stops planned — press
+Start"), run-items 13px + orange rec-dot sorted last, headers 16px/card titles 14px,
+ui/Locations strips "<compass> of" prefixes (tooltip keeps full name; compass-without-of
+kept to avoid Etceteria collisions); #37 sidebar settings — seedSelectionMode (default
+PER_TYPE: one TypeSeedRow picker per section writes the seed to every patch of the type,
+cards shrink to title+toggle; selections still persist per patch so downstream code and
+mode switches are unaffected) + 19 showType* checkboxes hiding sections;
+BetterFarmingPanel.rebuildContent() on those config keys (viewport swap → removeNotify
+unsubscribes); #38 run templates (PatchSelectionService.save/load/deleteTemplate —
+versioned runTemplates config blob; load applies via the normal setSeed/setGroupActive
+events so all UI/services update; stale ids dropped; TemplatesSection UI with
+JOptionPane save prompt).
+
 NEXT: **in-game verification** (owner tests; expect feedback), then
 **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
 origins, agility shortcuts, diary cheaper teleports; UI/design pass).
