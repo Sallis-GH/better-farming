@@ -37,18 +37,19 @@ public class TravelTargetOverlay extends Overlay
 	private static final int HIGHLIGHT_RADIUS_TILES = 40;
 
 	/**
-	 * The NPC stage begins this close to the boarding tile, on its plane —
-	 * i.e. after actually crossing the gangplank, not while eyeing it from
-	 * the dock. Within this radius the nearest namesake is the right one.
+	 * The NPC stage begins this close to the boarding tile (2D — the tile's
+	 * recorded plane is unreliable: ship decks are plane 1 while the vendored
+	 * boarding tiles say 0, which once kept Bill Teach from ever glowing).
+	 * Within this radius the nearest same-plane namesake is the right one.
 	 */
-	static final int NPC_STAGE_RADIUS_TILES = 5;
+	static final int NPC_STAGE_RADIUS_TILES = 15;
 
 	/**
 	 * How far from the boarding tile the ferryman may stand and still match:
 	 * he roams the deck, so this is looser than the player threshold but far
 	 * inside the old 40-tile search that caught dockside namesakes.
 	 */
-	static final int NPC_MATCH_RADIUS_TILES = 10;
+	static final int NPC_MATCH_RADIUS_TILES = 20;
 
 	private final Client runeliteClient;
 	private final BetterFarmingConfig config;
@@ -85,12 +86,14 @@ public class TravelTargetOverlay extends Overlay
 			return null;
 		}
 
-		// Gangplank first, ferryman only once aboard: the object highlight
-		// leads while approaching, the NPC takes over after the crossing.
+		// Gangplank first, ferryman only once reachable: the object highlight
+		// leads while approaching; the NPC takes over when close AND on the
+		// player's plane — a deck NPC one level up stays dark until the
+		// gangplank has actually been crossed.
 		Shape shape = null;
 		if (npcStage(player.getWorldLocation(), target))
 		{
-			shape = npcShape(hop, target);
+			shape = npcShape(hop, target, player.getWorldLocation().getPlane());
 		}
 		if (shape == null)
 		{
@@ -111,25 +114,28 @@ public class TravelTargetOverlay extends Overlay
 	}
 
 	/**
-	 * True once the player has effectively crossed onto the boarding tile:
-	 * within a few tiles AND on its plane — a ship deck one plane up, or a
-	 * dock the gangplank hasn't been crossed from yet, is not aboard.
+	 * True when the player is close enough to the boarding point for the
+	 * ferryman highlight to take over from the gangplank. Distance only —
+	 * plane discrimination happens against the NPC's LIVE plane in
+	 * {@link #npcShape}, because the recorded boarding tile's plane is
+	 * untrustworthy (decks are plane 1, the data says 0).
 	 */
 	static boolean npcStage(WorldPoint player, WorldPoint target)
 	{
-		return player.getPlane() == target.getPlane()
-			&& player.distanceTo2D(target) <= NPC_STAGE_RADIUS_TILES;
+		return player.distanceTo2D(target) <= NPC_STAGE_RADIUS_TILES;
 	}
 
 	/**
 	 * Convex hull of the hop's NPC (ferryman) when it is at the boarding
-	 * point. Matched by the NAME in the vendored "menuOption menuTarget id"
-	 * column — NPCs like Bill Teach exist under several ids and the data pins
-	 * only one, so the id is a fallback, not the primary key. The search is
-	 * bounded to the NPC match radius: a namesake standing anywhere else
-	 * must never light up.
+	 * point on the player's plane — a deck NPC one level up stays dark until
+	 * the player has crossed the gangplank onto that deck. Matched by the
+	 * NAME in the vendored "menuOption menuTarget id" column — NPCs like
+	 * Bill Teach exist under several ids and the data pins only one, so the
+	 * id is a fallback, not the primary key. The search is bounded to the
+	 * NPC match radius: a namesake standing anywhere else must never light
+	 * up.
 	 */
-	private Shape npcShape(Teleport hop, WorldPoint target)
+	private Shape npcShape(Teleport hop, WorldPoint target, int playerPlane)
 	{
 		String name = menuTargetName(hop.objectInfo());
 		int npcId = trailingId(hop.objectInfo());
@@ -140,6 +146,7 @@ public class TravelTargetOverlay extends Overlay
 		for (NPC npc : runeliteClient.getTopLevelWorldView().npcs())
 		{
 			if (npc == null
+				|| npc.getWorldLocation().getPlane() != playerPlane
 				|| npc.getWorldLocation().distanceTo2D(target) > NPC_MATCH_RADIUS_TILES)
 			{
 				continue;
