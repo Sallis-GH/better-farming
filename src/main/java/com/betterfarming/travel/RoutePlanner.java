@@ -62,6 +62,14 @@ public final class RoutePlanner
 	 */
 	static final double CHARTER_PENALTY_TICKS = 20;
 
+	/**
+	 * Slot-penalty discount for consumable teleport items (tablets, icy/stony
+	 * basalt): bring exactly what the run needs and the slot frees itself
+	 * mid-run, unlike a reusable item that rides along the whole way — so at
+	 * similar speed the consumable wins the space argument. Selection only.
+	 */
+	static final double CONSUMED_SLOT_FACTOR = 0.5;
+
 	/** Default slot estimate: one inventory slot per AND-term item need. */
 	public static final ToIntFunction<Teleport> DEFAULT_SLOT_COST = t -> t.items().size();
 
@@ -251,7 +259,13 @@ public final class RoutePlanner
 			for (int i = 0; i < teleports.size(); i++)
 			{
 				Teleport t = teleports.get(i);
-				penalty[i] = SLOT_PENALTY_TICKS * slotCost.applyAsInt(t)
+				double slotTicks = SLOT_PENALTY_TICKS * slotCost.applyAsInt(t);
+				if (t.consumable())
+				{
+					// The slot frees once the item is used mid-run.
+					slotTicks *= CONSUMED_SLOT_FACTOR;
+				}
+				penalty[i] = slotTicks
 					+ (t.type() == TeleportType.CHARTER_SHIP ? CHARTER_PENALTY_TICKS : 0);
 			}
 		}
