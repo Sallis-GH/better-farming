@@ -22,8 +22,13 @@ public final class FarmingTools
 	static final int BOTTOMLESS_COMPOST_BUCKET_FILLED = 22997;
 
 	static final Set<Integer> ANY_SECATEURS = Set.of(SECATEURS, MAGIC_SECATEURS);
+	/**
+	 * FILLED first on purpose: iteration order feeds the bank tab's display
+	 * preference, and the filled bucket is the one worth showing/withdrawing.
+	 */
 	static final Set<Integer> ANY_BOTTOMLESS_BUCKET =
-		Set.of(BOTTOMLESS_COMPOST_BUCKET, BOTTOMLESS_COMPOST_BUCKET_FILLED);
+		java.util.Collections.unmodifiableSet(new java.util.LinkedHashSet<>(
+			java.util.List.of(BOTTOMLESS_COMPOST_BUCKET_FILLED, BOTTOMLESS_COMPOST_BUCKET)));
 
 	private FarmingTools()
 	{

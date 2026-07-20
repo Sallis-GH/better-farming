@@ -89,6 +89,47 @@ public class FarmingBankTagServiceTest
 	}
 
 	@Test
+	public void bottomlessBucketListsTheFilledVariantFirst()
+	{
+		selection.setGroupActive("HERB|Falador", true);
+		List<BankTabItems> sections = service.buildSections();
+		BankTabItem bucket = sections.stream()
+			.flatMap(s -> s.getRecommendedItems().stream())
+			.filter(i -> i.text().equals("Bottomless compost bucket"))
+			.findFirst().orElseThrow();
+		assertEquals("filled bucket is the preferred display variant",
+			22997, (int) bucket.itemIds().get(0));
+	}
+
+	@Test
+	public void carriedVariantLeadsTheDisplayOrder()
+	{
+		selection.setGroupActive("HERB|Falador", true);
+		// A non-default graceful hood recolour on the player: its ghost icon
+		// must keep that recolour, not flip to the default or a random one.
+		ItemTrackerTestSupport.updateContainer(tracker, ItemTrackerTestSupport.CONTAINER_INVENTORY,
+			new Item[]{new Item(13579, 1)}); // Arceuus hood (inventory id)
+		List<BankTabItems> sections = service.buildSections();
+		BankTabItem hood = sections.stream()
+			.filter(s -> s.getName().equals("Graceful"))
+			.flatMap(s -> s.getItems().stream())
+			.filter(i -> i.text().equals("Hood"))
+			.findFirst().orElseThrow();
+		assertEquals(13579, (int) hood.itemIds().get(0));
+
+		// Nothing carried: the declared order leads — default recolour first.
+		ItemTrackerTestSupport.updateContainer(tracker, ItemTrackerTestSupport.CONTAINER_INVENTORY, new Item[]{});
+		sections = service.buildSections();
+		hood = sections.stream()
+			.filter(s -> s.getName().equals("Graceful"))
+			.flatMap(s -> s.getItems().stream())
+			.filter(i -> i.text().equals("Hood"))
+			.findFirst().orElseThrow();
+		assertEquals("default graceful leads when nothing is carried",
+			11850, (int) hood.itemIds().get(0));
+	}
+
+	@Test
 	public void sectionsSplitByCategory_recommendedSeparated()
 	{
 		selection.setGroupActive("HERB|Falador", true);
