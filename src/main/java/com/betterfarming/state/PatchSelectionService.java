@@ -196,6 +196,159 @@ public class PatchSelectionService
 		}
 	}
 
+	// ── templates ──
+
+	private static final int TEMPLATES_VERSION = 1;
+
+	/** Saved template names, sorted case-insensitively. */
+	public java.util.List<String> templateNames()
+	{
+		java.util.List<String> names = new java.util.ArrayList<>(loadTemplates().keySet());
+		names.sort(String.CASE_INSENSITIVE_ORDER);
+		return names;
+	}
+
+	/**
+	 * Snapshots the current active groups + seed selections under the given
+	 * name, overwriting an existing template of that name.
+	 */
+	public void saveTemplate(String name)
+	{
+		String trimmed = name == null ? "" : name.trim();
+		if (trimmed.isEmpty())
+		{
+			return;
+		}
+		Blob snapshot = new Blob();
+		snapshot.version = CURRENT_VERSION;
+		snapshot.activeGroups = new LinkedHashSet<>(activeGroupKeys);
+		snapshot.seeds = new LinkedHashMap<>();
+		for (PatchSelection sel : selections.values())
+		{
+			if (sel.seedId() != null)
+			{
+				snapshot.seeds.put(sel.patchId(), sel.seedId());
+			}
+		}
+		Map<String, Blob> templates = loadTemplates();
+		templates.put(trimmed, snapshot);
+		saveTemplates(templates);
+	}
+
+	/**
+	 * Replaces the current active groups + seed selections with the named
+	 * template's, firing the normal per-group/per-patch events so every card
+	 * and service updates as if the user had clicked it all. Unknown ids in
+	 * the stored template (data renames) are dropped silently. Returns false
+	 * when no template of that name exists.
+	 */
+	public boolean loadTemplate(String name)
+	{
+		Blob template = loadTemplates().get(name == null ? "" : name.trim());
+		if (template == null)
+		{
+			return false;
+		}
+		Set<String> wantActive = new LinkedHashSet<>();
+		if (template.activeGroups != null)
+		{
+			for (String key : template.activeGroups)
+			{
+				if (key != null && !key.isEmpty()
+					&& (validGroupKeys.isEmpty() || validGroupKeys.contains(key)))
+				{
+					wantActive.add(key);
+				}
+			}
+		}
+		Map<String, String> wantSeeds = new LinkedHashMap<>();
+		if (template.seeds != null)
+		{
+			for (Map.Entry<String, String> e : template.seeds.entrySet())
+			{
+				if (validPatchIds.contains(e.getKey()) && e.getValue() != null
+					&& validSeedIds.contains(e.getValue()))
+				{
+					wantSeeds.put(e.getKey(), e.getValue());
+				}
+			}
+		}
+		for (String key : activeGroups())
+		{
+			if (!wantActive.contains(key))
+			{
+				setGroupActive(key, false);
+			}
+		}
+		for (String key : wantActive)
+		{
+			setGroupActive(key, true);
+		}
+		for (String patchId : new LinkedHashSet<>(selections.keySet()))
+		{
+			if (!wantSeeds.containsKey(patchId))
+			{
+				setSeed(patchId, null);
+			}
+		}
+		for (Map.Entry<String, String> e : wantSeeds.entrySet())
+		{
+			setSeed(e.getKey(), e.getValue());
+		}
+		return true;
+	}
+
+	public void deleteTemplate(String name)
+	{
+		Map<String, Blob> templates = loadTemplates();
+		if (templates.remove(name == null ? "" : name.trim()) != null)
+		{
+			saveTemplates(templates);
+		}
+	}
+
+	private Map<String, Blob> loadTemplates()
+	{
+		String raw = configStore.get(
+			BetterFarmingConfig.GROUP, BetterFarmingConfig.RUN_TEMPLATES_KEY);
+		if (raw == null || raw.isEmpty())
+		{
+			return new LinkedHashMap<>();
+		}
+		try
+		{
+			TemplatesBlob blob = GSON.fromJson(raw, TemplatesBlob.class);
+			if (blob == null || blob.version != TEMPLATES_VERSION || blob.templates == null)
+			{
+				log.warn("Better Farming: unexpected runTemplates blob (version {}), treating as empty",
+					blob == null ? null : blob.version);
+				return new LinkedHashMap<>();
+			}
+			return new LinkedHashMap<>(blob.templates);
+		}
+		catch (JsonSyntaxException ex)
+		{
+			log.warn("Better Farming: could not parse runTemplates blob, treating as empty", ex);
+			return new LinkedHashMap<>();
+		}
+	}
+
+	private void saveTemplates(Map<String, Blob> templates)
+	{
+		TemplatesBlob blob = new TemplatesBlob();
+		blob.version = TEMPLATES_VERSION;
+		blob.templates = templates;
+		configStore.set(BetterFarmingConfig.GROUP, BetterFarmingConfig.RUN_TEMPLATES_KEY,
+			GSON.toJson(blob));
+	}
+
+	// Internal serialization shape — package-private fields for Gson.
+	static class TemplatesBlob
+	{
+		int version;
+		Map<String, Blob> templates;
+	}
+
 	// ── persistence ──
 
 	private void load()

@@ -121,6 +121,10 @@ public class BetterFarmingPanel extends PluginPanel
 		runItemsSection.setAlignmentX(Component.LEFT_ALIGNMENT);
 		column.add(runItemsSection);
 
+		TemplatesSection templatesSection = new TemplatesSection(selectionService);
+		templatesSection.setAlignmentX(Component.LEFT_ALIGNMENT);
+		column.add(templatesSection);
+
 		boolean perType = config.seedSelectionMode()
 			== BetterFarmingConfig.SeedSelectionMode.PER_TYPE;
 		for (PatchType type : DISPLAY_ORDER)

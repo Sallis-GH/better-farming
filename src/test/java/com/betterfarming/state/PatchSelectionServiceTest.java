@@ -390,4 +390,95 @@ public class PatchSelectionServiceTest
 
 		assertFalse(loaded.get("p1").isPresent());
 	}
+
+	// ── templates ──
+
+	private PatchSelectionService templateService()
+	{
+		return new PatchSelectionService(configManager,
+			Set.of("p1", "p2"), Set.of("watermelon_seed", "toadflax_seed"),
+			Set.of("HERB|Catherby", "TREE|Taverley"));
+	}
+
+	@Test
+	public void saveAndLoadTemplateRoundTripsTheSetup()
+	{
+		PatchSelectionService s = templateService();
+		s.setGroupActive("HERB|Catherby", true);
+		s.setSeed("p1", "toadflax_seed");
+		s.saveTemplate("herb run");
+
+		// Change everything, then load the template back.
+		s.setGroupActive("HERB|Catherby", false);
+		s.setGroupActive("TREE|Taverley", true);
+		s.setSeed("p1", "watermelon_seed");
+		s.setSeed("p2", "watermelon_seed");
+
+		assertTrue(s.loadTemplate("herb run"));
+		assertTrue(s.isGroupActive("HERB|Catherby"));
+		assertFalse("groups not in the template deactivate", s.isGroupActive("TREE|Taverley"));
+		assertEquals("toadflax_seed", s.get("p1").orElseThrow().seedId());
+		assertFalse("seeds not in the template clear", s.get("p2").isPresent());
+	}
+
+	@Test
+	public void templatesPersistAcrossServiceInstances()
+	{
+		PatchSelectionService s = templateService();
+		s.setGroupActive("HERB|Catherby", true);
+		s.setSeed("p1", "toadflax_seed");
+		s.saveTemplate("herb run");
+
+		PatchSelectionService fresh = templateService();
+		assertEquals(List.of("herb run"), fresh.templateNames());
+		assertTrue(fresh.loadTemplate("herb run"));
+		assertTrue(fresh.isGroupActive("HERB|Catherby"));
+		assertEquals("toadflax_seed", fresh.get("p1").orElseThrow().seedId());
+	}
+
+	@Test
+	public void loadFiresTheNormalEvents()
+	{
+		PatchSelectionService s = templateService();
+		s.setSeed("p1", "toadflax_seed");
+		s.saveTemplate("t");
+		s.setSeed("p1", "watermelon_seed");
+
+		List<PatchSelectionEvent> seen = new ArrayList<>();
+		s.addListener(seen::add);
+		s.loadTemplate("t");
+		assertEquals(1, seen.size());
+		assertEquals("toadflax_seed", seen.get(0).newSelection().seedId());
+	}
+
+	@Test
+	public void unknownTemplateReturnsFalseAndChangesNothing()
+	{
+		PatchSelectionService s = templateService();
+		s.setSeed("p1", "toadflax_seed");
+		assertFalse(s.loadTemplate("nope"));
+		assertEquals("toadflax_seed", s.get("p1").orElseThrow().seedId());
+	}
+
+	@Test
+	public void deleteAndStaleIdsAreHandled()
+	{
+		PatchSelectionService s = templateService();
+		s.saveTemplate("gone");
+		s.deleteTemplate("gone");
+		assertTrue(s.templateNames().isEmpty());
+		assertFalse(s.loadTemplate("gone"));
+
+		// A template carrying ids the dataset no longer has loads what it can.
+		configManager.putRaw("betterfarming", "runTemplates",
+			"{\"version\":1,\"templates\":{\"old\":{\"version\":2,"
+				+ "\"activeGroups\":[\"HERB|Catherby\",\"HERB|Removed\"],"
+				+ "\"seeds\":{\"p1\":\"toadflax_seed\",\"removed_patch\":\"toadflax_seed\","
+				+ "\"p2\":\"removed_seed\"}}}}");
+		assertTrue(s.loadTemplate("old"));
+		assertTrue(s.isGroupActive("HERB|Catherby"));
+		assertFalse(s.isGroupActive("HERB|Removed"));
+		assertEquals("toadflax_seed", s.get("p1").orElseThrow().seedId());
+		assertFalse("unknown seed id dropped", s.get("p2").isPresent());
+	}
 }
