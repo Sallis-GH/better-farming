@@ -203,30 +203,36 @@ public interface BetterFarmingConfig extends Config
 		return true;
 	}
 
-	/** Sidebar visibility for a patch type — dispatch over the checkboxes above. */
-	default boolean showType(com.betterfarming.data.PatchType type)
+	/**
+	 * Sidebar visibility for a patch type — dispatch over the checkboxes
+	 * above. STATIC on purpose: RuneLite's config proxy intercepts every
+	 * non-static default method and returns null for ones without a
+	 * @ConfigItem (NPE on unboxing); static interface methods bypass the
+	 * proxy entirely. Guarded by ConfigProxyContractTest.
+	 */
+	static boolean showType(BetterFarmingConfig config, com.betterfarming.data.PatchType type)
 	{
 		switch (type)
 		{
-			case ALLOTMENT: return showTypeAllotment();
-			case FLOWER: return showTypeFlower();
-			case HERB: return showTypeHerb();
-			case TREE: return showTypeTree();
-			case FRUIT_TREE: return showTypeFruitTree();
-			case BUSH: return showTypeBush();
-			case HOPS: return showTypeHops();
-			case HARDWOOD_TREE: return showTypeHardwoodTree();
-			case SPIRIT_TREE: return showTypeSpiritTree();
-			case CALQUAT: return showTypeCalquat();
-			case CACTUS: return showTypeCactus();
-			case BELLADONNA: return showTypeBelladonna();
-			case MUSHROOM: return showTypeMushroom();
-			case SEAWEED: return showTypeSeaweed();
-			case REDWOOD: return showTypeRedwood();
-			case CRYSTAL_TREE: return showTypeCrystalTree();
-			case CELASTRUS: return showTypeCelastrus();
-			case ANIMA: return showTypeAnima();
-			case HESPORI: return showTypeHespori();
+			case ALLOTMENT: return config.showTypeAllotment();
+			case FLOWER: return config.showTypeFlower();
+			case HERB: return config.showTypeHerb();
+			case TREE: return config.showTypeTree();
+			case FRUIT_TREE: return config.showTypeFruitTree();
+			case BUSH: return config.showTypeBush();
+			case HOPS: return config.showTypeHops();
+			case HARDWOOD_TREE: return config.showTypeHardwoodTree();
+			case SPIRIT_TREE: return config.showTypeSpiritTree();
+			case CALQUAT: return config.showTypeCalquat();
+			case CACTUS: return config.showTypeCactus();
+			case BELLADONNA: return config.showTypeBelladonna();
+			case MUSHROOM: return config.showTypeMushroom();
+			case SEAWEED: return config.showTypeSeaweed();
+			case REDWOOD: return config.showTypeRedwood();
+			case CRYSTAL_TREE: return config.showTypeCrystalTree();
+			case CELASTRUS: return config.showTypeCelastrus();
+			case ANIMA: return config.showTypeAnima();
+			case HESPORI: return config.showTypeHespori();
 			default: return true;
 		}
 	}

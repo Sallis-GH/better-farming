@@ -130,7 +130,8 @@ public class BetterFarmingPanel extends PluginPanel
 		for (PatchType type : DISPLAY_ORDER)
 		{
 			List<PatchGroup> typeGroups = byType.get(type);
-			if (typeGroups == null || typeGroups.isEmpty() || !config.showType(type))
+			if (typeGroups == null || typeGroups.isEmpty()
+				|| !BetterFarmingConfig.showType(config, type))
 			{
 				continue;
 			}
