@@ -59,6 +59,20 @@ public class PatchGroupCard extends JPanel
 		SeedAvailabilityService availabilityService,
 		PatchAccessibilityService accessibilityService)
 	{
+		this(group, selectionService, availabilityService, accessibilityService, true);
+	}
+
+	/**
+	 * @param showSeedPickers false in simple mode (one seed per patch type):
+	 *     the card is just the location title + active toggle, with the
+	 *     per-type picker owning seed choice.
+	 */
+	public PatchGroupCard(PatchGroup group,
+		PatchSelectionService selectionService,
+		SeedAvailabilityService availabilityService,
+		PatchAccessibilityService accessibilityService,
+		boolean showSeedPickers)
+	{
 		this.group = group;
 		this.selectionService = selectionService;
 		this.availabilityService = availabilityService;
@@ -108,21 +122,23 @@ public class PatchGroupCard extends JPanel
 
 		header.add(rightSlot, BorderLayout.EAST);
 
-		// ── body: BoxLayout of PatchSubRows ──
-		JPanel body = new JPanel();
-		body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-		body.setOpaque(false);
-
-		for (Patch p : group.patches())
-		{
-			PatchSubRow row = new PatchSubRow(p, p.subPatchLabel(), selectionService, availabilityService);
-			row.setAlignmentX(Component.LEFT_ALIGNMENT);
-			subRows.add(row);
-			body.add(row);
-		}
-
+		// ── body: BoxLayout of PatchSubRows (per-patch seed mode only) ──
 		add(header, BorderLayout.NORTH);
-		add(body, BorderLayout.CENTER);
+		if (showSeedPickers)
+		{
+			JPanel body = new JPanel();
+			body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+			body.setOpaque(false);
+
+			for (Patch p : group.patches())
+			{
+				PatchSubRow row = new PatchSubRow(p, p.subPatchLabel(), selectionService, availabilityService);
+				row.setAlignmentX(Component.LEFT_ALIGNMENT);
+				subRows.add(row);
+				body.add(row);
+			}
+			add(body, BorderLayout.CENTER);
+		}
 
 		// ── initial render of the toggle ──
 		renderActive(selectionService.isGroupActive(group.key()));

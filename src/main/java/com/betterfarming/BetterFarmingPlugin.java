@@ -98,6 +98,7 @@ public class BetterFarmingPlugin extends Plugin
 	private Runnable itemTrackerRouteListener;
 	private PlantingGuide plantingGuide;
 	private com.betterfarming.item.RunePouchReader runePouchReader;
+	private volatile BetterFarmingPanel sidebarPanel;
 	private GuidanceService guidanceService;
 	private GuidanceWorldMapMarker worldMapMarker;
 	private ShortestPathBridge shortestPathBridge;
@@ -271,7 +272,8 @@ public class BetterFarmingPlugin extends Plugin
 		SwingUtilities.invokeLater(() -> {
 			BetterFarmingPanel panel = new BetterFarmingPanel(
 				data, selectionService, availabilityService, accessibilityService,
-				runItemsService, runOrderService, itemTracker, guidanceService);
+				runItemsService, runOrderService, itemTracker, guidanceService, config);
+			sidebarPanel = panel;
 			navButton = NavigationButton.builder()
 				.tooltip("Better Farming")
 				.icon(icon)
@@ -290,6 +292,7 @@ public class BetterFarmingPlugin extends Plugin
 			clientToolbar.removeNavigation(navButton);
 			navButton = null;
 		}
+		sidebarPanel = null;
 		if (availabilityService != null)
 		{
 			eventBus.unregister(availabilityService);
@@ -408,6 +411,17 @@ public class BetterFarmingPlugin extends Plugin
 	{
 		if (!BetterFarmingConfig.GROUP.equals(event.getGroup()))
 		{
+			return;
+		}
+		String key = event.getKey();
+		if ("seedSelectionMode".equals(key) || (key != null && key.startsWith("showType")))
+		{
+			// Pure sidebar layout: rebuild the panel column, nothing else.
+			BetterFarmingPanel panel = sidebarPanel;
+			if (panel != null)
+			{
+				SwingUtilities.invokeLater(panel::rebuildContent);
+			}
 			return;
 		}
 		if (GUIDANCE_DISPLAY_KEYS.contains(event.getKey()))

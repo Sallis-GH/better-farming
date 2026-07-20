@@ -1,5 +1,6 @@
 package com.betterfarming.ui;
 
+import com.betterfarming.BetterFarmingConfig;
 import com.betterfarming.data.FarmingData;
 import com.betterfarming.data.PatchGroup;
 import com.betterfarming.data.PatchType;
@@ -27,8 +28,13 @@ import net.runelite.client.ui.PluginPanel;
 
 /**
  * Top-level sidebar panel. One PatchTypeSection per PatchType present in the
- * bundled FarmingData, in a fixed display order. Each section holds one
- * PatchGroupCard per (type, location) group.
+ * bundled FarmingData (and not hidden via config), in a fixed display order.
+ * Seed choice is per-type (one picker per section, simple mode) or per-patch
+ * (a dropdown in every group card) per BetterFarmingConfig.seedSelectionMode.
+ *
+ * The content column is rebuilt via rebuildContent() when the layout config
+ * changes; swapping the viewport view detaches the old components, whose
+ * removeNotify() hooks unsubscribe them from the services.
  */
 public class BetterFarmingPanel extends PluginPanel
 {
@@ -42,6 +48,17 @@ public class BetterFarmingPanel extends PluginPanel
 		PatchType.ANIMA, PatchType.HESPORI
 	);
 
+	private final FarmingData data;
+	private final PatchSelectionService selectionService;
+	private final SeedAvailabilityService availabilityService;
+	private final PatchAccessibilityService accessibilityService;
+	private final RunItemsService runItemsService;
+	private final RunOrderService runOrderService;
+	private final ItemTracker itemTracker;
+	private final GuidanceService guidanceService;
+	private final BetterFarmingConfig config;
+	private final JScrollPane scroll;
+
 	public BetterFarmingPanel(FarmingData data,
 		PatchSelectionService selectionService,
 		SeedAvailabilityService availabilityService,
@@ -49,12 +66,41 @@ public class BetterFarmingPanel extends PluginPanel
 		RunItemsService runItemsService,
 		RunOrderService runOrderService,
 		ItemTracker itemTracker,
-		GuidanceService guidanceService)
+		GuidanceService guidanceService,
+		BetterFarmingConfig config)
 	{
 		super(false);
+		this.data = data;
+		this.selectionService = selectionService;
+		this.availabilityService = availabilityService;
+		this.accessibilityService = accessibilityService;
+		this.runItemsService = runItemsService;
+		this.runOrderService = runOrderService;
+		this.itemTracker = itemTracker;
+		this.guidanceService = guidanceService;
+		this.config = config;
+
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
+		scroll = new JScrollPane();
+		scroll.setBorder(null);
+		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+		rebuildContent();
+
+		add(scroll, BorderLayout.CENTER);
+		setPreferredSize(new Dimension(225, 600));
+	}
+
+	/**
+	 * (Re)builds the sidebar column from the current config — seed selection
+	 * mode and hidden patch types. EDT only; replacing the viewport view
+	 * detaches the previous components (their removeNotify unsubscribes).
+	 */
+	public void rebuildContent()
+	{
 		List<PatchGroup> groups = PatchGroup.groupAll(data.patches());
 		Map<PatchType, List<PatchGroup>> byType = new EnumMap<>(PatchType.class);
 		for (PatchGroup g : groups)
@@ -75,10 +121,12 @@ public class BetterFarmingPanel extends PluginPanel
 		runItemsSection.setAlignmentX(Component.LEFT_ALIGNMENT);
 		column.add(runItemsSection);
 
+		boolean perType = config.seedSelectionMode()
+			== BetterFarmingConfig.SeedSelectionMode.PER_TYPE;
 		for (PatchType type : DISPLAY_ORDER)
 		{
 			List<PatchGroup> typeGroups = byType.get(type);
-			if (typeGroups == null || typeGroups.isEmpty())
+			if (typeGroups == null || typeGroups.isEmpty() || !config.showType(type))
 			{
 				continue;
 			}
@@ -86,21 +134,19 @@ public class BetterFarmingPanel extends PluginPanel
 			for (PatchGroup g : typeGroups)
 			{
 				cards.add(new PatchGroupCard(g, selectionService, availabilityService,
-					accessibilityService));
+					accessibilityService, !perType));
 			}
-			PatchTypeSection section = new PatchTypeSection(type, cards);
+			TypeSeedRow seedRow = perType
+				? new TypeSeedRow(type, typeGroups, selectionService, availabilityService)
+				: null;
+			PatchTypeSection section = new PatchTypeSection(type, cards, seedRow);
 			section.setAlignmentX(Component.LEFT_ALIGNMENT);
 			column.add(section);
 		}
 
-		JScrollPane scroll = new JScrollPane(column);
-		scroll.setBorder(null);
-		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scroll.getVerticalScrollBar().setUnitIncrement(16);
-
-		add(scroll, BorderLayout.CENTER);
-		setPreferredSize(new Dimension(225, 600));
+		scroll.setViewportView(column);
+		revalidate();
+		repaint();
 	}
 
 	/** See Phase 1's BetterFarmingPanel for the rationale on why this exists. */

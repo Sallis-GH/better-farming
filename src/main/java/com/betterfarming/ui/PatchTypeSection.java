@@ -28,6 +28,16 @@ public class PatchTypeSection extends JPanel
 
 	public PatchTypeSection(PatchType type, List<PatchGroupCard> cards)
 	{
+		this(type, cards, null);
+	}
+
+	/**
+	 * @param topRow optional component rendered above the cards, inside the
+	 *     collapsible area — the simple-mode per-type seed picker.
+	 */
+	public PatchTypeSection(PatchType type, List<PatchGroupCard> cards,
+		javax.swing.JComponent topRow)
+	{
 		setLayout(new BorderLayout());
 		setOpaque(false);
 		setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -52,6 +62,11 @@ public class PatchTypeSection extends JPanel
 		cardsContainer = new JPanel();
 		cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
 		cardsContainer.setOpaque(false);
+		if (topRow != null)
+		{
+			topRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+			cardsContainer.add(topRow);
+		}
 		for (PatchGroupCard card : cards)
 		{
 			card.setAlignmentX(Component.LEFT_ALIGNMENT);
