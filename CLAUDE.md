@@ -79,6 +79,19 @@ Sarim + charter over the ectophial chain). Also CHARTER_PENALTY_TICKS = 20 selec
 penalty (fare slot + real interaction overhead ≫ vendored 6-tick duration).
 HarmonyRouteRegressionTest runs the real TSVs end-to-end.
 
+Feedback round (2026-07-20, PRs #41–#46): #41 ferry staging — npcStage distance-only
+(radius 15; recorded boarding-tile planes are unreliable, decks are plane 1 vs data's 0
+which kept Bill Teach dark forever), NPC match = player's LIVE plane within 20 tiles;
+#42 compost flag resets on transition INTO EMPTY, not on planting (compost-before-seed
+is valid and carries into the crop); #43 patch highlight blinks off instead of falling
+back to the dataset tile once the object has been seen (multiloc swaps despawn it per
+pick — the fallback tile is under the player, hence the "hopping"); #44 bank tab
+variant order — Set.of iteration is RANDOMIZED, so ANY_BOTTOMLESS_BUCKET and the
+generated Outfits sets are now insertion-ordered (filled bucket/default recolour first)
+and FarmingBankTagService orders ids carried-variants-first (ghost keeps the withdrawn
+piece's recolour); #45 consumable teleports (data flag) pay half the slot selection
+penalty (the slot frees mid-run — icy/stony basalt point); #46 "Optional" wording.
+
 NEXT: **in-game verification** (owner tests; expect feedback), then
 **Phase 7 — polish** (protection payments, player-grown spirit trees as teleport
 origins, agility shortcuts, diary cheaper teleports; UI/design pass).
