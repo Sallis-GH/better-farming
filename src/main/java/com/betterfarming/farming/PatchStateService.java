@@ -296,13 +296,23 @@ public class PatchStateService
 				if (s != CropState.UNKNOWN)
 				{
 					Observation previous = liveObserved.put(p.id(), new Observation(s, now));
+					if (s == CropState.EMPTY && previous != null
+						&& previous.state != CropState.EMPTY)
+					{
+						// Harvested/cleared in front of us: a fresh crop cycle
+						// begins — the compost flag resets HERE, not on
+						// planting, because composting an empty patch before
+						// seeding it is valid and must carry into the crop.
+						plantedThisSession.remove(p.id());
+						compostedThisSession.remove(p.id());
+					}
 					if (s == CropState.GROWING && previous != null
 						&& previous.state == CropState.EMPTY)
 					{
 						// Watched the planting happen: the compost step for
-						// this crop starts now.
+						// this crop starts now (already satisfied if compost
+						// went on the empty patch first).
 						plantedThisSession.add(p.id());
-						compostedThisSession.remove(p.id());
 					}
 				}
 			}
